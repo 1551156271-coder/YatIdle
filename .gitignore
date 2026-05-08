@@ -4,8 +4,6 @@ backend/.idea/
 backend/.vscode/
 backend/*.log
 backend/.mvn/
-backend/mvnw
-backend/mvnw.cmd
 
 # Frontend
 frontend/node_modules/
