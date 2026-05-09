@@ -62,6 +62,54 @@
 				"navigationBarBackgroundColor": "#00613C",
 				"navigationBarTextStyle": "white"
 			}
+		},
+		{
+			"path": "pages/my-edit/my-edit",
+			"style": {
+				"navigationBarTitleText": "编辑资料",
+				"navigationBarBackgroundColor": "#00613C",
+				"navigationBarTextStyle": "white"
+			}
+		},
+		{
+			"path": "pages/my-listings/my-listings",
+			"style": {
+				"navigationBarTitleText": "我的发布",
+				"navigationBarBackgroundColor": "#00613C",
+				"navigationBarTextStyle": "white"
+			}
+		},
+		{
+			"path": "pages/my-orders/my-orders",
+			"style": {
+				"navigationBarTitleText": "我的订单",
+				"navigationBarBackgroundColor": "#00613C",
+				"navigationBarTextStyle": "white"
+			}
+		},
+		{
+			"path": "pages/order-detail/order-detail",
+			"style": {
+				"navigationBarTitleText": "订单详情",
+				"navigationBarBackgroundColor": "#00613C",
+				"navigationBarTextStyle": "white"
+			}
+		},
+		{
+			"path": "pages/my-credit/my-credit",
+			"style": {
+				"navigationBarTitleText": "我的信用",
+				"navigationBarBackgroundColor": "#00613C",
+				"navigationBarTextStyle": "white"
+			}
+		},
+		{
+			"path": "pages/my-wishlist/my-wishlist",
+			"style": {
+				"navigationBarTitleText": "心愿单",
+				"navigationBarBackgroundColor": "#00613C",
+				"navigationBarTextStyle": "white"
+			}
 		}
 	],
 	"globalStyle": {
