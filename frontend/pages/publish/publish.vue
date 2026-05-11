@@ -1,151 +1,133 @@
 <template>
-	<view class="publish-page">
-		<view class="publish-hero">
-			<text class="hero-icon">📸</text>
-			<text class="hero-title">发布闲置好物</text>
-			<text class="hero-sub">让闲置流动起来，助力绿色校园</text>
+	<view class="publish-select-page">
+		<view class="ps-hero">
+			<text class="ps-icon">📦</text>
+			<text class="ps-title">选择发布类型</text>
+			<text class="ps-sub">你想出售闲置还是求购好物？</text>
 		</view>
-		<view class="form-card">
-			<view class="form-item">
-				<text class="form-label">商品图片</text>
-				<view class="upload-box" @click="uploadImage">
-					<text class="upload-icon">+</text>
-					<text class="upload-text">添加图片</text>
+
+		<view class="ps-cards">
+			<view class="ps-card ps-card-sell" @click="goPublish('sell')">
+				<view class="ps-card-icon">
+					<text class="ps-card-emoji">💸</text>
 				</view>
+				<text class="ps-card-title">出售闲置</text>
+				<text class="ps-card-desc">上传商品信息，把闲置物品卖给需要的同学</text>
+				<view class="ps-card-btn">发布闲置</view>
 			</view>
-			<view class="form-item">
-				<text class="form-label">商品名称</text>
-				<input class="form-input" placeholder="请输入商品名称" />
-			</view>
-			<view class="form-item">
-				<text class="form-label">价格</text>
-				<view class="price-input-box">
-					<text class="price-unit">¥</text>
-					<input class="form-input price-input" type="digit" placeholder="0.00" />
+
+			<view class="ps-card ps-card-buy" @click="goPublish('buy')">
+				<view class="ps-card-icon">
+					<text class="ps-card-emoji">📋</text>
 				</view>
+				<text class="ps-card-title">求购物品</text>
+				<text class="ps-card-desc">发布求购信息，让有货的同学主动联系你</text>
+				<view class="ps-card-btn">发布求购</view>
 			</view>
-			<view class="form-item">
-				<text class="form-label">商品分类</text>
-				<picker :range="categoryList" @change="onCategoryChange">
-					<view class="picker-text">{{ selectedCategory || '请选择分类' }}</view>
-				</picker>
-			</view>
-			<view class="form-item">
-				<text class="form-label">所在校区</text>
-				<picker :range="campusList" @change="onCampusChange">
-					<view class="picker-text">{{ selectedCampus || '请选择校区' }}</view>
-				</picker>
-			</view>
-			<view class="form-item">
-				<text class="form-label">商品描述</text>
-				<textarea class="form-textarea" placeholder="描述一下你的商品吧~" :maxlength="500" />
-			</view>
-			<button class="submit-btn" @click="onSubmit">发布商品</button>
 		</view>
 	</view>
 </template>
 
 <script>
 	export default {
-		data() {
-			return {
-				categoryList: ['数码电子', '书籍教材', '生活用品', '运动户外', '服饰鞋包', '其他'],
-				campusList: ['东校园', '南校园', '北校园', '珠海校区', '深圳校区'],
-				selectedCategory: '',
-				selectedCampus: ''
-			}
-		},
 		methods: {
-			uploadImage() {
-				uni.chooseImage({
-					count: 9,
-					success: (res) => {
-						uni.showToast({ title: '已选择 ' + res.tempFilePaths.length + ' 张', icon: 'none' })
-					}
+			goPublish(type) {
+				uni.navigateTo({
+					url: '/pages/publish-form/publish-form?type=' + type
 				})
-			},
-			onCategoryChange(e) {
-				this.selectedCategory = this.categoryList[e.detail.value]
-			},
-			onCampusChange(e) {
-				this.selectedCampus = this.campusList[e.detail.value]
-			},
-			onSubmit() {
-				uni.showToast({ title: '发布成功！', icon: 'none' })
 			}
 		}
 	}
 </script>
 
 <style>
-	.publish-page {
-		min-height: 100vh; width: 100%; overflow: hidden; box-sizing: border-box;
+	.publish-select-page {
+		min-height: 100vh;
+		width: 100%;
 		background: #f5f5f5;
+		overflow: hidden;
+		box-sizing: border-box;
 	}
 
-	.publish-hero {
+	.ps-hero {
 		background: linear-gradient(135deg, #00613C, #00804B);
-		padding: 40rpx 30rpx 50rpx;
+		padding: 60rpx 30rpx 60rpx;
 		display: flex;
 		flex-direction: column;
 		align-items: center;
 	}
 
-	.hero-icon { font-size: 64rpx; margin-bottom: 16rpx; }
-	.hero-title { font-size: 36rpx; color: #ffffff; font-weight: bold; margin-bottom: 8rpx; }
-	.hero-sub { font-size: 24rpx; color: rgba(255,255,255,0.8); }
+	.ps-icon { font-size: 72rpx; margin-bottom: 16rpx; }
+	.ps-title { font-size: 40rpx; color: #ffffff; font-weight: bold; margin-bottom: 10rpx; }
+	.ps-sub { font-size: 26rpx; color: rgba(255,255,255,0.8); }
 
-	.form-card {
+	.ps-cards {
+		padding: 30rpx 24rpx;
+		display: flex;
+		flex-direction: column;
+		gap: 24rpx;
+		box-sizing: border-box;
+	}
+
+	.ps-card {
 		background: #ffffff;
-		margin: 20rpx;
-		border-radius: 20rpx;
-		padding: 30rpx;
+		border-radius: 24rpx;
+		padding: 40rpx 30rpx 36rpx;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		box-shadow: 0 4rpx 20rpx rgba(0,0,0,0.06);
+		transition: transform 0.15s;
 	}
 
-	.form-item { margin-bottom: 36rpx; }
-	.form-label { font-size: 28rpx; color: #333; font-weight: bold; margin-bottom: 16rpx; display: block; }
-
-	.upload-box {
-		width: 160rpx; height: 160rpx;
-		border: 2rpx dashed #ddd;
-		border-radius: 16rpx;
-		display: flex; flex-direction: column; align-items: center; justify-content: center;
-		background: #fafafa;
-	}
-	.upload-icon { font-size: 48rpx; color: #ccc; line-height: 1; }
-	.upload-text { font-size: 22rpx; color: #999; margin-top: 8rpx; }
-
-	.form-input {
-		width: 100%; height: 80rpx;
-		background: #f5f5f5; border-radius: 12rpx;
-		padding: 0 20rpx; font-size: 28rpx;
+	.ps-card:active {
+		transform: scale(0.97);
 	}
 
-	.price-input-box {
-		display: flex; align-items: center;
-		background: #f5f5f5; border-radius: 12rpx; padding-left: 20rpx;
-	}
-	.price-unit { font-size: 32rpx; color: #e74c3c; font-weight: bold; margin-right: 4rpx; }
-	.price-input { flex: 1; background: transparent; padding: 0; }
-
-	.picker-text {
-		width: 100%; height: 80rpx; line-height: 80rpx;
-		background: #f5f5f5; border-radius: 12rpx;
-		padding: 0 20rpx; font-size: 28rpx; color: #999;
+	.ps-card-icon {
+		width: 120rpx;
+		height: 120rpx;
+		border-radius: 50%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		margin-bottom: 24rpx;
 	}
 
-	.form-textarea {
-		width: 100%; height: 180rpx;
-		background: #f5f5f5; border-radius: 12rpx;
-		padding: 20rpx; font-size: 28rpx;
+	.ps-card-sell .ps-card-icon { background: #e8f5ee; }
+	.ps-card-buy .ps-card-icon { background: #fff3e0; }
+
+	.ps-card-emoji { font-size: 56rpx; }
+
+	.ps-card-title {
+		font-size: 34rpx;
+		color: #333;
+		font-weight: bold;
+		margin-bottom: 12rpx;
 	}
 
-	.submit-btn {
-		width: 100%; height: 88rpx; line-height: 88rpx;
+	.ps-card-desc {
+		font-size: 26rpx;
+		color: #999;
+		text-align: center;
+		line-height: 1.5;
+		margin-bottom: 28rpx;
+	}
+
+	.ps-card-btn {
+		padding: 16rpx 60rpx;
+		border-radius: 44rpx;
+		font-size: 28rpx;
+		font-weight: bold;
+	}
+
+	.ps-card-sell .ps-card-btn {
 		background: linear-gradient(135deg, #00613C, #00804B);
-		color: #ffffff; font-size: 32rpx; font-weight: bold;
-		border-radius: 44rpx; border: none;
-		margin-top: 40rpx;
-		box-shadow: 0 8rpx 24rpx rgba(0,97,60,0.3);
+		color: #ffffff;
+	}
+
+	.ps-card-buy .ps-card-btn {
+		background: linear-gradient(135deg, #FF8F00, #FFB300);
+		color: #ffffff;
 	}
 </style>

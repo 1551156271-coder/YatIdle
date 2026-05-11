@@ -11,6 +11,28 @@
 			}
 		},
 		{
+			"path": "pages/wanted/wanted",
+			"style": {
+				"navigationBarTitleText": "求购",
+				"navigationBarBackgroundColor": "#FF8F00",
+				"navigationBarTextStyle": "white"
+			}
+		},
+		{
+			"path": "pages/search/search",
+			"style": {
+				"navigationBarTitleText": "搜索",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/report/report",
+			"style": {
+				"navigationBarTitleText": "举报",
+				"navigationStyle": "custom"
+			}
+		},
+		{
 			"path": "pages/goods-detail/goods-detail",
 			"style": {
 				"navigationBarTitleText": "商品详情"
@@ -20,6 +42,14 @@
 			"path": "pages/publish/publish",
 			"style": {
 				"navigationBarTitleText": "发布商品",
+				"navigationBarBackgroundColor": "#00613C",
+				"navigationBarTextStyle": "white"
+			}
+		},
+		{
+			"path": "pages/publish-form/publish-form",
+			"style": {
+				"navigationBarTitleText": "发布",
 				"navigationBarBackgroundColor": "#00613C",
 				"navigationBarTextStyle": "white"
 			}
@@ -129,6 +159,12 @@
 				"text": "首页",
 				"iconPath": "static/tabbar/home.png",
 				"selectedIconPath": "static/tabbar/home-active.png"
+			},
+			{
+				"pagePath": "pages/wanted/wanted",
+				"text": "求购",
+				"iconPath": "static/tabbar/wanted.png",
+				"selectedIconPath": "static/tabbar/wanted.png"
 			},
 			{
 				"pagePath": "pages/publish/publish",

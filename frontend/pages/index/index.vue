@@ -20,7 +20,7 @@
 		</scroll-view>
 
 		<!-- 商品列表（双列） -->
-		<view v-if="goodsList.length > 0" class="goods-grid">
+		<view v-if="activeCategory !== 'wanted' && goodsList.length > 0" class="goods-grid">
 			<view
 				v-for="goods in goodsList"
 				:key="goods.id"
@@ -101,9 +101,8 @@
 		},
 		methods: {
 			onSearchClick() {
-				uni.showToast({
-					title: '搜索功能即将上线',
-					icon: 'none'
+				uni.navigateTo({
+					url: '/pages/search/search'
 				})
 			},
 			switchCategory(value) {
@@ -139,7 +138,7 @@
 				uni.navigateTo({
 					url: '/pages/goods-detail/goods-detail?id=' + goods.id
 				})
-			}
+			},
 		}
 	}
 </script>
