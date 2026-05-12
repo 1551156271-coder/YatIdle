@@ -8,10 +8,9 @@ CREATE TABLE IF NOT EXISTS `user` (
   password VARCHAR(100) NOT NULL COMMENT '用户密码',
   phone VARCHAR(20) COMMENT '手机号',
   avatar VARCHAR(255) COMMENT '头像URL',
-  status VARCHAR(20) NOT NULL DEFAULT 'active' COMMENT '用户状态',
+  status VARCHAR(20) NOT NULL DEFAULT 'active' COMMENT '用户状态，active=正常，inactive锁定（被封禁），',
   create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   update_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-  is_deleted TINYINT NOT NULL DEFAULT 0 COMMENT '逻辑删除标记，0未删除，1已删除',
   INDEX idx_user_role (role),
   INDEX idx_user_status (status)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户表';
