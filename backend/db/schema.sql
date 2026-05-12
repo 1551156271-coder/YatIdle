@@ -9,8 +9,8 @@ CREATE TABLE IF NOT EXISTS `user` (
   phone VARCHAR(20) COMMENT '手机号',
   avatar VARCHAR(255) COMMENT '头像URL',
   status VARCHAR(20) NOT NULL DEFAULT 'active' COMMENT '用户状态',
-  create_time DATETIME NOT NULL COMMENT '创建时间',
-  update_time DATETIME NOT NULL COMMENT '更新时间',
+  create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  update_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   is_deleted TINYINT NOT NULL DEFAULT 0 COMMENT '逻辑删除标记，0未删除，1已删除',
   INDEX idx_user_role (role),
   INDEX idx_user_status (status)
@@ -28,8 +28,8 @@ CREATE TABLE IF NOT EXISTS item (
   status VARCHAR(20) NOT NULL DEFAULT 'pending' COMMENT '商品状态',
   view_count INT NOT NULL DEFAULT 0 COMMENT '浏览次数',
   favorite_count INT NOT NULL DEFAULT 0 COMMENT '收藏次数',
-  create_time DATETIME NOT NULL COMMENT '创建时间',
-  update_time DATETIME NOT NULL COMMENT '更新时间',
+  create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  update_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   is_deleted TINYINT NOT NULL DEFAULT 0 COMMENT '逻辑删除标记，0未删除，1已删除',
   INDEX idx_item_user_id (user_id),
   INDEX idx_item_category_id (category_id),
@@ -47,11 +47,11 @@ CREATE TABLE IF NOT EXISTS item_image (
   INDEX idx_item_image_item_id (item_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='商品图片表';
 
-CREATE TABLE IF NOT EXISTS orders (
+CREATE TABLE IF NOT EXISTS trade_order (
   id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '订单ID',
   
   item_id BIGINT NOT NULL COMMENT '商品ID',
-  order_no VARCHAR(64) NOT NULL UNIQUE COMMENT '订单编号',
+  order_no VARCHAR(64) NOT NULL COMMENT '订单编号',
   
   buyer_id BIGINT NOT NULL COMMENT '买家用户ID',
   seller_id BIGINT NOT NULL COMMENT '卖家用户ID',
@@ -71,16 +71,16 @@ CREATE TABLE IF NOT EXISTS orders (
   
   is_deleted TINYINT NOT NULL DEFAULT 0 COMMENT '逻辑删除标记，0未删除，1已删除',
 
-  INDEX idx_order_no (order_no),
+  UNIQUE KEY uk_order_no (order_no),
   INDEX idx_order_buyer_id (buyer_id),
   INDEX idx_order_seller_id (seller_id),
   INDEX idx_order_item_id (item_id),
   INDEX idx_order_status (status),
   INDEX idx_buyer_status (buyer_id, status),
   INDEX idx_seller_status (seller_id, status)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='交易订单表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='交易订单主表';
 
-CREATE TABLE IF NOT EXISTS order_log (
+CREATE TABLE IF NOT EXISTS trade_order_log (
   id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '订单日志ID',
   
   order_id BIGINT NOT NULL COMMENT '订单ID',
@@ -130,13 +130,18 @@ CREATE TABLE IF NOT EXISTS chat_session (
 CREATE TABLE IF NOT EXISTS chat_message (
   id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '聊天消息ID',
   session_id BIGINT NOT NULL COMMENT '聊天会话ID',
+  
   sender_id BIGINT NOT NULL COMMENT '发送者用户ID',
   receiver_id BIGINT NOT NULL COMMENT '接收者用户ID',
+  
   message_type VARCHAR(20) NOT NULL DEFAULT 'TEXT' COMMENT '消息类型：TEXT文本，IMAGE图片',
   content TEXT NOT NULL COMMENT '消息内容',
+  
   read_flag TINYINT NOT NULL DEFAULT 0 COMMENT '已读标记，0未读，1已读',
-  create_time DATETIME NOT NULL COMMENT '创建时间',
+  create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  
   is_deleted TINYINT NOT NULL DEFAULT 0 COMMENT '逻辑删除标记，0未删除，1已删除',
+  
   INDEX idx_chat_message_session_id (session_id),
   INDEX idx_chat_message_create_time (create_time),
   INDEX idx_chat_message_sender_id (sender_id),
