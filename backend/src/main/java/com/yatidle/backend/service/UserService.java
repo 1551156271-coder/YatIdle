@@ -5,6 +5,8 @@ import com.yatidle.backend.entity.User;
 import com.yatidle.backend.mapper.UserMapper;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class UserService {
 
@@ -89,6 +91,11 @@ public class UserService {
             user.setPassword(password);
         }
         return userMapper.updateById(user);
+    }
+
+    //返回所有用户，测试用
+    public List<User> findAll() {
+        return userMapper.selectList(null);
     }
 
 
