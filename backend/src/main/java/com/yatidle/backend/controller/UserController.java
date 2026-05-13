@@ -4,10 +4,7 @@ import com.yatidle.backend.entity.User;
 import com.yatidle.backend.service.UserService;
 import org.springframework.web.bind.annotation.*;
 
-<<<<<<< HEAD
 import java.util.List;
-=======
->>>>>>> fc1d6daf5031c9214b6f45455f18e7ad81a94178
 import java.util.Map;
 
 @RestController
@@ -43,15 +40,12 @@ public class UserController {
         return user;
     }
 
-<<<<<<< HEAD
     //返回所有用户列表，被删除的不包含在内
     @GetMapping("/show_me_all!")
     public List<User> findAll() {
         return userService.findAll();
     }
 
-=======
->>>>>>> fc1d6daf5031c9214b6f45455f18e7ad81a94178
     @DeleteMapping("/{id}")
     public int deleteById(@PathVariable Long id) {
         return userService.deleteById(id);
