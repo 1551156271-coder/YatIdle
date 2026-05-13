@@ -6,6 +6,7 @@ import com.yatidle.backend.dto.order.CreateOrderDTO;
 import com.yatidle.backend.entity.TradeOrder;
 import com.yatidle.backend.mapper.TradeOrderMapper;
 import com.yatidle.backend.vo.order.TradeOrderVO;
+import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -29,5 +30,11 @@ public class TradeOrderService extends ServiceImpl<TradeOrderMapper, TradeOrder>
     }
 
     public void completeOrder(Long orderId, Long currentUserId){
+    }
+    @Resource
+    private TradeOrderMapper tradeOrderMapper;
+
+    public Long countOrders() {
+        return tradeOrderMapper.selectCount(null);
     }
 }
