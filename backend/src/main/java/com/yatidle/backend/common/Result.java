@@ -16,6 +16,14 @@ public class Result<T> {
         return r;
     }
 
+    public  static <T> Result<T> success() {
+        Result<T> r = new Result<>();
+        r.code = ResultCode.SUCCESS.getCode();
+        r.message = ResultCode.SUCCESS.getMessage();
+        r.data = null;
+        return r;
+    }
+
     public static <T> Result<T> error(ResultCode code) {
         Result<T> r = new Result<>();
         r.code = code.getCode();
