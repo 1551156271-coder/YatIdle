@@ -144,23 +144,46 @@
 <script>
 	export default {
 		data() {
+			const user = uni.getStorageSync('user')
 			return {
 				showSidebar: false,
-				userInfo: {
+				userInfo: user ? {
 					isLogin: true,
-					nickname: '中大在校生',
+					nickname: user.username || '',
+					avatar: user.avatar || '',
+					campus: '',
+					verified: false,
+					creditScore: 0,
+					publishCount: 0,
+					soldCount: 0,
+					purchasedCount: 0,
+					dealCount: 0,
+					goodsCount: 0,
+					reviewCount: 0,
+					wishCount: 0
+				} : {
+					isLogin: false,
+					nickname: '',
 					avatar: '',
-					campus: '东校园',
-					verified: true,
-					creditScore: 92,
-					publishCount: 5,
-					soldCount: 3,
-					purchasedCount: 2,
-					dealCount: 23,
-					goodsCount: 3,
-					reviewCount: 8,
-					wishCount: 4
+					campus: '',
+					verified: false,
+					creditScore: 0,
+					publishCount: 0,
+					soldCount: 0,
+					purchasedCount: 0,
+					dealCount: 0,
+					goodsCount: 0,
+					reviewCount: 0,
+					wishCount: 0
 				}
+			}
+		},
+		onShow() {
+			const user = uni.getStorageSync('user')
+			if (user) {
+				this.userInfo.isLogin = true
+				this.userInfo.nickname = user.username || ''
+				this.userInfo.avatar = user.avatar || ''
 			}
 		},
 		computed: {
