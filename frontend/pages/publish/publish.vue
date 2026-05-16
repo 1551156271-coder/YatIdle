@@ -95,7 +95,7 @@
 	}
 
 	.ps-card-sell .ps-card-icon { background: #e8f5ee; }
-	.ps-card-buy .ps-card-icon { background: #fff3e0; }
+	.ps-card-buy .ps-card-icon { background: #e8f5ee; }
 
 	.ps-card-emoji { font-size: 56rpx; }
 
@@ -127,7 +127,7 @@
 	}
 
 	.ps-card-buy .ps-card-btn {
-		background: linear-gradient(135deg, #FF8F00, #FFB300);
+		background: linear-gradient(135deg, #00613C, #00804B);
 		color: #ffffff;
 	}
 </style>

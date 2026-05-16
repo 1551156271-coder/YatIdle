@@ -14,7 +14,15 @@
 			"path": "pages/wanted/wanted",
 			"style": {
 				"navigationBarTitleText": "求购",
-				"navigationBarBackgroundColor": "#FF8F00",
+				"navigationBarBackgroundColor": "#00613C",
+				"navigationBarTextStyle": "white"
+			}
+		},
+		{
+			"path": "pages/wanted-detail/wanted-detail",
+			"style": {
+				"navigationBarTitleText": "求购详情",
+				"navigationBarBackgroundColor": "#00613C",
 				"navigationBarTextStyle": "white"
 			}
 		},

@@ -54,7 +54,9 @@
 		},
 		methods: {
 			goToDetail(item) {
-				uni.showToast({ title: '求购详情即将上线', icon: 'none' })
+				uni.navigateTo({
+						url: '/pages/wanted-detail/wanted-detail?id=' + item.id
+					})
 			}
 		}
 	}
@@ -70,7 +72,7 @@
 	}
 
 	.wanted-hero {
-		background: linear-gradient(135deg, #FF8F00, #FFB300);
+		background: linear-gradient(135deg, #00613C, #00804B);
 		padding: 40rpx 30rpx 50rpx;
 		display: flex;
 		flex-direction: column;
@@ -95,7 +97,7 @@
 		margin-bottom: 20rpx;
 		box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
 		box-sizing: border-box;
-		border-left: 8rpx solid #FF8F00;
+		border-left: 8rpx solid #00613C;
 	}
 
 	.wanted-card:active {
@@ -133,7 +135,7 @@
 
 	.wanted-budget {
 		font-size: 26rpx;
-		color: #FF8F00;
+		color: #00613C;
 		font-weight: bold;
 	}
 
@@ -150,8 +152,8 @@
 
 	.wanted-tag {
 		font-size: 22rpx;
-		color: #FF8F00;
-		background: #fff8e1;
+		color: #00613C;
+		background: #e8f5ee;
 		padding: 4rpx 16rpx;
 		border-radius: 20rpx;
 	}

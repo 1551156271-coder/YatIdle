@@ -2,8 +2,11 @@
 	<view class="home-page">
 		<!-- 顶部搜索栏 -->
 		<view class="search-bar" @click="onSearchClick">
-			<text class="search-icon">🔍</text>
-			<text class="search-placeholder">搜索你想要的二手好物</text>
+			<view class="search-box">
+				<text class="search-icon">🔍</text>
+				<text class="search-placeholder">搜索你想要的二手好物</text>
+			</view>
+			<text class="search-btn">搜索</text>
 		</view>
 
 		<!-- 分类标签 -->
@@ -155,20 +158,42 @@
 	/* ===== 搜索栏 ===== */
 	.search-bar {
 		background: linear-gradient(135deg, #00613C, #00804B);
-		padding: 20rpx 30rpx 30rpx;
+		padding: 20rpx 24rpx 24rpx;
 		display: flex;
 		align-items: center;
+		gap: 16rpx;
+		box-sizing: border-box;
+	}
+
+	.search-box {
+		flex: 1;
+		background: #ffffff;
+		border-radius: 36rpx;
+		height: 72rpx;
+		display: flex;
+		align-items: center;
+		padding: 0 24rpx;
+		box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.1);
 		box-sizing: border-box;
 	}
 
 	.search-icon {
-		font-size: 30rpx;
+		font-size: 28rpx;
 		margin-right: 12rpx;
+		flex-shrink: 0;
 	}
 
 	.search-placeholder {
+		font-size: 26rpx;
+		color: #bbb;
+		flex: 1;
+	}
+
+	.search-btn {
 		font-size: 28rpx;
-		color: #999;
+		color: #ffffff;
+		font-weight: bold;
+		flex-shrink: 0;
 	}
 
 	/* ===== 分类标签 ===== */
