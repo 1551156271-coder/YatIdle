@@ -175,7 +175,7 @@
 		padding: 28rpx 0;
 	}
 	.picker-item:active { background: #f5f5f5; }
-	.picker-active { color: #00613C; font-weight: bold; }
+	.picker-active { color: #3A6341; font-weight: bold; }
 	.picker-cancel {
 		font-size: 30rpx; color: #999; text-align: center;
 		padding: 28rpx 0; margin-top: 10rpx;
@@ -187,7 +187,7 @@
 	.save-btn {
 		width: 100%; height: 88rpx; line-height: 88rpx;
 		text-align: center;
-		background: linear-gradient(135deg, #00613C, #00804B);
+		background: linear-gradient(135deg, #3A6341, #4E7D56);
 		color: #ffffff; font-size: 32rpx; font-weight: bold;
 		border-radius: 44rpx;
 	}

@@ -157,7 +157,7 @@
 
 	/* ===== 搜索栏 ===== */
 	.search-bar {
-		background: linear-gradient(135deg, #00613C, #00804B);
+		background: linear-gradient(135deg, #3A6341, #4E7D56);
 		padding: 20rpx 24rpx 24rpx;
 		display: flex;
 		align-items: center;
@@ -217,7 +217,7 @@
 	}
 
 	.category-active {
-		background: #00613C;
+		background: #3A6341;
 		color: #ffffff;
 		font-weight: bold;
 	}

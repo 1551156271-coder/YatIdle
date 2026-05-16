@@ -72,7 +72,7 @@
 	}
 
 	.wanted-hero {
-		background: linear-gradient(135deg, #00613C, #00804B);
+		background: linear-gradient(135deg, #3A6341, #4E7D56);
 		padding: 40rpx 30rpx 50rpx;
 		display: flex;
 		flex-direction: column;
@@ -97,7 +97,7 @@
 		margin-bottom: 20rpx;
 		box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
 		box-sizing: border-box;
-		border-left: 8rpx solid #00613C;
+		border-left: 8rpx solid #598f62;
 	}
 
 	.wanted-card:active {
@@ -135,7 +135,7 @@
 
 	.wanted-budget {
 		font-size: 26rpx;
-		color: #00613C;
+		color: #5A7D9E;
 		font-weight: bold;
 	}
 
@@ -152,8 +152,8 @@
 
 	.wanted-tag {
 		font-size: 22rpx;
-		color: #00613C;
-		background: #e8f5ee;
+		color: #5A7D9E;
+		background: #EDF2F6;
 		padding: 4rpx 16rpx;
 		border-radius: 20rpx;
 	}

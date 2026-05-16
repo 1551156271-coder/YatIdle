@@ -71,7 +71,7 @@
 	.g-bottom { display: flex; justify-content: space-between; align-items: center; }
 	.g-price { font-size: 32rpx; color: #e74c3c; font-weight: bold; }
 	.g-status { font-size: 22rpx; padding: 4rpx 16rpx; border-radius: 6rpx; }
-	.status-on { color: #00613C; background: #e8f5ee; }
+	.status-on { color: #3A6341; background: #e8f5ee; }
 	.status-off { color: #999; background: #f0f0f0; }
 
 	/* 空态 */
@@ -83,7 +83,7 @@
 	.empty-text { font-size: 28rpx; color: #999; margin-bottom: 40rpx; }
 	.empty-btn {
 		font-size: 28rpx; color: #ffffff;
-		background: linear-gradient(135deg, #00613C, #00804B);
+		background: linear-gradient(135deg, #3A6341, #4E7D56);
 		padding: 16rpx 60rpx; border-radius: 44rpx;
 	}
 </style>

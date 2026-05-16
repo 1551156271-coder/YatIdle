@@ -144,23 +144,24 @@
 <script>
 	export default {
 		data() {
-			const user = uni.getStorageSync('user')
+			// TODO: 开发完后删掉 mock，改回 uni.getStorageSync('user')
+	const user = uni.getStorageSync('user') || { username: '测试用户', campus: '东校园', verified: true, creditScore: 85, publishCount: 3, soldCount: 5, purchasedCount: 2, dealCount: 7, goodsCount: 3, reviewCount: 12, wishCount: 4 }
 			return {
 				showSidebar: false,
 				userInfo: user ? {
 					isLogin: true,
 					nickname: user.username || '',
 					avatar: user.avatar || '',
-					campus: '',
-					verified: false,
-					creditScore: 0,
-					publishCount: 0,
-					soldCount: 0,
-					purchasedCount: 0,
-					dealCount: 0,
-					goodsCount: 0,
-					reviewCount: 0,
-					wishCount: 0
+					campus: user.campus || '',
+					verified: user.verified || false,
+					creditScore: user.creditScore || 0,
+					publishCount: user.publishCount || 0,
+					soldCount: user.soldCount || 0,
+					purchasedCount: user.purchasedCount || 0,
+					dealCount: user.dealCount || 0,
+					goodsCount: user.goodsCount || 0,
+					reviewCount: user.reviewCount || 0,
+					wishCount: user.wishCount || 0
 				} : {
 					isLogin: false,
 					nickname: '',
@@ -179,11 +180,22 @@
 			}
 		},
 		onShow() {
-			const user = uni.getStorageSync('user')
+			// TODO: 开发完后删掉 mock，改回 uni.getStorageSync('user')
+	const user = uni.getStorageSync('user') || { username: '测试用户', campus: '东校园', verified: true, creditScore: 85, publishCount: 3, soldCount: 5, purchasedCount: 2, dealCount: 7, goodsCount: 3, reviewCount: 12, wishCount: 4 }
 			if (user) {
 				this.userInfo.isLogin = true
 				this.userInfo.nickname = user.username || ''
 				this.userInfo.avatar = user.avatar || ''
+				this.userInfo.campus = user.campus || ''
+				this.userInfo.verified = user.verified || false
+				this.userInfo.creditScore = user.creditScore || 0
+				this.userInfo.publishCount = user.publishCount || 0
+				this.userInfo.soldCount = user.soldCount || 0
+				this.userInfo.purchasedCount = user.purchasedCount || 0
+				this.userInfo.dealCount = user.dealCount || 0
+				this.userInfo.goodsCount = user.goodsCount || 0
+				this.userInfo.reviewCount = user.reviewCount || 0
+				this.userInfo.wishCount = user.wishCount || 0
 			}
 		},
 		computed: {
@@ -265,7 +277,7 @@
 	.sidebar-header {
 		display: flex; align-items: center; justify-content: space-between;
 		padding: 36rpx 30rpx;
-		background: linear-gradient(135deg, #00613C, #00804B);
+		background: linear-gradient(135deg, #3A6341, #4E7D56);
 	}
 	.sidebar-title { font-size: 36rpx; color: #ffffff; font-weight: bold; }
 	.sidebar-close { font-size: 36rpx; color: rgba(255,255,255,0.8); padding: 8rpx; }
@@ -285,7 +297,7 @@
 	.header-card { position: relative; }
 	.header-bg {
 		height: 200rpx;
-		background: linear-gradient(135deg, #00613C, #00804B);
+		background: linear-gradient(135deg, #3A6341, #4E7D56);
 		position: relative;
 	}
 
@@ -336,7 +348,7 @@
 	/* 标签 */
 	.user-tags { display: flex; gap: 12rpx; margin-top: 14rpx; }
 	.u-tag {
-		font-size: 22rpx; color: #00613C; background: #e8f5ee;
+		font-size: 22rpx; color: #3A6341; background: #e8f5ee;
 		padding: 6rpx 20rpx; border-radius: 20rpx;
 	}
 	.u-tag-verified { color: #1565C0; background: #e3f2fd; }
@@ -353,7 +365,7 @@
 	.login-hint-text { font-size: 28rpx; color: #999; margin-bottom: 30rpx; }
 	.login-hint-btn {
 		font-size: 28rpx; color: #ffffff;
-		background: linear-gradient(135deg, #00613C, #00804B);
+		background: linear-gradient(135deg, #3A6341, #4E7D56);
 		padding: 16rpx 60rpx; border-radius: 44rpx;
 	}
 
@@ -376,7 +388,7 @@
 		display: flex; flex-direction: column; align-items: center;
 		padding: 10rpx 30rpx;
 	}
-	.trade-num { font-size: 40rpx; color: #00613C; font-weight: bold; margin-bottom: 6rpx; }
+	.trade-num { font-size: 40rpx; color: #3A6341; font-weight: bold; margin-bottom: 6rpx; }
 	.trade-icon { font-size: 40rpx; margin-bottom: 6rpx; }
 	.trade-label { font-size: 24rpx; color: #999; }
 

@@ -50,7 +50,7 @@
 	}
 
 	.ps-hero {
-		background: linear-gradient(135deg, #00613C, #00804B);
+		background: linear-gradient(135deg, #3A6341, #4E7D56);
 		padding: 60rpx 30rpx 60rpx;
 		display: flex;
 		flex-direction: column;
@@ -95,7 +95,7 @@
 	}
 
 	.ps-card-sell .ps-card-icon { background: #e8f5ee; }
-	.ps-card-buy .ps-card-icon { background: #e8f5ee; }
+	.ps-card-buy .ps-card-icon { background: #EDF2F6; }
 
 	.ps-card-emoji { font-size: 56rpx; }
 
@@ -122,12 +122,12 @@
 	}
 
 	.ps-card-sell .ps-card-btn {
-		background: linear-gradient(135deg, #00613C, #00804B);
+		background: linear-gradient(135deg, #3A6341, #4E7D56);
 		color: #ffffff;
 	}
 
 	.ps-card-buy .ps-card-btn {
-		background: linear-gradient(135deg, #00613C, #00804B);
+		background: linear-gradient(135deg, #5A7D9E, #7A9DBE);
 		color: #ffffff;
 	}
 </style>

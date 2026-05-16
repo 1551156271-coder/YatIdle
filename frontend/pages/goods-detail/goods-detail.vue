@@ -28,9 +28,6 @@
 					</view>
 				</view>
 			</view>
-			<view class="follow-btn" :class="{ 'followed': isFollowed }" @click="toggleFollow">
-				{{ isFollowed ? '已关注' : '+ 关注' }}
-			</view>
 		</view>
 
 		<view class="detail-section">
@@ -64,16 +61,11 @@
 				price: "268.00",
 				description: "去年学期初在校外车行买的，平时只在教学楼和宿舍之间通勤。车架很轻，变速灵敏。离校转手，东校园自提。配件齐全，包括车锁和挡泥板，骑行体验非常好。",
 				isCollected: false,
-				isFollowed: false
 			}
 		},
 		methods: {
 			goToProfile() {
 				uni.navigateTo({ url: '/pages/profile/profile?id=2' })
-			},
-			toggleFollow() {
-				this.isFollowed = !this.isFollowed
-				uni.showToast({ title: this.isFollowed ? '已关注' : '已取消关注', icon: 'none' })
 			},
 			toggleCollect() {
 				this.isCollected = !this.isCollected;
@@ -83,11 +75,12 @@
 				});
 			},
 			handleAction(type) {
-				uni.showToast({
-					title: '点击了' + type,
-					icon: 'none'
-				});
-			}
+				if (type === '咨询') {
+					uni.navigateTo({ url: '/pages/chat/chat?id=2' })
+				} else {
+					uni.showToast({ title: '点击了' + type, icon: 'none' })
+				}
+			},
 		}
 	}
 </script>
@@ -107,7 +100,7 @@
 	.main-image { width: 100%; height: 100%; }
 	.tag-badge {
 		background: #e8f5ee;
-		color: #00613C;
+		color: #3A6341;
 		font-size: 24rpx;
 		padding: 6rpx 18rpx;
 		border-radius: 30rpx;
@@ -159,28 +152,17 @@
 		line-height: 1.4;
 		white-space: nowrap;
 	}
-	.follow-btn {
-		flex-shrink: 0;
-		padding: 14rpx 32rpx;
-		background: #00613C;
-		color: #ffffff;
-		font-size: 26rpx;
-		font-weight: bold;
-		border-radius: 32rpx;
-	}
-	.follow-btn.followed { background: #f0f0f0; color: #666; }
-
 	.detail-section {
 		background: white;
 		margin: 0 20rpx 20rpx;
 		padding: 30rpx;
 		border-radius: 20rpx;
 	}
-	.section-title { font-size: 28rpx; color: #00613C; font-weight: bold; margin-bottom: 20rpx; letter-spacing: 2rpx; }
+	.section-title { font-size: 28rpx; color: #3A6341; font-weight: bold; margin-bottom: 20rpx; letter-spacing: 2rpx; }
 	.description { font-size: 30rpx; color: #444; line-height: 1.8; }
 
 	.tags-section { display: flex; gap: 16rpx; padding: 0 20rpx 20rpx; flex-wrap: wrap; }
-	.tag { background: #e8f5ee; color: #00613C; font-size: 24rpx; padding: 10rpx 24rpx; border-radius: 30rpx; }
+	.tag { background: #e8f5ee; color: #3A6341; font-size: 24rpx; padding: 10rpx 24rpx; border-radius: 30rpx; }
 
 	.bottom-action {
 		position: fixed; bottom: 0; left: 0; right: 0;
@@ -194,13 +176,13 @@
 	.collect-icon { font-size: 54rpx; transition: all 0.3s; }
 	.btn-group { flex: 1; display: flex; gap: 16rpx; justify-content: flex-end; }
 	.chat-btn {
-		background: #e8f5ee; color: #00613C;
+		background: #e8f5ee; color: #3A6341;
 		font-size: 28rpx; font-weight: bold;
 		width: 180rpx; height: 80rpx; line-height: 80rpx;
 		border-radius: 40rpx; margin: 0; border: none;
 	}
 	.buy-btn {
-		background: #00613C; color: white;
+		background: #3A6341; color: white;
 		font-size: 28rpx; font-weight: bold;
 		width: 220rpx; height: 80rpx; line-height: 80rpx;
 		border-radius: 40rpx; margin: 0; border: none;

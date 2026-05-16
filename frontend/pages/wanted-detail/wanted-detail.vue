@@ -32,6 +32,16 @@
 		<view class="wd-desc-card">
 			<text class="wd-section-title">需求描述</text>
 			<text class="wd-desc-text">{{ detail.desc }}</text>
+			<view class="wd-image-grid" v-if="detail.images && detail.images.length">
+				<image
+					v-for="(img, idx) in detail.images"
+					:key="idx"
+					class="wd-image-thumb"
+					:src="img"
+					mode="aspectFill"
+					@click="previewImage(idx)"
+				/>
+			</view>
 		</view>
 
 		<!-- 发布者信息 -->
@@ -58,7 +68,6 @@
 		<view class="wd-bottom-bar">
 			<view class="wd-collect" @click="toggleCollect">
 				<text class="wd-collect-icon" :style="{ color: isCollected ? '#e74c3c' : '#ccc' }">♥</text>
-				<text class="wd-collect-text">{{ isCollected ? '已收藏' : '收藏' }}</text>
 			</view>
 			<button class="wd-contact-btn" @click="contactSeller">💬 联系TA</button>
 		</view>
@@ -72,9 +81,9 @@
 				detail: {},
 				isCollected: false,
 				mockData: [
-					{ id: 101, title: '求购一台二手笔记本电脑', budgetMin: '2000', budgetMax: '3500', campus: '东校园', condition: '85新以上', categoryLabel: '数码电子', desc: '女生自用，主要用于写论文和看视频，电池续航好一些的。希望屏幕不要太小，14寸左右最好，品牌不限但最好是轻薄本。', username: '小橙子', time: '10分钟前' },
+					{ id: 101, title: '求购一台二手笔记本电脑', budgetMin: '2000', budgetMax: '3500', campus: '东校园', condition: '85新以上', categoryLabel: '数码电子', desc: '女生自用，主要用于写论文和看视频，电池续航好一些的。希望屏幕不要太小，14寸左右最好，品牌不限但最好是轻薄本。', username: '小橙子', time: '10分钟前', images: ['https://picsum.photos/seed/laptop1/400/400', 'https://picsum.photos/seed/laptop2/400/400', 'https://picsum.photos/seed/laptop3/400/400'] },
 					{ id: 102, title: '收高数下册+习题集', budgetMin: '15', budgetMax: '30', campus: '南校园', condition: '不限', categoryLabel: '书籍教材', desc: '下学期要用，有笔记也可以，价格好商量。最好是同济第七版的高等数学下册，配套习题集一起收。', username: '数学苦手', time: '1小时前' },
-					{ id: 103, title: '二手电动车代步用', budgetMin: '600', budgetMax: '1200', campus: '珠海校区', condition: '90新以上', categoryLabel: '生活用品', desc: '校区太大走路太累，求购一辆二手电动车，续航好一点的。最好是雅迪或者小牛，电池能跑30公里以上就行。', username: '骑车上学', time: '3小时前' },
+					{ id: 103, title: '二手电动车代步用', budgetMin: '600', budgetMax: '1200', campus: '珠海校区', condition: '90新以上', categoryLabel: '生活用品', desc: '求购一辆二手电动车，续航好一点的。最好是雅迪或者小牛，电池能跑30公里以上就行。', username: '骑车上学', time: '3小时前', images: ['https://picsum.photos/seed/scooter1/400/400', 'https://picsum.photos/seed/scooter2/400/400'] },
 					{ id: 104, title: '收一双42码跑鞋', budgetMin: '100', budgetMax: '250', campus: '北校园', condition: '95新以上', categoryLabel: '运动户外', desc: '体育课需要，穿不了几次所以不想买全新的。耐克或者阿迪的都可以，42码，颜色不限，只要没有明显磨损就行。', username: '运动达人', time: '昨天' }
 				]
 			}
@@ -89,8 +98,14 @@
 				uni.showToast({ title: this.isCollected ? '已收藏' : '取消收藏', icon: 'none' })
 			},
 			contactSeller() {
-				uni.showToast({ title: '聊天功能即将上线', icon: 'none' })
-			}
+				uni.navigateTo({ url: '/pages/chat/chat?id=2' })
+			},
+			previewImage(idx) {
+				uni.previewImage({
+					current: idx,
+					urls: this.detail.images
+				})
+			},
 		}
 	}
 </script>
@@ -105,7 +120,7 @@
 
 	/* ===== 顶部 ===== */
 	.wd-hero {
-		background: linear-gradient(135deg, #00613C, #00804B);
+		background: linear-gradient(135deg, #3A6341, #4E7D56);
 		padding: 44rpx 30rpx 50rpx;
 		display: flex;
 		flex-direction: column;
@@ -189,7 +204,7 @@
 
 	.wd-section-title {
 		font-size: 28rpx;
-		color: #00613C;
+		color: #3A6341;
 		font-weight: bold;
 		margin-bottom: 20rpx;
 		display: block;
@@ -199,6 +214,20 @@
 		font-size: 28rpx;
 		color: #444;
 		line-height: 1.8;
+	}
+
+	.wd-image-grid {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 12rpx;
+		margin-top: 24rpx;
+	}
+
+	.wd-image-thumb {
+		width: 200rpx;
+		height: 200rpx;
+		border-radius: 12rpx;
+		background: #f0f0f0;
 	}
 
 	/* ===== 发布者 ===== */
@@ -223,8 +252,8 @@
 		width: 80rpx;
 		height: 80rpx;
 		border-radius: 50%;
-		background: #e8f5ee;
-		color: #00613C;
+		background: #EDF2F6;
+		color: #5A7D9E;
 		font-size: 36rpx;
 		font-weight: bold;
 		display: flex;
@@ -251,14 +280,17 @@
 	}
 
 	.wd-pub-credit {
-		background: #e8f5ee;
+		background: #EDF2F6;
 		padding: 8rpx 20rpx;
 		border-radius: 20rpx;
+		display: flex;
+		align-items: center;
 	}
 
 	.wd-credit-text {
 		font-size: 22rpx;
-		color: #00613C;
+		color: #5A7D9E;
+		line-height: 1;
 	}
 
 	/* ===== 提示 ===== */
@@ -309,13 +341,8 @@
 	}
 
 	.wd-collect-icon {
-		font-size: 44rpx;
+		font-size: 54rpx;
 		transition: color 0.3s;
-	}
-
-	.wd-collect-text {
-		font-size: 20rpx;
-		color: #999;
 	}
 
 	.wd-contact-btn {
@@ -323,12 +350,12 @@
 		margin-left: 20rpx;
 		height: 80rpx;
 		line-height: 80rpx;
-		background: linear-gradient(135deg, #00613C, #00804B);
+		background: linear-gradient(135deg, #3A6341, #4E7D56);
 		color: #ffffff;
 		font-size: 30rpx;
 		font-weight: bold;
 		border-radius: 40rpx;
 		border: none;
-		box-shadow: 0 8rpx 24rpx rgba(0,97,60,0.3);
+		box-shadow: 0 8rpx 24rpx rgba(90,125,158,0.3);
 	}
 </style>

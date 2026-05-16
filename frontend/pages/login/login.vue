@@ -178,7 +178,7 @@ export default {
 
 /* ===== 顶部装饰 ===== */
 .header-section {
-	background: linear-gradient(135deg, #00613C, #00804B);
+	background: linear-gradient(135deg, #3A6341, #4E7D56);
 	padding: 80rpx 0 60rpx;
 	display: flex;
 	flex-direction: column;
@@ -214,7 +214,7 @@ export default {
 	transition: all 0.2s;
 }
 .tab-active {
-	color: #00613C;
+	color: #3A6341;
 	font-weight: bold;
 }
 .tab-active::after {
@@ -225,7 +225,7 @@ export default {
 	transform: translateX(-50%);
 	width: 48rpx;
 	height: 6rpx;
-	background: #00613C;
+	background: #3A6341;
 	border-radius: 3rpx;
 }
 
@@ -262,7 +262,7 @@ export default {
 	width: 100%;
 	height: 88rpx;
 	line-height: 88rpx;
-	background: linear-gradient(135deg, #00613C, #00804B);
+	background: linear-gradient(135deg, #3A6341, #4E7D56);
 	color: #ffffff;
 	font-size: 32rpx;
 	font-weight: bold;

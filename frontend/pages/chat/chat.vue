@@ -11,9 +11,6 @@
 					<text class="header-name">{{ contactInfo.name }}</text>
 				</view>
 			</view>
-			<view class="header-actions" @click="showMoreActions">
-				<text class="header-action-icon">⋯</text>
-			</view>
 		</view>
 
 		<!-- 消息区域 -->
@@ -240,19 +237,6 @@ export default {
 	methods: {
 		goBack() { uni.navigateBack() },
 		goToProfile() { uni.navigateTo({ url: '/pages/profile/profile?id=' + this.contactInfo.id }) },
-		showMoreActions() {
-			uni.showActionSheet({
-				itemList: ['举报', '拉黑', '清空聊天记录'],
-				success: (res) => {
-					if (res.tapIndex === 2) {
-						this.msgs = []
-						uni.showToast({ title: '已清空', icon: 'none' })
-					} else {
-						uni.showToast({ title: '功能即将上线', icon: 'none' })
-					}
-				}
-			})
-		},
 
 		loadContactInfo(id) {
 			const m = { '1': { avatar: '🎓', name: '中大二手交易助手' }, '2': { avatar: '🤝', name: '张三（卖家）' }, '3': { avatar: '📚', name: '李四（买家）' } }
@@ -446,7 +430,7 @@ export default {
 	background: #ffffff;
 	display: flex;
 	align-items: center;
-	padding: 0 20rpx;
+	padding: 0 24rpx;
 	border-bottom: 1rpx solid #eee;
 	position: fixed;
 	left: 0;
@@ -454,8 +438,8 @@ export default {
 	z-index: 10;
 	box-sizing: border-box;
 }
-.header-back { width: 60rpx; height: 60rpx; display: flex; align-items: center; justify-content: center; }
-.back-icon { font-size: 48rpx; color: #333; font-weight: 300; }
+.header-back { width: 60rpx; display: flex; align-items: center; justify-content: center; margin-left: 8rpx; }
+.back-icon { font-size: 80rpx; color: #000; font-weight: 300; line-height: 0.9; }
 .header-info { flex: 1; display: flex; align-items: center; gap: 16rpx; overflow: hidden; }
 .header-avatar {
 	width: 80rpx; height: 80rpx; background: #e8f5ee; border-radius: 50%;
@@ -463,8 +447,6 @@ export default {
 }
 .header-text { display: flex; flex-direction: column; overflow: hidden; }
 .header-name { font-size: 34rpx; color: #333; font-weight: bold; }
-.header-actions { width: 60rpx; height: 60rpx; display: flex; align-items: center; justify-content: center; }
-.header-action-icon { font-size: 44rpx; color: #666; font-weight: bold; }
 
 /* ===== 消息区 ===== */
 .msg-scroll { flex: 1; padding: 20rpx 20rpx 0; overflow-y: auto; box-sizing: border-box; }
@@ -605,7 +587,7 @@ export default {
 .input-box { flex: 1; }
 .text-input {
 	width: 100%; height: 72rpx; background: #f5f5f5; border-radius: 8rpx;
-	padding: 0 20rpx; font-size: 28rpx; box-sizing: border-box;
+	padding: 0 24rpx; font-size: 28rpx; box-sizing: border-box;
 }
 .voice-btn {
 	width: 100%; height: 72rpx; line-height: 72rpx; text-align: center;

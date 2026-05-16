@@ -263,7 +263,7 @@
 
 	/* ===== 搜索栏头部（含状态栏安全区） ===== */
 	.search-header {
-		background: linear-gradient(135deg, #00613C, #00804B);
+		background: linear-gradient(135deg, #3A6341, #4E7D56);
 		padding-left: 20rpx;
 		padding-right: 20rpx;
 		padding-bottom: 16rpx;
@@ -342,7 +342,7 @@
 
 	.filter-active {
 		background: #e8f5ee;
-		color: #00613C;
+		color: #3A6341;
 		font-weight: bold;
 	}
 

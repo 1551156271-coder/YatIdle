@@ -37,10 +37,6 @@
 					<text class="cs-num">{{ user.goodsCount }}</text>
 					<text class="cs-label">在售</text>
 				</view>
-				<view class="cs-item">
-					<text class="cs-num">{{ user.fansCount }}</text>
-					<text class="cs-label">粉丝</text>
-				</view>
 			</view>
 		</view>
 
@@ -93,9 +89,6 @@
 		<!-- 底部操作 -->
 		<view class="bottom-bar">
 			<view class="bb-btn bb-chat" @click="startChat">💬 聊一聊</view>
-			<view class="bb-btn bb-follow" :class="{ 'bb-followed': isFollowed }" @click="toggleFollow">
-				{{ isFollowed ? '已关注' : '+ 关注' }}
-			</view>
 		</view>
 
 		<view class="bottom-safe"></view>
@@ -106,7 +99,6 @@
 	export default {
 		data() {
 			return {
-				isFollowed: false,
 				user: {
 					nickname: '中大在校生',
 					defaultAvatar: '🎓',
@@ -117,7 +109,6 @@
 					creditScore: 92,
 					dealCount: 23,
 					goodsCount: 3,
-					fansCount: 56,
 					goods: [
 						{ id: 1, image: 'https://images.unsplash.com/photo-1485965120184-e220f721d03e?q=80&w=400&auto=format&fit=crop', title: '九成新公路自行车', price: '268.00' },
 						{ id: 2, image: 'https://images.unsplash.com/photo-1585435557343-3b092031a831?q=80&w=400&auto=format&fit=crop', title: 'LED护眼台灯', price: '35.00' },
@@ -153,8 +144,8 @@
 		methods: {
 			loadUser(id) {
 				const users = {
-					'2': { nickname: '张三（卖家）', defaultAvatar: '🤝', bio: '爱生活爱二手，诚信交易', campus: '东校园', verified: true, creditScore: 92, dealCount: 23, goodsCount: 3, fansCount: 56 },
-					'3': { nickname: '李四（买家）', defaultAvatar: '📚', bio: '', campus: '南校园', verified: false, creditScore: 75, dealCount: 8, goodsCount: 0, fansCount: 12 }
+					'2': { nickname: '张三（卖家）', defaultAvatar: '🤝', bio: '爱生活爱二手，诚信交易', campus: '东校园', verified: true, creditScore: 92, dealCount: 23, goodsCount: 3,  },
+					'3': { nickname: '李四（买家）', defaultAvatar: '📚', bio: '', campus: '南校园', verified: false, creditScore: 75, dealCount: 8, goodsCount: 0, }
 				}
 				if (users[id]) {
 					Object.assign(this.user, users[id])
@@ -171,10 +162,6 @@
 			},
 			startChat() {
 				uni.navigateTo({ url: '/pages/chat/chat?id=' + (this.user._id || '2') })
-			},
-			toggleFollow() {
-				this.isFollowed = !this.isFollowed
-				uni.showToast({ title: this.isFollowed ? '已关注' : '已取消关注', icon: 'none' })
 			},
 			showMoreActions() {
 				uni.showActionSheet({
@@ -206,7 +193,7 @@
 
 	.header-bg {
 		height: 200rpx;
-		background: linear-gradient(135deg, #00613C, #00804B);
+		background: linear-gradient(135deg, #3A6341, #4E7D56);
 		position: relative;
 	}
 
@@ -258,7 +245,7 @@
 	}
 	.user-tags { display: flex; gap: 12rpx; margin-top: 16rpx; }
 	.u-tag {
-		font-size: 22rpx; color: #00613C; background: #e8f5ee;
+		font-size: 22rpx; color: #3A6341; background: #e8f5ee;
 		padding: 6rpx 20rpx; border-radius: 20rpx;
 	}
 	.u-tag-verified { color: #1565C0; background: #e3f2fd; }
@@ -338,9 +325,7 @@
 		box-sizing: border-box;
 	}
 	.bb-btn { flex: 1; height: 72rpx; line-height: 72rpx; text-align: center; border-radius: 36rpx; font-size: 28rpx; font-weight: bold; }
-	.bb-chat { background: #e8f5ee; color: #00613C; }
-	.bb-follow { background: #00613C; color: #ffffff; }
-	.bb-followed { background: #f0f0f0; color: #666; }
+	.bb-chat { background: #e8f5ee; color: #3A6341; }
 
 	.bottom-safe { height: 120rpx; }
 </style>

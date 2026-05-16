@@ -119,7 +119,7 @@
 
 	/* 状态卡片 */
 	.od-status-card {
-		background: linear-gradient(135deg, #00613C, #00804B);
+		background: linear-gradient(135deg, #3A6341, #4E7D56);
 		border-radius: 20rpx;
 		padding: 40rpx;
 		display: flex; flex-direction: column; align-items: center;
@@ -182,5 +182,5 @@
 	}
 	.od-btn { flex: 1; height: 80rpx; line-height: 80rpx; text-align: center; border-radius: 40rpx; font-size: 28rpx; }
 	.od-btn-outline { background: #f5f5f5; color: #333; }
-	.od-btn-primary { background: linear-gradient(135deg, #00613C, #00804B); color: #ffffff; }
+	.od-btn-primary { background: linear-gradient(135deg, #3A6341, #4E7D56); color: #ffffff; }
 </style>

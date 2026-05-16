@@ -145,7 +145,7 @@
 		padding-left: 20rpx;
 		padding-right: 20rpx;
 		padding-bottom: 20rpx;
-		background: linear-gradient(135deg, #00613C, #00804B);
+		background: linear-gradient(135deg, #3A6341, #4E7D56);
 		box-sizing: border-box;
 	}
 
@@ -216,14 +216,14 @@
 		text-align: center;
 	}
 
-	.reason-active .reason-radio { color: #00613C; }
+	.reason-active .reason-radio { color: #3A6341; }
 
 	.reason-text {
 		font-size: 28rpx;
 		color: #333;
 	}
 
-	.reason-active .reason-text { color: #00613C; font-weight: bold; }
+	.reason-active .reason-text { color: #3A6341; font-weight: bold; }
 
 	/* ===== 描述 ===== */
 	.form-textarea {
@@ -296,7 +296,7 @@
 		width: 100%;
 		height: 88rpx;
 		line-height: 88rpx;
-		background: linear-gradient(135deg, #00613C, #00804B);
+		background: linear-gradient(135deg, #3A6341, #4E7D56);
 		color: #ffffff;
 		font-size: 32rpx;
 		font-weight: bold;

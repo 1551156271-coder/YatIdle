@@ -4,7 +4,7 @@
 		<view class="score-card">
 			<view class="score-circle" :class="creditLevel">
 				<text class="score-num">{{ credit.creditScore }}</text>
-				<text class="score-unit">分</text>
+				<!--<text class="score-unit">分</text>-->
 			</view>
 			<text class="score-desc" :class="creditLevel">{{ creditDesc }}</text>
 		</view>
@@ -19,10 +19,6 @@
 				<view class="stat-item">
 					<text class="stat-num">{{ credit.goodsCount }}</text>
 					<text class="stat-label">在售</text>
-				</view>
-				<view class="stat-item">
-					<text class="stat-num">{{ credit.fansCount }}</text>
-					<text class="stat-label">粉丝</text>
 				</view>
 				<view class="stat-item">
 					<text class="stat-num">{{ credit.reviewCount }}</text>
@@ -66,7 +62,6 @@
 					creditScore: 92,
 					dealCount: 23,
 					goodsCount: 3,
-					fansCount: 56,
 					reviewCount: 8
 				},
 				reviews: [
@@ -105,7 +100,7 @@
 
 	/* 信用分大卡 */
 	.score-card {
-		background: linear-gradient(135deg, #00613C, #00804B);
+		background: linear-gradient(135deg, #3A6341, #4E7D56);
 		border-radius: 20rpx;
 		padding: 50rpx 30rpx;
 		display: flex; flex-direction: column; align-items: center;
@@ -120,7 +115,7 @@
 		margin-bottom: 20rpx;
 	}
 	.score-num { font-size: 72rpx; color: #ffffff; font-weight: bold; line-height: 1; }
-	.score-unit { font-size: 24rpx; color: rgba(255,255,255,0.6); margin-top: 4rpx; }
+	/*.score-unit { font-size: 24rpx; color: rgba(255,255,255,0.6); margin-top: 4rpx; }*/
 	.score-desc { font-size: 30rpx; color: #ffffff; font-weight: bold; }
 
 	.score-circle.credit-high { border-color: #4cd964; }

@@ -95,6 +95,19 @@
 				</picker>
 			</view>
 			<view class="form-item">
+				<text class="form-label">参考图片<text class="form-label-hint">（选填）</text></text>
+				<view class="image-grid">
+					<view class="image-item" v-for="(img, idx) in buyForm.images" :key="idx" @click="previewBuyImage(idx)">
+						<image class="image-thumb" :src="img" mode="aspectFill" />
+						<view class="image-remove" @click.stop="removeBuyImage(idx)">✕</view>
+					</view>
+					<view class="upload-box" @click="uploadBuyImage" v-if="buyForm.images.length < 9">
+						<text class="upload-icon">+</text>
+						<text class="upload-text">添加图片</text>
+					</view>
+				</view>
+			</view>
+			<view class="form-item">
 				<text class="form-label">补充说明</text>
 				<textarea class="form-textarea" v-model="buyForm.desc" placeholder="描述一下你的具体需求，如品牌、型号等" :maxlength="500" />
 			</view>
@@ -130,7 +143,8 @@
 					category: '',
 					campus: '',
 					condition: '',
-					desc: ''
+					desc: '',
+					images: []
 				}
 			}
 		},
@@ -193,6 +207,26 @@
 				this.buyForm.condition = this.conditionList[e.detail.value]
 			},
 
+			uploadBuyImage() {
+				const remain = 9 - this.buyForm.images.length
+				uni.chooseImage({
+					count: remain,
+					success: (res) => {
+						this.buyForm.images = this.buyForm.images.concat(res.tempFilePaths)
+						uni.showToast({ title: '已选择 ' + res.tempFilePaths.length + ' 张', icon: 'none' })
+					}
+				})
+			},
+			previewBuyImage(idx) {
+				uni.previewImage({
+					current: idx,
+					urls: this.buyForm.images
+				})
+			},
+			removeBuyImage(idx) {
+				this.buyForm.images.splice(idx, 1)
+			},
+
 			onBuySubmit() {
 				if (!this.buyForm.title) {
 					uni.showToast({ title: '请输入求购物品', icon: 'none' })
@@ -215,7 +249,7 @@
 	}
 
 	.publish-hero {
-		background: linear-gradient(135deg, #00613C, #00804B);
+		background: linear-gradient(135deg, #3A6341, #4E7D56);
 		padding: 40rpx 30rpx 50rpx;
 		display: flex;
 		flex-direction: column;
@@ -236,6 +270,36 @@
 
 	.form-item { margin-bottom: 36rpx; }
 	.form-label { font-size: 28rpx; color: #333; font-weight: bold; margin-bottom: 16rpx; display: block; }
+	.form-label-hint { font-size: 24rpx; color: #999; font-weight: normal; }
+
+	.image-grid {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 16rpx;
+	}
+
+	.image-item {
+		width: 160rpx; height: 160rpx;
+		border-radius: 16rpx;
+		position: relative;
+		overflow: hidden;
+	}
+
+	.image-thumb {
+		width: 100%; height: 100%;
+		border-radius: 16rpx;
+	}
+
+	.image-remove {
+		position: absolute;
+		top: -2rpx; right: -2rpx;
+		width: 44rpx; height: 44rpx;
+		background: rgba(0,0,0,0.5);
+		color: #ffffff;
+		font-size: 24rpx;
+		border-radius: 0 16rpx 0 16rpx;
+		display: flex; align-items: center; justify-content: center;
+	}
 
 	.upload-box {
 		width: 160rpx; height: 160rpx;
@@ -278,7 +342,7 @@
 
 	.submit-btn {
 		width: 100%; height: 88rpx; line-height: 88rpx;
-		background: linear-gradient(135deg, #00613C, #00804B);
+		background: linear-gradient(135deg, #3A6341, #4E7D56);
 		color: #ffffff; font-size: 32rpx; font-weight: bold;
 		border-radius: 44rpx; border: none;
 		margin-top: 40rpx;
