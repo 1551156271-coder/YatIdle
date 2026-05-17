@@ -127,7 +127,7 @@
 			<!-- 卡片3: 心愿单 -->
 			<view class="card card-wish" @click="goToWishlist">
 				<view class="card-head">
-					<text class="card-title">❤️ 心愿单</text>
+					<text class="card-title"><text class="iconfont icon-xinyuandan" style="font-size: 32rpx; margin-right: 4rpx;"></text>心愿单</text>
 					<text class="card-more">{{ userInfo.wishCount }} 件商品 ›</text>
 				</view>
 				<view v-if="userInfo.wishCount > 0" class="wish-preview">
@@ -139,10 +139,13 @@
 			</view>
 		</block>
 	</view>
+	<tab-bar />
 </template>
 
 <script>
+	import TabBar from '@/components/tab-bar.vue'
 	export default {
+		components: { TabBar },
 		data() {
 			// TODO: 开发完后删掉 mock，改回 uni.getStorageSync('user')
 	const user = uni.getStorageSync('user') || { username: '测试用户', campus: '东校园', verified: true, creditScore: 85, publishCount: 3, soldCount: 5, purchasedCount: 2, dealCount: 7, goodsCount: 3, reviewCount: 12, wishCount: 4 }
@@ -180,6 +183,7 @@
 			}
 		},
 		onShow() {
+			uni.hideTabBar()
 			// TODO: 开发完后删掉 mock，改回 uni.getStorageSync('user')
 	const user = uni.getStorageSync('user') || { username: '测试用户', campus: '东校园', verified: true, creditScore: 85, publishCount: 3, soldCount: 5, purchasedCount: 2, dealCount: 7, goodsCount: 3, reviewCount: 12, wishCount: 4 }
 			if (user) {

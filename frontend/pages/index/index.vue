@@ -3,7 +3,7 @@
 		<!-- 顶部搜索栏 -->
 		<view class="search-bar" @click="onSearchClick">
 			<view class="search-box">
-				<text class="search-icon">🔍</text>
+				<text class="search-icon iconfont icon-sousuo"></text>
 				<text class="search-placeholder">搜索你想要的二手好物</text>
 			</view>
 			<text class="search-btn">搜索</text>
@@ -55,10 +55,13 @@
 		<!-- 底部安全距离 -->
 		<view class="bottom-safe"></view>
 	</view>
+	<tab-bar />
 </template>
 
 <script>
+	import TabBar from '@/components/tab-bar.vue'
 	export default {
+		components: { TabBar },
 		data() {
 			return {
 				activeCategory: 'all',
@@ -101,6 +104,9 @@
 			if (this.loading || !this.hasMore) return
 			this.page++
 			this.loadGoods()
+		},
+		onShow() {
+			uni.hideTabBar()
 		},
 		methods: {
 			onSearchClick() {

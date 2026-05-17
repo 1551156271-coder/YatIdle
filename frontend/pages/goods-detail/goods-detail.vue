@@ -22,7 +22,10 @@
 		<!-- 买家模式：卖家信息卡 -->
 		<view v-if="!isSeller" class="seller-card">
 			<view class="seller-left">
-				<view class="avatar" @click="goToProfile">🎓</view>
+				<view class="avatar" @click="goToProfile">
+					<image v-if="sellerAvatar" class="avatar-img" :src="sellerAvatar" mode="aspectFill"></image>
+					<text v-else class="avatar-emoji">🎓</text>
+				</view>
 				<view class="seller-text">
 					<view class="name-row">
 						<text class="seller-name">中大在校生</text>
@@ -36,7 +39,10 @@
 		<view v-if="isSeller && goodsStatus === 'sold'" class="seller-card buyer-card">
 			<view class="section-label">购买者信息</view>
 			<view class="seller-left" style="margin-top: 16rpx;">
-				<view class="avatar" @click="goToBuyerProfile">📚</view>
+				<view class="avatar" @click="goToBuyerProfile">
+					<image v-if="buyerAvatar" class="avatar-img" :src="buyerAvatar" mode="aspectFill"></image>
+					<text v-else class="avatar-emoji">📚</text>
+				</view>
 				<view class="seller-text">
 					<view class="name-row">
 						<text class="seller-name">李四（买家）</text>
@@ -62,7 +68,7 @@
 		<!-- 底部操作栏：买家模式 -->
 		<view v-if="!isSeller" class="bottom-action">
 			<view class="icon-group" @click="toggleCollect">
-				<text class="collect-icon" :style="{ color: isCollected ? '#e74c3c' : '#ccc' }">♥</text>
+				<text class="collect-icon iconfont" :class="isCollected ? 'icon-xz' : 'icon-shoucang'"></text>
 			</view>
 			<view class="btn-group">
 				<button class="chat-btn" @click="handleAction('咨询')">💬 咨询</button>
@@ -73,7 +79,7 @@
 		<!-- 底部操作栏：卖家模式 - 在售 -->
 		<view v-if="isSeller && goodsStatus === 'selling'" class="bottom-action seller-bottom">
 			<button class="edit-btn" @click="editGoods">编辑信息</button>
-			<button class="cancel-btn" @click="cancelListing">撤销出售</button>
+			<button class="cancel-btn" @click="cancelListing">下架商品</button>
 		</view>
 
 		<!-- 底部操作栏：卖家模式 - 已下架 -->
@@ -93,6 +99,8 @@
 				description: "去年学期初在校外车行买的，平时只在教学楼和宿舍之间通勤。车架很轻，变速灵敏。离校转手，东校园自提。配件齐全，包括车锁和挡泥板，骑行体验非常好。",
 				isCollected: false,
 				isSeller: false,
+				sellerAvatar: "",
+				buyerAvatar: "",
 				goodsStatus: 'selling', // 'selling' | 'sold' | 'off'
 			}
 		},
@@ -147,12 +155,12 @@
 			},
 			cancelListing() {
 				uni.showModal({
-					title: '撤销出售',
-					content: '确认撤销该商品的出售？撤销后其他用户将无法看到该商品。',
+					title: '下架商品',
+					content: '确认下架该商品？下架后其他用户将无法看到该商品。',
 					success: (res) => {
 						if (res.confirm) {
 							this.goodsStatus = 'off'
-							uni.showToast({ title: '已撤销', icon: 'success' })
+							uni.showToast({ title: '已下架', icon: 'success' })
 						}
 					}
 				})
@@ -234,12 +242,14 @@
 	}
 	.seller-left { display: flex; align-items: center; gap: 20rpx; flex: 1; }
 	.avatar {
-		width: 88rpx; height: 88rpx;
-		background: #e8f5ee;
-		border-radius: 50%;
-		display: flex; align-items: center; justify-content: center;
-		font-size: 44rpx; flex-shrink: 0;
-	}
+	width: 88rpx; height: 88rpx;
+	background: #e8f5ee;
+	border-radius: 50%;
+	display: flex; align-items: center; justify-content: center;
+	font-size: 44rpx; flex-shrink: 0; overflow: hidden;
+}
+.avatar-img { width: 100%; height: 100%; border-radius: 50%; }
+.avatar-emoji { font-size: 44rpx; }
 	.seller-text { display: flex; flex-direction: column; justify-content: center; }
 	.name-row { display: flex; align-items: center; gap: 12rpx; }
 	.seller-name { font-size: 30rpx; font-weight: bold; color: #333; line-height: 1.4; }
@@ -300,7 +310,8 @@
 		box-shadow: 0 -4rpx 16rpx rgba(0,0,0,0.05);
 	}
 	.icon-group { width: 80rpx; display: flex; align-items: center; justify-content: center; margin-right: 20rpx; }
-	.collect-icon { font-size: 54rpx; transition: all 0.3s; }
+	.collect-icon { font-size: 48rpx; color: #ccc; transition: all 0.3s; }
+	.icon-xz { color: #E85A4F; }
 	.btn-group { flex: 1; display: flex; gap: 16rpx; justify-content: flex-end; }
 	.chat-btn {
 		background: #e8f5ee; color: #3A6341;
@@ -329,7 +340,7 @@
 	}
 	.cancel-btn {
 		flex: 1;
-		background: #f5f5f5; color: #999;
+		background: #f5f5f5; color: #3f3f3f;
 		font-size: 28rpx; font-weight: bold;
 		height: 80rpx; line-height: 80rpx;
 		border-radius: 40rpx; margin: 0; border: none;

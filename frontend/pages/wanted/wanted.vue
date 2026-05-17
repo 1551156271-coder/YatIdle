@@ -38,10 +38,13 @@
 			<text class="empty-text">暂无求购信息</text>
 		</view>
 	</view>
+	<tab-bar />
 </template>
 
 <script>
+	import TabBar from '@/components/tab-bar.vue'
 	export default {
+		components: { TabBar },
 		data() {
 			return {
 				wantedList: [
@@ -51,6 +54,9 @@
 					{ id: 104, title: '收一双42码跑鞋', budgetMin: '100', budgetMax: '250', campus: '北校园', condition: '95新以上', categoryLabel: '运动户外', desc: '体育课需要，穿不了几次所以不想买全新的', username: '运动达人', time: '昨天' }
 				]
 			}
+		},
+		onShow() {
+			uni.hideTabBar()
 		},
 		methods: {
 			goToDetail(item) {

@@ -6,7 +6,10 @@
 				<text class="back-icon">‹</text>
 			</view>
 			<view class="header-info" @click="goToProfile">
-				<view class="header-avatar">{{ contactInfo.avatar }}</view>
+				<view class="header-avatar">
+					<image v-if="contactInfo.avatar" class="header-avatar-img" :src="contactInfo.avatar" mode="aspectFill"></image>
+					<text v-else class="header-avatar-emoji">{{ contactInfo.defaultAvatar }}</text>
+				</view>
 				<view class="header-text">
 					<text class="header-name">{{ contactInfo.name }}</text>
 				</view>
@@ -36,7 +39,10 @@
 					</view>
 
 					<view v-else class="msg-row" :class="{ 'msg-self': msg.fromMe }">
-						<view v-if="!msg.fromMe" class="msg-avatar" @click="goToProfile">{{ contactInfo.avatar }}</view>
+						<view v-if="!msg.fromMe" class="msg-avatar" @click="goToProfile">
+								<image v-if="contactInfo.avatar" class="msg-avatar-img" :src="contactInfo.avatar" mode="aspectFill"></image>
+								<text v-else class="msg-avatar-emoji">{{ contactInfo.defaultAvatar }}</text>
+							</view>
 
 						<view class="msg-bubble-wrap">
 							<!-- 文本 -->
@@ -103,7 +109,10 @@
 							</view>
 						</view>
 
-						<view v-if="msg.fromMe" class="msg-avatar msg-avatar-self">🎓</view>
+						<view v-if="msg.fromMe" class="msg-avatar msg-avatar-self">
+								<image v-if="myAvatar" class="msg-avatar-img" :src="myAvatar" mode="aspectFill"></image>
+								<text v-else class="msg-avatar-emoji">🎓</text>
+							</view>
 					</view>
 				</view>
 			</block>
@@ -130,8 +139,8 @@
 		<view class="input-area">
 			<view class="input-row">
 				<view class="mode-switch" @click="switchInputMode">
-					<text v-if="inputMode === 'text'" class="mode-icon mode-mic"></text>
-					<text v-else class="mode-icon mode-keyboard"></text>
+					<text v-if="inputMode === 'text'" class="mode-icon iconfont icon-huatong"></text>
+					<text v-else class="mode-icon iconfont icon-jianpan"></text>
 				</view>
 
 				<view class="input-box">
@@ -153,7 +162,7 @@
 				</view>
 
 				<view class="plus-btn" :class="{ 'plus-active': toolbarOpen }" @click="toggleToolbar">
-					<text class="plus-text">{{ toolbarOpen ? '✕' : '+' }}</text>
+					<text class="plus-icon iconfont icon-fabu"></text>
 				</view>
 			</view>
 
@@ -201,9 +210,10 @@ export default {
 	data() {
 		return {
 			statusBarHeight: 0,
+				myAvatar: "",
 			headerRightPad: 20,
 			scrollAnimated: false,
-			contactInfo: { id: 2, avatar: '🤝', name: '张三（卖家）' },
+			contactInfo: { id: 2, avatar: '', defaultAvatar: '🤝', name: '张三（卖家）' },
 			msgs: [],
 			inputText: '',
 			inputMode: 'text',
@@ -239,7 +249,7 @@ export default {
 		goToProfile() { uni.navigateTo({ url: '/pages/profile/profile?id=' + this.contactInfo.id }) },
 
 		loadContactInfo(id) {
-			const m = { '1': { avatar: '🎓', name: '中大二手交易助手' }, '2': { avatar: '🤝', name: '张三（卖家）' }, '3': { avatar: '📚', name: '李四（买家）' } }
+			const m = { '1': { avatar: '', defaultAvatar: '🎓', name: '中大二手交易助手' }, '2': { avatar: '', defaultAvatar: '🤝', name: '张三（卖家）' }, '3': { avatar: '', defaultAvatar: '📚', name: '李四（买家）' } }
 			if (m[id]) this.contactInfo = m[id]
 		},
 
@@ -443,8 +453,10 @@ export default {
 .header-info { flex: 1; display: flex; align-items: center; gap: 16rpx; overflow: hidden; }
 .header-avatar {
 	width: 80rpx; height: 80rpx; background: #e8f5ee; border-radius: 50%;
-	display: flex; align-items: center; justify-content: center; font-size: 36rpx; flex-shrink: 0;
+	display: flex; align-items: center; justify-content: center; font-size: 36rpx; flex-shrink: 0; overflow: hidden;
 }
+.header-avatar-img { width: 100%; height: 100%; border-radius: 50%; }
+.header-avatar-emoji { font-size: 36rpx; }
 .header-text { display: flex; flex-direction: column; overflow: hidden; }
 .header-name { font-size: 34rpx; color: #333; font-weight: bold; }
 
@@ -464,8 +476,10 @@ export default {
 
 .msg-avatar {
 	width: 80rpx; height: 80rpx; background: #e8f5ee; border-radius: 50%;
-	display: flex; align-items: center; justify-content: center; font-size: 36rpx; flex-shrink: 0;
+	display: flex; align-items: center; justify-content: center; font-size: 36rpx; flex-shrink: 0; overflow: hidden;
 }
+.msg-avatar-img { width: 100%; height: 100%; border-radius: 50%; }
+.msg-avatar-emoji { font-size: 36rpx; }
 .msg-row:not(.msg-self) .msg-avatar { margin-right: 16rpx; }
 .msg-self .msg-avatar { margin-left: 16rpx; background: #e3f2fd; }
 
@@ -558,30 +572,7 @@ export default {
 
 /* 语音 / 键盘切换（左侧） */
 .mode-switch { width: 56rpx; height: 56rpx; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-.mode-icon { display: block; }
-.mode-mic {
-	width: 28rpx; height: 36rpx; border: 3rpx solid #999; border-radius: 14rpx;
-	position: relative; box-sizing: border-box;
-}
-.mode-mic::after {
-	content: '';
-	position: absolute; bottom: -10rpx; left: 50%; transform: translateX(-50%);
-	width: 3rpx; height: 8rpx; background: #999; border-radius: 0 0 2rpx 2rpx;
-}
-.mode-keyboard {
-	width: 36rpx; height: 28rpx; border: 3rpx solid #999; border-radius: 4rpx;
-	position: relative; box-sizing: border-box;
-}
-.mode-keyboard::before {
-	content: '';
-	position: absolute; top: 4rpx; left: 6rpx; right: 6rpx;
-	height: 3rpx; background: #999; border-radius: 2rpx;
-}
-.mode-keyboard::after {
-	content: '';
-	position: absolute; bottom: 4rpx; left: 6rpx; right: 6rpx;
-	height: 3rpx; background: #999; border-radius: 2rpx;
-}
+.mode-icon { font-size: 44rpx; color: #999; line-height: 1; }
 
 /* 输入框 */
 .input-box { flex: 1; }
@@ -598,14 +589,11 @@ export default {
 /* + 按钮（右侧，圆形） */
 .plus-btn {
 	width: 56rpx; height: 56rpx;
-	border: 2rpx solid #ccc; border-radius: 50%;
 	display: flex; align-items: center; justify-content: center;
 	flex-shrink: 0; transition: all 0.2s;
 }
-.plus-btn:active { background: #f5f5f5; }
-.plus-text { font-size: 38rpx; color: #999; line-height: 1; font-weight: 300; }
+.plus-icon { font-size: 48rpx; color: #999; line-height: 1; }
 .plus-active { background: #f5f5f5; border-color: #bbb; }
-.plus-active .plus-text { font-size: 26rpx; color: #666; }
 
 /* ===== 扩展面板 ===== */
 .toolbar-panel {

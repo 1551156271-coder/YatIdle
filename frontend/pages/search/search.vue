@@ -7,7 +7,7 @@
 					<text class="back-icon">‹</text>
 				</view>
 				<view class="search-box">
-					<text class="sb-icon">🔍</text>
+					<text class="sb-icon iconfont icon-sousuo"></text>
 					<input
 						class="sb-input"
 						v-model="keyword"

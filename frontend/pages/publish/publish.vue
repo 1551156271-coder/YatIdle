@@ -26,10 +26,16 @@
 			</view>
 		</view>
 	</view>
+	<tab-bar />
 </template>
 
 <script>
+	import TabBar from '@/components/tab-bar.vue'
 	export default {
+		components: { TabBar },
+		onShow() {
+			uni.hideTabBar()
+		},
 		methods: {
 			goPublish(type) {
 				uni.navigateTo({

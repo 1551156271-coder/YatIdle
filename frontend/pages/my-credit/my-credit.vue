@@ -36,7 +36,10 @@
 				<view v-for="r in reviews" :key="r.id" class="review-item">
 					<view class="rv-top">
 						<view class="rv-user">
-							<text class="rv-avatar">{{ r.avatar }}</text>
+							<view class="rv-avatar">
+							<image v-if="r.avatar" class="rv-avatar-img" :src="r.avatar" mode="aspectFill"></image>
+							<text v-else class="rv-avatar-emoji">{{ r.defaultAvatar }}</text>
+						</view>
 							<text class="rv-name">{{ r.name }}</text>
 						</view>
 						<view class="rv-stars">
@@ -65,11 +68,11 @@
 					reviewCount: 8
 				},
 				reviews: [
-					{ id: 1, avatar: '📚', name: '李四', rating: 5, content: '卖家很爽快，车况和描述完全一致，还送了挡泥板！', time: '3天前' },
-					{ id: 2, avatar: '🎧', name: '王五', rating: 5, content: '交易顺利，当面验货很放心', time: '1周前' },
-					{ id: 3, avatar: '📱', name: '赵六', rating: 4, content: '台灯好用，就是有点小划痕，整体不错', time: '2周前' },
-					{ id: 4, avatar: '💻', name: '孙七', rating: 5, content: '非常好的卖家，书保护得很好', time: '3周前' },
-					{ id: 5, avatar: '🎮', name: '周八', rating: 4, content: '交易顺利', time: '1个月前' }
+					{ id: 1, avatar: '', defaultAvatar: '📚', name: '李四', rating: 5, content: '卖家很爽快，车况和描述完全一致，还送了挡泥板！', time: '3天前' },
+					{ id: 2, avatar: '', defaultAvatar: '🎧', name: '王五', rating: 5, content: '交易顺利，当面验货很放心', time: '1周前' },
+					{ id: 3, avatar: '', defaultAvatar: '📱', name: '赵六', rating: 4, content: '台灯好用，就是有点小划痕，整体不错', time: '2周前' },
+					{ id: 4, avatar: '', defaultAvatar: '💻', name: '孙七', rating: 5, content: '非常好的卖家，书保护得很好', time: '3周前' },
+					{ id: 5, avatar: '', defaultAvatar: '🎮', name: '周八', rating: 4, content: '交易顺利', time: '1个月前' }
 				]
 			}
 		},
@@ -145,9 +148,11 @@
 	.rv-top { display: flex; align-items: center; gap: 12rpx; margin-bottom: 10rpx; }
 	.rv-user { display: flex; align-items: center; gap: 8rpx; }
 	.rv-avatar {
-		width: 48rpx; height: 48rpx; background: #f0f0f0; border-radius: 50%;
-		display: flex; align-items: center; justify-content: center; font-size: 24rpx;
-	}
+	width: 48rpx; height: 48rpx; background: #f0f0f0; border-radius: 50%;
+	display: flex; align-items: center; justify-content: center; font-size: 24rpx; flex-shrink: 0; overflow: hidden;
+}
+.rv-avatar-img { width: 100%; height: 100%; border-radius: 50%; }
+.rv-avatar-emoji { font-size: 24rpx; }
 	.rv-name { font-size: 26rpx; color: #333; }
 	.rv-stars { display: flex; gap: 2rpx; }
 	.star { font-size: 26rpx; color: #eee; }

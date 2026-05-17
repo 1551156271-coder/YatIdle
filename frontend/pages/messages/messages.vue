@@ -2,7 +2,10 @@
 	<view class="messages-page">
 		<view class="chat-list">
 			<view v-for="item in chatList" :key="item.id" class="chat-item" @click="openChat(item)">
-				<view class="chat-avatar">{{ item.avatar }}</view>
+				<view class="chat-avatar">
+					<image v-if="item.avatar" class="chat-avatar-img" :src="item.avatar" mode="aspectFill"></image>
+					<text v-else class="chat-avatar-emoji">{{ item.defaultAvatar }}</text>
+				</view>
 				<view class="chat-content">
 					<view class="chat-top">
 						<text class="chat-name">{{ item.name }}</text>
@@ -21,18 +24,24 @@
 			<text class="empty-text">暂无消息</text>
 		</view>
 	</view>
+	<tab-bar />
 </template>
 
 <script>
+	import TabBar from '@/components/tab-bar.vue'
 	export default {
+		components: { TabBar },
 		data() {
 			return {
 				chatList: [
-					{ id: 1, avatar: '🎓', name: '中大二手交易助手', lastMsg: '欢迎来到闲鸭蛋！', time: '昨天', unread: 1 },
-					{ id: 2, avatar: '🤝', name: '张三（卖家）', lastMsg: '好的，明天东校食堂门口见', time: '2小时前', unread: 2 },
-					{ id: 3, avatar: '📚', name: '李四（买家）', lastMsg: '这本教材还有吗？', time: '3天前', unread: 0 }
+					{ id: 1, avatar: '', defaultAvatar: '🎓', name: '中大二手交易助手', lastMsg: '欢迎来到闲鸭蛋！', time: '昨天', unread: 1 },
+					{ id: 2, avatar: '', defaultAvatar: '🤝', name: '张三（卖家）', lastMsg: '好的，明天东校食堂门口见', time: '2小时前', unread: 2 },
+					{ id: 3, avatar: '', defaultAvatar: '📚', name: '李四（买家）', lastMsg: '这本教材还有吗？', time: '3天前', unread: 0 }
 				]
 			}
+		},
+		onShow() {
+			uni.hideTabBar()
 		},
 		methods: {
 			openChat(item) {
@@ -56,11 +65,13 @@
 	.chat-item:last-child { border-bottom: none; }
 
 	.chat-avatar {
-		width: 96rpx; height: 96rpx;
-		background: #e8f5ee; border-radius: 50%;
-		display: flex; align-items: center; justify-content: center;
-		font-size: 44rpx; margin-right: 20rpx; flex-shrink: 0;
-	}
+	width: 96rpx; height: 96rpx;
+	background: #e8f5ee; border-radius: 50%;
+	display: flex; align-items: center; justify-content: center;
+	font-size: 44rpx; margin-right: 20rpx; flex-shrink: 0; overflow: hidden;
+}
+.chat-avatar-img { width: 100%; height: 100%; border-radius: 50%; }
+.chat-avatar-emoji { font-size: 44rpx; }
 
 	.chat-content { flex: 1; overflow: hidden; }
 	.chat-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8rpx; }

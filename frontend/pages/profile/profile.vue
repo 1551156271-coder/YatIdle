@@ -70,7 +70,10 @@
 				<view v-for="r in user.reviews" :key="r.id" class="review-item">
 					<view class="rv-top">
 						<view class="rv-user">
-							<text class="rv-avatar">{{ r.avatar }}</text>
+							<view class="rv-avatar">
+							<image v-if="r.avatar" class="rv-avatar-img" :src="r.avatar" mode="aspectFill"></image>
+							<text v-else class="rv-avatar-emoji">{{ r.defaultAvatar }}</text>
+						</view>
 							<text class="rv-name">{{ r.name }}</text>
 						</view>
 						<view class="rv-stars">
@@ -86,12 +89,6 @@
 			</view>
 		</view>
 
-		<!-- 底部操作 -->
-		<view class="bottom-bar">
-			<view class="bb-btn bb-chat" @click="startChat">💬 聊一聊</view>
-		</view>
-
-		<view class="bottom-safe"></view>
 	</view>
 </template>
 
@@ -115,9 +112,9 @@
 						{ id: 3, image: 'https://images.unsplash.com/photo-1544816155-12df9643f363?q=80&w=400&auto=format&fit=crop', title: '四六级真题全套', price: '12.00' }
 					],
 					reviews: [
-						{ id: 1, avatar: '📚', name: '李四', rating: 5, content: '卖家很爽快，车况和描述完全一致，还送了挡泥板！', time: '3天前' },
-						{ id: 2, avatar: '🎧', name: '王五', rating: 5, content: '交易顺利，当面验货很放心', time: '1周前' },
-						{ id: 3, avatar: '📱', name: '赵六', rating: 4, content: '台灯好用，就是有点小划痕，整体不错', time: '2周前' }
+						{ id: 1, avatar: '', defaultAvatar: '📚', name: '李四', rating: 5, content: '卖家很爽快，车况和描述完全一致，还送了挡泥板！', time: '3天前' },
+						{ id: 2, avatar: '', defaultAvatar: '🎧', name: '王五', rating: 5, content: '交易顺利，当面验货很放心', time: '1周前' },
+						{ id: 3, avatar: '', defaultAvatar: '📱', name: '赵六', rating: 4, content: '台灯好用，就是有点小划痕，整体不错', time: '2周前' }
 					]
 				}
 			}
@@ -160,9 +157,6 @@
 			},
 			viewAllReviews() {
 				uni.navigateTo({ url: '/pages/profile-reviews/profile-reviews?id=' + (this.user._id || '2') })
-			},
-			startChat() {
-				uni.navigateTo({ url: '/pages/chat/chat?id=' + (this.user._id || '2') })
 			},
 			showMoreActions() {
 				uni.showActionSheet({
@@ -302,9 +296,17 @@
 	.rv-top { display: flex; align-items: center; gap: 12rpx; margin-bottom: 10rpx; }
 	.rv-user { display: flex; align-items: center; gap: 8rpx; }
 	.rv-avatar {
-		width: 48rpx; height: 48rpx; background: #f0f0f0; border-radius: 50%;
-		display: flex; align-items: center; justify-content: center; font-size: 24rpx;
-	}
+	width: 48rpx; height: 48rpx;
+	background: #f0f0f0;
+	border-radius: 50%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 24rpx;
+	flex-shrink: 0; overflow: hidden;
+}
+.rv-avatar-img { width: 100%; height: 100%; border-radius: 50%; }
+.rv-avatar-emoji { font-size: 24rpx; }
 	.rv-name { font-size: 26rpx; color: #333; }
 	.rv-stars { display: flex; gap: 2rpx; }
 	.star { font-size: 26rpx; color: #eee; }
@@ -316,17 +318,4 @@
 	.empty-inline { padding: 30rpx 0; text-align: center; }
 	.empty-txt { font-size: 24rpx; color: #ccc; }
 
-	/* ===== 底部栏 ===== */
-	.bottom-bar {
-		position: fixed; bottom: 0; left: 0; right: 0;
-		height: 100rpx; background: #ffffff;
-		display: flex; align-items: center; padding: 0 30rpx; gap: 20rpx;
-		border-top: 1rpx solid #f0f0f0;
-		box-shadow: 0 -4rpx 16rpx rgba(0,0,0,0.04);
-		box-sizing: border-box;
-	}
-	.bb-btn { flex: 1; height: 72rpx; line-height: 72rpx; text-align: center; border-radius: 36rpx; font-size: 28rpx; font-weight: bold; }
-	.bb-chat { background: #e8f5ee; color: #3A6341; }
-
-	.bottom-safe { height: 120rpx; }
 </style>

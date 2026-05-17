@@ -26,7 +26,10 @@
 			<view v-for="r in reviews" :key="r.id" class="review-item">
 				<view class="rv-top">
 					<view class="rv-user">
-						<text class="rv-avatar">{{ r.avatar }}</text>
+						<view class="rv-avatar">
+						<image v-if="r.avatar" class="rv-avatar-img" :src="r.avatar" mode="aspectFill"></image>
+						<text v-else class="rv-avatar-emoji">{{ r.defaultAvatar }}</text>
+					</view>
 						<text class="rv-name">{{ r.name }}</text>
 					</view>
 					<view class="rv-stars">
@@ -82,12 +85,12 @@
 					'2': {
 						nickname: '张三（卖家）',
 						reviews: [
-							{ id: 1, avatar: '📚', name: '李四', rating: 5, content: '卖家很爽快，车况和描述完全一致，还送了挡泥板！', tags: ['响应迅速', '诚实描述'], time: '3天前' },
-							{ id: 2, avatar: '🎧', name: '王五', rating: 5, content: '交易顺利，当面验货很放心', tags: ['诚信交易'], time: '1周前' },
-							{ id: 3, avatar: '📱', name: '赵六', rating: 4, content: '台灯好用，就是有点小划痕，整体不错', tags: ['物有所值'], time: '2周前' },
-							{ id: 4, avatar: '💻', name: '孙七', rating: 5, content: '很nice的卖家，沟通顺畅，还帮我送到楼下', tags: ['服务好', '送货快'], time: '3周前' },
-							{ id: 5, avatar: '🎮', name: '周八', rating: 5, content: '第二次交易了，一如既往靠谱', tags: ['回头客'], time: '1月前' },
-							{ id: 6, avatar: '📖', name: '吴九', rating: 4, content: '物品不错，价格合理，就是约的时间改了一次', tags: ['物有所值'], time: '1月前' }
+							{ id: 1, avatar: '', defaultAvatar: '📚', name: '李四', rating: 5, content: '卖家很爽快，车况和描述完全一致，还送了挡泥板！', tags: ['响应迅速', '诚实描述'], time: '3天前' },
+							{ id: 2, avatar: '', defaultAvatar: '🎧', name: '王五', rating: 5, content: '交易顺利，当面验货很放心', tags: ['诚信交易'], time: '1周前' },
+							{ id: 3, avatar: '', defaultAvatar: '📱', name: '赵六', rating: 4, content: '台灯好用，就是有点小划痕，整体不错', tags: ['物有所值'], time: '2周前' },
+							{ id: 4, avatar: '', defaultAvatar: '💻', name: '孙七', rating: 5, content: '很nice的卖家，沟通顺畅，还帮我送到楼下', tags: ['服务好', '送货快'], time: '3周前' },
+							{ id: 5, avatar: '', defaultAvatar: '🎮', name: '周八', rating: 5, content: '第二次交易了，一如既往靠谱', tags: ['回头客'], time: '1月前' },
+							{ id: 6, avatar: '', defaultAvatar: '📖', name: '吴九', rating: 4, content: '物品不错，价格合理，就是约的时间改了一次', tags: ['物有所值'], time: '1月前' }
 						]
 					}
 				}
@@ -228,16 +231,17 @@
 	}
 
 	.rv-avatar {
-		width: 48rpx;
-		height: 48rpx;
-		background: #f0f0f0;
-		border-radius: 50%;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		font-size: 24rpx;
-		flex-shrink: 0;
-	}
+	width: 48rpx; height: 48rpx;
+	background: #f0f0f0;
+	border-radius: 50%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 24rpx;
+	flex-shrink: 0; overflow: hidden;
+}
+.rv-avatar-img { width: 100%; height: 100%; border-radius: 50%; }
+.rv-avatar-emoji { font-size: 24rpx; }
 
 	.rv-name {
 		font-size: 26rpx;

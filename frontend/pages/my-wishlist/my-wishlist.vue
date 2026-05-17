@@ -7,7 +7,7 @@
 					<text class="g-title">{{ g.title }}</text>
 					<view class="g-bottom">
 						<text class="g-price">¥{{ g.price }}</text>
-						<text class="g-heart">❤️</text>
+						<text class="g-heart iconfont icon-xz"></text>
 					</view>
 				</view>
 			</view>
@@ -70,7 +70,7 @@
 	}
 	.g-bottom { display: flex; justify-content: space-between; align-items: center; }
 	.g-price { font-size: 30rpx; color: #e74c3c; font-weight: bold; }
-	.g-heart { font-size: 28rpx; }
+	.g-heart { font-size: 32rpx; color: #E85A4F; }
 
 	/* 空态 */
 	.empty-wrap {

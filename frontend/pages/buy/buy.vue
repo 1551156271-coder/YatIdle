@@ -28,7 +28,10 @@
 		<view class="section-card">
 			<view class="section-title">卖家信息</view>
 			<view class="seller-row">
-				<view class="seller-avatar">{{ seller.avatar }}</view>
+				<view class="seller-avatar">
+					<image v-if="seller.avatar" class="seller-avatar-img" :src="seller.avatar" mode="aspectFill"></image>
+					<text v-else class="seller-avatar-emoji">{{ seller.defaultAvatar }}</text>
+				</view>
 				<view class="seller-info">
 					<text class="seller-name">{{ seller.name }}</text>
 					<text class="seller-credit">信用分 {{ seller.credit }}</text>
@@ -109,7 +112,7 @@
 				},
 				seller: {
 					id: 2,
-					avatar: '🎓',
+					avatar: '', defaultAvatar: '🎓',
 					name: '中大在校生',
 					credit: 98
 				}
@@ -271,16 +274,17 @@
 	}
 
 	.seller-avatar {
-		width: 80rpx;
-		height: 80rpx;
-		background: #e8f5ee;
-		border-radius: 50%;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		font-size: 36rpx;
-		flex-shrink: 0;
-	}
+	width: 80rpx; height: 80rpx;
+	background: #e8f5ee;
+	border-radius: 50%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 36rpx;
+	flex-shrink: 0; overflow: hidden;
+}
+.seller-avatar-img { width: 100%; height: 100%; border-radius: 50%; }
+.seller-avatar-emoji { font-size: 36rpx; }
 
 	.seller-info {
 		display: flex;

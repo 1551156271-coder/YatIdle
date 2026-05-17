@@ -47,7 +47,10 @@
 		<!-- 发布者信息 -->
 		<view class="wd-publisher-card">
 			<view class="wd-pub-left">
-				<view class="wd-pub-avatar">{{ detail.username.charAt(0) }}</view>
+				<view class="wd-pub-avatar">
+					<image v-if="detail.avatar" class="wd-pub-avatar-img" :src="detail.avatar" mode="aspectFill"></image>
+					<text v-else class="wd-pub-avatar-emoji">{{ detail.username.charAt(0) }}</text>
+				</view>
 				<view class="wd-pub-info">
 					<text class="wd-pub-name">{{ detail.username }}</text>
 					<text class="wd-pub-time">{{ detail.time }} 发布</text>
@@ -67,7 +70,7 @@
 		<!-- 底部操作栏 -->
 		<view class="wd-bottom-bar">
 			<view class="wd-collect" @click="toggleCollect">
-				<text class="wd-collect-icon" :style="{ color: isCollected ? '#e74c3c' : '#ccc' }">♥</text>
+				<text class="wd-collect-icon iconfont" :class="isCollected ? 'icon-xz' : 'icon-shoucang'"></text>
 			</view>
 			<button class="wd-contact-btn" @click="contactSeller">💬 联系TA</button>
 		</view>
@@ -249,18 +252,19 @@
 	}
 
 	.wd-pub-avatar {
-		width: 80rpx;
-		height: 80rpx;
-		border-radius: 50%;
-		background: #EDF2F6;
-		color: #5A7D9E;
-		font-size: 36rpx;
-		font-weight: bold;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		flex-shrink: 0;
-	}
+	width: 80rpx; height: 80rpx;
+	border-radius: 50%;
+	background: #EDF2F6;
+	color: #5A7D9E;
+	font-size: 36rpx;
+	font-weight: bold;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0; overflow: hidden;
+}
+.wd-pub-avatar-img { width: 100%; height: 100%; border-radius: 50%; }
+.wd-pub-avatar-emoji { font-size: 36rpx; color: #5A7D9E; font-weight: bold; }
 
 	.wd-pub-info {
 		display: flex;
@@ -340,10 +344,8 @@
 		gap: 4rpx;
 	}
 
-	.wd-collect-icon {
-		font-size: 54rpx;
-		transition: color 0.3s;
-	}
+	.wd-collect-icon { font-size: 48rpx; color: #ccc; transition: color 0.3s; }
+	.icon-xz { color: #E85A4F; }
 
 	.wd-contact-btn {
 		flex: 1;
