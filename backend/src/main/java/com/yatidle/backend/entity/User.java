@@ -23,6 +23,14 @@ public class User {
 
     private String avatar;
 
+    private String nickname;
+
+    private String bio;
+
+    private String campus;
+
+    private Integer creditScore = 100;
+
     private Integer role = 0;
 
     private String status = "active";

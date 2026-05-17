@@ -16,12 +16,10 @@ public class UserService {
         this.userMapper = userMapper;
     }
 
-    //增加用户
     public int save(User user) {
         return userMapper.insert(user);
     }
 
-    //查找（id方法，username方法）
     public User findById(Long id) {
         return userMapper.selectById(id);
     }
@@ -32,38 +30,37 @@ public class UserService {
         );
     }
 
-    //查看用户名是否已经被使用~~
     public boolean existsByUsername(String username) {
         return userMapper.exists(
                 new LambdaQueryWrapper<User>().eq(User::getUsername, username)
         );
     }
 
-    //更新用户信息
     public int updateById(User user) {
         return userMapper.updateById(user);
     }
 
-    //根据id删除
     public int deleteById(Long id) {
         return userMapper.deleteById(id);
     }
 
-    //以下是具体业务逻辑方法
-    //用户注册
-    public User register(String username, String password) {
+    // 用户注册
+    public User register(String username, String password, String nickname, String bio, String campus) {
         if (existsByUsername(username)) {
             throw new RuntimeException("用户名已存在");
         }
         User user = new User();
         user.setUsername(username);
         user.setPassword(password);
+        user.setNickname(nickname);
+        user.setBio(bio);
+        user.setCampus(campus);
         user.setRole(0);
         userMapper.insert(user);
         return user;
     }
 
-    //用户登录
+    // 用户登录
     public User login(String username, String password) {
         User user = findByUsername(username);
         if (user == null) {
@@ -75,8 +72,9 @@ public class UserService {
         return user;
     }
 
-    //用户修改个人信息
-    public int updateProfile(Long userId,String password ,String phone, String avatar) {
+    // 修改个人信息
+    public int updateProfile(Long userId, String password, String phone, String avatar,
+                             String nickname, String bio, String campus) {
         User user = userMapper.selectById(userId);
         if (user == null) {
             throw new RuntimeException("用户不存在");
@@ -90,14 +88,20 @@ public class UserService {
         if (password != null) {
             user.setPassword(password);
         }
+        if (nickname != null) {
+            user.setNickname(nickname);
+        }
+        if (bio != null) {
+            user.setBio(bio);
+        }
+        if (campus != null) {
+            user.setCampus(campus);
+        }
         return userMapper.updateById(user);
     }
 
-    //返回所有用户，测试用
+    // 返回所有用户
     public List<User> findAll() {
         return userMapper.selectList(null);
     }
-
-
-
 }
