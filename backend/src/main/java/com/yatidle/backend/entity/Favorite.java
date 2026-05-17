@@ -1,6 +1,5 @@
 package com.yatidle.backend.entity;
 
-import com.baomidou.mybatisplus.annotation.FieldFill;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
@@ -10,16 +9,17 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 @Data
-@TableName("item_image")
-public class ItemImage {
-    @TableId(type = IdType.AUTO)
+@TableName("favorite")
+public class Favorite {
+    @TableId(value = "id", type = IdType.AUTO)
     private Long id;
+
+    @TableField("user_id")
+    private Long userId;
+
+    @TableField("item_id")
     private Long itemId;
-    private String imageUrl;
-    private Integer sortOrder;
 
-    @TableField(fill = FieldFill.INSERT)
+    @TableField("create_time")
     private LocalDateTime createTime;
-
-    private Integer isDeleted;
 }
