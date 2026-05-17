@@ -25,5 +25,11 @@ public class TradeOrderVO {
 
     private String remark;
 
+    private String cancelReason;
+
     private LocalDateTime createTime;
+
+    private LocalDateTime cancelTime;
+
+    private LocalDateTime completeTime;
 }
