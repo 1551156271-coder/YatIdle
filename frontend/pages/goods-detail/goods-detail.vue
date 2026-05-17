@@ -2,6 +2,7 @@
 	<view class="container">
 		<view class="image-box">
 			<image class="main-image" src="https://images.unsplash.com/photo-1485965120184-e220f721d03e?q=80&w=1000&auto=format&fit=crop" mode="aspectFill"></image>
+			<view v-if="isSeller" class="status-badge" :class="statusClass">{{ statusText }}</view>
 		</view>
 
 		<view class="info-card">
@@ -18,7 +19,8 @@
 			</view>
 		</view>
 
-		<view class="seller-card">
+		<!-- 买家模式：卖家信息卡 -->
+		<view v-if="!isSeller" class="seller-card">
 			<view class="seller-left">
 				<view class="avatar" @click="goToProfile">🎓</view>
 				<view class="seller-text">
@@ -28,6 +30,22 @@
 					</view>
 				</view>
 			</view>
+		</view>
+
+		<!-- 卖家模式 + 已售：买家信息卡 -->
+		<view v-if="isSeller && goodsStatus === 'sold'" class="seller-card buyer-card">
+			<view class="section-label">购买者信息</view>
+			<view class="seller-left" style="margin-top: 16rpx;">
+				<view class="avatar" @click="goToBuyerProfile">📚</view>
+				<view class="seller-text">
+					<view class="name-row">
+						<text class="seller-name">李四（买家）</text>
+						<text class="verified-badge">已认证</text>
+					</view>
+					<text class="buyer-contact">交易时间：2024-05-09</text>
+				</view>
+			</view>
+			<view class="contact-buyer-btn" @click="contactBuyer">联系买家</view>
 		</view>
 
 		<view class="detail-section">
@@ -41,7 +59,8 @@
 			<view class="tag">东校区自提</view>
 		</view>
 
-		<view class="bottom-action">
+		<!-- 底部操作栏：买家模式 -->
+		<view v-if="!isSeller" class="bottom-action">
 			<view class="icon-group" @click="toggleCollect">
 				<text class="collect-icon" :style="{ color: isCollected ? '#e74c3c' : '#ccc' }">♥</text>
 			</view>
@@ -50,6 +69,17 @@
 				<button class="buy-btn" @click="handleAction('购买')">立即购买</button>
 			</view>
 		</view>
+
+		<!-- 底部操作栏：卖家模式 - 在售 -->
+		<view v-if="isSeller && goodsStatus === 'selling'" class="bottom-action seller-bottom">
+			<button class="edit-btn" @click="editGoods">编辑信息</button>
+			<button class="cancel-btn" @click="cancelListing">撤销出售</button>
+		</view>
+
+		<!-- 底部操作栏：卖家模式 - 已下架 -->
+		<view v-if="isSeller && goodsStatus === 'off'" class="bottom-action seller-bottom">
+			<button class="buy-btn" style="flex:1;" @click="relistGoods">重新上架</button>
+		</view>
 	</view>
 </template>
 
@@ -57,15 +87,46 @@
 	export default {
 		data() {
 			return {
+				goodsId: 1,
 				title: "出九成新公路自行车，带锁和挡泥板",
 				price: "268.00",
 				description: "去年学期初在校外车行买的，平时只在教学楼和宿舍之间通勤。车架很轻，变速灵敏。离校转手，东校园自提。配件齐全，包括车锁和挡泥板，骑行体验非常好。",
 				isCollected: false,
+				isSeller: false,
+				goodsStatus: 'selling', // 'selling' | 'sold' | 'off'
+			}
+		},
+		computed: {
+			statusText() {
+				const map = { selling: '在售', sold: '已售', off: '已下架' }
+				return map[this.goodsStatus] || ''
+			},
+			statusClass() {
+				return this.goodsStatus === 'selling' ? 'status-on' : 'status-off'
+			}
+		},
+		onLoad(options) {
+			if (options.mode === 'seller') {
+				this.isSeller = true
+			}
+			if (options.status) {
+				// status: 'selling' | 'sold' | 'off'
+				const statusMap = { '在售': 'selling', '已售': 'sold', '已下架': 'off' }
+				this.goodsStatus = statusMap[options.status] || 'selling'
+			}
+			if (options.id) {
+				this.goodsId = options.id
 			}
 		},
 		methods: {
 			goToProfile() {
 				uni.navigateTo({ url: '/pages/profile/profile?id=2' })
+			},
+			goToBuyerProfile() {
+				uni.navigateTo({ url: '/pages/profile/profile?id=3' })
+			},
+			contactBuyer() {
+				uni.navigateTo({ url: '/pages/chat/chat?id=3' })
 			},
 			toggleCollect() {
 				this.isCollected = !this.isCollected;
@@ -78,9 +139,36 @@
 				if (type === '咨询') {
 					uni.navigateTo({ url: '/pages/chat/chat?id=2' })
 				} else {
-					uni.showToast({ title: '点击了' + type, icon: 'none' })
+					uni.navigateTo({ url: '/pages/buy/buy?id=' + this.goodsId })
 				}
 			},
+			editGoods() {
+				uni.navigateTo({ url: '/pages/goods-edit/goods-edit?id=' + this.goodsId })
+			},
+			cancelListing() {
+				uni.showModal({
+					title: '撤销出售',
+					content: '确认撤销该商品的出售？撤销后其他用户将无法看到该商品。',
+					success: (res) => {
+						if (res.confirm) {
+							this.goodsStatus = 'off'
+							uni.showToast({ title: '已撤销', icon: 'success' })
+						}
+					}
+				})
+			},
+			relistGoods() {
+				uni.showModal({
+					title: '重新上架',
+					content: '确认重新上架该商品？',
+					success: (res) => {
+						if (res.confirm) {
+							this.goodsStatus = 'selling'
+							uni.showToast({ title: '已上架', icon: 'success' })
+						}
+					}
+				})
+			}
 		}
 	}
 </script>
@@ -98,6 +186,18 @@
 		position: relative;
 	}
 	.main-image { width: 100%; height: 100%; }
+
+	.status-badge {
+		position: absolute;
+		top: 24rpx;
+		right: 24rpx;
+		font-size: 24rpx;
+		padding: 8rpx 24rpx;
+		border-radius: 30rpx;
+	}
+	.status-on { color: #3A6341; background: #e8f5ee; }
+	.status-off { color: #999; background: rgba(0,0,0,0.5); color: #fff; }
+
 	.tag-badge {
 		background: #e8f5ee;
 		color: #3A6341;
@@ -152,6 +252,33 @@
 		line-height: 1.4;
 		white-space: nowrap;
 	}
+
+	/* ===== 买家信息卡（卖家视角） ===== */
+	.buyer-card {
+		flex-direction: column;
+		align-items: stretch;
+	}
+	.section-label {
+		font-size: 24rpx;
+		color: #999;
+	}
+	.buyer-contact {
+		font-size: 24rpx;
+		color: #999;
+		margin-top: 6rpx;
+	}
+	.contact-buyer-btn {
+		margin-top: 24rpx;
+		height: 72rpx;
+		line-height: 72rpx;
+		text-align: center;
+		background: #e8f5ee;
+		color: #3A6341;
+		font-size: 26rpx;
+		font-weight: bold;
+		border-radius: 36rpx;
+	}
+
 	.detail-section {
 		background: white;
 		margin: 0 20rpx 20rpx;
@@ -185,6 +312,26 @@
 		background: #3A6341; color: white;
 		font-size: 28rpx; font-weight: bold;
 		width: 220rpx; height: 80rpx; line-height: 80rpx;
+		border-radius: 40rpx; margin: 0; border: none;
+	}
+
+	/* ===== 卖家底部操作栏 ===== */
+	.seller-bottom {
+		justify-content: center;
+		gap: 20rpx;
+	}
+	.edit-btn {
+		flex: 1;
+		background: #e8f5ee; color: #3A6341;
+		font-size: 28rpx; font-weight: bold;
+		height: 80rpx; line-height: 80rpx;
+		border-radius: 40rpx; margin: 0; border: none;
+	}
+	.cancel-btn {
+		flex: 1;
+		background: #f5f5f5; color: #999;
+		font-size: 28rpx; font-weight: bold;
+		height: 80rpx; line-height: 80rpx;
 		border-radius: 40rpx; margin: 0; border: none;
 	}
 </style>

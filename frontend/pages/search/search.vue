@@ -288,9 +288,10 @@
 	}
 
 	.back-icon {
-		font-size: 48rpx;
+		font-size: 80rpx;
 		color: #ffffff;
 		font-weight: 300;
+		line-height: 0.9;
 	}
 
 	.search-box {

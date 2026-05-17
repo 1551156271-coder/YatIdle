@@ -83,11 +83,11 @@
 		methods: {
 			loadOrder(id) {
 				const mockOrders = {
-					'S001': { id: 'S001', image: 'https://images.unsplash.com/photo-1485965120184-e220f721d03e?q=80&w=400&auto=format&fit=crop', title: '九成新公路自行车', price: '268.00', status: '已完成', counterparty: '李四', time: '2026-05-08 14:30', goodsId: 1 },
-					'S002': { id: 'S002', image: 'https://images.unsplash.com/photo-1585435557343-3b092031a831?q=80&w=400&auto=format&fit=crop', title: 'LED护眼台灯', price: '35.00', status: '已完成', counterparty: '王五', time: '2026-05-03 10:15', goodsId: 2 },
-					'S003': { id: 'S003', image: 'https://images.unsplash.com/photo-1495446815901-a7297e633e8d?q=80&w=400&auto=format&fit=crop', title: '二手教材《高等数学》', price: '8.00', status: '待发货', counterparty: '赵六', time: '2026-05-09 09:00', goodsId: 4 },
-					'P001': { id: 'P001', image: 'https://images.unsplash.com/photo-1544816155-12df9643f363?q=80&w=400&auto=format&fit=crop', title: '四六级真题全套', price: '12.00', status: '已完成', counterparty: '张三', time: '2026-04-28 16:20', goodsId: 3 },
-					'P002': { id: 'P002', image: 'https://images.unsplash.com/photo-1586953208448-b95a79798f07?q=80&w=400&auto=format&fit=crop', title: '蓝牙耳机', price: '45.00', status: '待收货', counterparty: '张三', time: '2026-05-07 11:45', goodsId: 5 }
+					'S001': { id: 'S001', image: 'https://images.unsplash.com/photo-1485965120184-e220f721d03e?q=80&w=400&auto=format&fit=crop', title: '九成新公路自行车', price: '268.00', status: '已完成', counterparty: '李四', counterpartyId: '3', time: '2026-05-08 14:30', goodsId: 1 },
+					'S002': { id: 'S002', image: 'https://images.unsplash.com/photo-1585435557343-3b092031a831?q=80&w=400&auto=format&fit=crop', title: 'LED护眼台灯', price: '35.00', status: '已完成', counterparty: '王五', counterpartyId: '4', time: '2026-05-03 10:15', goodsId: 2 },
+					'S003': { id: 'S003', image: 'https://images.unsplash.com/photo-1495446815901-a7297e633e8d?q=80&w=400&auto=format&fit=crop', title: '二手教材《高等数学》', price: '8.00', status: '待发货', counterparty: '赵六', counterpartyId: '5', time: '2026-05-09 09:00', goodsId: 4 },
+					'P001': { id: 'P001', image: 'https://images.unsplash.com/photo-1544816155-12df9643f363?q=80&w=400&auto=format&fit=crop', title: '四六级真题全套', price: '12.00', status: '已完成', counterparty: '张三', counterpartyId: '2', time: '2026-04-28 16:20', goodsId: 3 },
+					'P002': { id: 'P002', image: 'https://images.unsplash.com/photo-1586953208448-b95a79798f07?q=80&w=400&auto=format&fit=crop', title: '蓝牙耳机', price: '45.00', status: '待收货', counterparty: '张三', counterpartyId: '2', time: '2026-05-07 11:45', goodsId: 5 }
 				}
 				if (mockOrders[id]) {
 					this.order = mockOrders[id]
@@ -97,7 +97,7 @@
 				uni.navigateTo({ url: '/pages/goods-detail/goods-detail?id=' + this.order.goodsId })
 			},
 			onContact() {
-				uni.showToast({ title: '聊天功能即将上线', icon: 'none' })
+				uni.navigateTo({ url: '/pages/chat/chat?id=' + (this.order.counterpartyId || '2') })
 			},
 			onConfirm() {
 				const action = this.orderType === 'sold' ? '发货' : '收货'

@@ -35,7 +35,7 @@
 		},
 		methods: {
 			goDetail(g) {
-				uni.navigateTo({ url: '/pages/goods-detail/goods-detail?id=' + g.id })
+				uni.navigateTo({ url: '/pages/goods-detail/goods-detail?id=' + g.id + '&mode=seller&status=' + g.status })
 			},
 			goPublish() {
 				uni.switchTab({ url: '/pages/publish/publish' })

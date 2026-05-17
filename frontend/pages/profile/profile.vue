@@ -149,16 +149,17 @@
 				}
 				if (users[id]) {
 					Object.assign(this.user, users[id])
+				this.user._id = id
 				}
 			},
 			goGoodsDetail(g) {
 				uni.navigateTo({ url: '/pages/goods-detail/goods-detail?id=' + g.id })
 			},
 			viewAllGoods() {
-				uni.showToast({ title: '全部商品即将上线', icon: 'none' })
+				uni.navigateTo({ url: '/pages/profile-goods/profile-goods?id=' + (this.user._id || '2') })
 			},
 			viewAllReviews() {
-				uni.showToast({ title: '全部评价即将上线', icon: 'none' })
+				uni.navigateTo({ url: '/pages/profile-reviews/profile-reviews?id=' + (this.user._id || '2') })
 			},
 			startChat() {
 				uni.navigateTo({ url: '/pages/chat/chat?id=' + (this.user._id || '2') })

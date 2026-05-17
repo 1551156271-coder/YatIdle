@@ -330,7 +330,7 @@ export default {
 			this.addMsg({ type: 'order', fromMe: true, orderData: { id: '20240509'+String(Date.now()).slice(-6), image: 'https://images.unsplash.com/photo-1485965120184-e220f721d03e?q=80&w=400&auto=format&fit=crop', title: '九成新公路自行车', price: '240.00', campus: '东校园', status: '待确认', statusClass: 'status-pending' }})
 			this.toolbarOpen = false
 		},
-		viewOrder() { uni.showToast({ title: '订单详情即将上线', icon: 'none' }) },
+		viewOrder(msg) { uni.navigateTo({ url: '/pages/order-detail/order-detail?id=' + msg.orderData.id }) },
 		shareGoods() {
 			this.addMsg({ type: 'goods', fromMe: true, goodsData: { image: 'https://images.unsplash.com/photo-1485965120184-e220f721d03e?q=80&w=400&auto=format&fit=crop', title: '九成新公路自行车，带锁和挡泥板', price: '268.00', campus: '东校园' }})
 			this.toolbarOpen = false

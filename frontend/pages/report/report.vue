@@ -161,7 +161,7 @@
 	}
 
 	.report-title {
-		font-size: 32rpx;
+		font-size: 36rpx;
 		color: #ffffff;
 		font-weight: bold;
 	}

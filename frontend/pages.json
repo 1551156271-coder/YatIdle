@@ -47,6 +47,34 @@
 			}
 		},
 		{
+			"path": "pages/buy/buy",
+			"style": {
+				"navigationBarTitleText": "确认购买",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/goods-edit/goods-edit",
+			"style": {
+				"navigationBarTitleText": "编辑物品信息",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/profile-goods/profile-goods",
+			"style": {
+				"navigationBarTitleText": "TA的在售商品",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/profile-reviews/profile-reviews",
+			"style": {
+				"navigationBarTitleText": "TA的评价",
+				"navigationStyle": "custom"
+			}
+		},
+		{
 			"path": "pages/publish/publish",
 			"style": {
 				"navigationBarTitleText": "发布商品",
