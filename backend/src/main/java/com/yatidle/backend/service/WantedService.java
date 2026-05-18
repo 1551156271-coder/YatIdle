@@ -87,6 +87,11 @@ public class WantedService {
         return wantedMapper.deleteById(id);
     }
 
+    public int deleteAllByUserId(Long userId) {
+        wantedImageMapper.deleteByUserId(userId);
+        return wantedMapper.deleteByUserId(userId);
+    }
+
     public List<WantedVO> myWanted(Long userId) {
         List<Wanted> list = wantedMapper.selectList(
                 new LambdaQueryWrapper<Wanted>()

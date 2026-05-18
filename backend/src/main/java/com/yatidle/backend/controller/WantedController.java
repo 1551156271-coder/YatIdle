@@ -49,6 +49,12 @@ public class WantedController {
         return Result.success(null);
     }
 
+    @DeleteMapping("/user/{userId}")
+    public Result<Void> deleteAllByUserId(@PathVariable Long userId) {
+        wantedService.deleteAllByUserId(userId);
+        return Result.success(null);
+    }
+
     @GetMapping("/my")
     public Result<List<WantedVO>> myWanted(@RequestParam Long userId) {
         return Result.success(wantedService.myWanted(userId));

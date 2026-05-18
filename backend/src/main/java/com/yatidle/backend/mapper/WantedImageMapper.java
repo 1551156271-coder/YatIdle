@@ -17,4 +17,7 @@ public interface WantedImageMapper extends BaseMapper<WantedImage> {
 
     @Delete("DELETE FROM wanted_image WHERE wanted_id = #{wantedId}")
     int deleteByWantedId(@Param("wantedId") Long wantedId);
+
+    @Delete("DELETE FROM wanted_image WHERE wanted_id IN (SELECT id FROM wanted WHERE user_id = #{userId})")
+    int deleteByUserId(@Param("userId") Long userId);
 }
