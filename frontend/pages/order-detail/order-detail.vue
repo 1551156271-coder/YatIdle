@@ -40,12 +40,18 @@
 			</view>
 		</view>
 
-		<!-- 底部操作 -->
+		<!-- 底部操作：进行中 -->
 		<view class="od-bottom" v-if="order.status !== '已完成'">
 			<view class="od-btn od-btn-outline" @click="onContact">联系对方</view>
 			<view class="od-btn od-btn-primary" @click="onConfirm">
 				{{ orderType === 'sold' ? '确认发货' : '确认收货' }}
 			</view>
+		</view>
+
+		<!-- 底部操作：已完成 - 已购可评价 -->
+		<view class="od-bottom" v-if="order.status === '已完成' && orderType === 'purchased' && !order.reviewed">
+			<view class="od-btn od-btn-outline" @click="onContact">联系对方</view>
+			<view class="od-btn od-btn-review" @click="goReview">评价</view>
 		</view>
 	</view>
 </template>
@@ -86,7 +92,7 @@
 					'S001': { id: 'S001', image: 'https://images.unsplash.com/photo-1485965120184-e220f721d03e?q=80&w=400&auto=format&fit=crop', title: '九成新公路自行车', price: '268.00', status: '已完成', counterparty: '李四', counterpartyId: '3', time: '2026-05-08 14:30', goodsId: 1 },
 					'S002': { id: 'S002', image: 'https://images.unsplash.com/photo-1585435557343-3b092031a831?q=80&w=400&auto=format&fit=crop', title: 'LED护眼台灯', price: '35.00', status: '已完成', counterparty: '王五', counterpartyId: '4', time: '2026-05-03 10:15', goodsId: 2 },
 					'S003': { id: 'S003', image: 'https://images.unsplash.com/photo-1495446815901-a7297e633e8d?q=80&w=400&auto=format&fit=crop', title: '二手教材《高等数学》', price: '8.00', status: '待发货', counterparty: '赵六', counterpartyId: '5', time: '2026-05-09 09:00', goodsId: 4 },
-					'P001': { id: 'P001', image: 'https://images.unsplash.com/photo-1544816155-12df9643f363?q=80&w=400&auto=format&fit=crop', title: '四六级真题全套', price: '12.00', status: '已完成', counterparty: '张三', counterpartyId: '2', time: '2026-04-28 16:20', goodsId: 3 },
+					'P001': { id: 'P001', image: 'https://images.unsplash.com/photo-1544816155-12df9643f363?q=80&w=400&auto=format&fit=crop', title: '四六级真题全套', price: '12.00', status: '已完成', counterparty: '张三', counterpartyId: '2', time: '2026-04-28 16:20', goodsId: 3, reviewed: false },
 					'P002': { id: 'P002', image: 'https://images.unsplash.com/photo-1586953208448-b95a79798f07?q=80&w=400&auto=format&fit=crop', title: '蓝牙耳机', price: '45.00', status: '待收货', counterparty: '张三', counterpartyId: '2', time: '2026-05-07 11:45', goodsId: 5 }
 				}
 				if (mockOrders[id]) {
@@ -103,6 +109,13 @@
 				const action = this.orderType === 'sold' ? '发货' : '收货'
 				uni.showToast({ title: action + '成功', icon: 'none' })
 				this.order.status = '已完成'
+				},
+			goReview() {
+				uni.navigateTo({
+					url: '/pages/my-review/my-review?seller=' + encodeURIComponent(this.order.counterparty) +
+						'&sellerId=' + this.order.counterpartyId +
+						'&orderId=' + this.order.id
+				})
 			}
 		}
 	}
@@ -183,4 +196,5 @@
 	.od-btn { flex: 1; height: 80rpx; line-height: 80rpx; text-align: center; border-radius: 40rpx; font-size: 28rpx; }
 	.od-btn-outline { background: #f5f5f5; color: #333; }
 	.od-btn-primary { background: linear-gradient(135deg, #3A6341, #4E7D56); color: #ffffff; }
+	.od-btn-review { background: linear-gradient(135deg, #f0ad4e, #f5c26b); color: #ffffff; }
 </style>

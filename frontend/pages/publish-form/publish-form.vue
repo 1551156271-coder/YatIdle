@@ -2,8 +2,8 @@
 	<view class="publish-page">
 		<view class="publish-hero">
 			<text class="hero-icon">{{ publishType === 'sell' ? '📸' : '📋' }}</text>
-			<text class="hero-title">{{ publishType === 'sell' ? '发布闲置好物' : '发布求购信息' }}</text>
-			<text class="hero-sub">{{ publishType === 'sell' ? '让闲置流动起来，助力绿色校园' : '快速找到你想要的宝贝' }}</text>
+			<text class="hero-title">{{ isEdit ? '编辑求购信息' : (publishType === 'sell' ? '发布闲置好物' : '发布求购信息') }}</text>
+			<text class="hero-sub">{{ isEdit ? '修改你的求购需求' : (publishType === 'sell' ? '让闲置流动起来，助力绿色校园' : '快速找到你想要的宝贝') }}</text>
 		</view>
 
 		<!-- ===== 出售表单 ===== -->
@@ -111,7 +111,7 @@
 				<text class="form-label">补充说明</text>
 				<textarea class="form-textarea" v-model="buyForm.desc" placeholder="描述一下你的具体需求，如品牌、型号等" :maxlength="500" />
 			</view>
-			<button class="submit-btn" @click="onBuySubmit">发布求购</button>
+			<button class="submit-btn" @click="onBuySubmit">{{ isEdit ? '保存修改' : '发布求购' }}</button>
 		</view>
 	</view>
 </template>
@@ -121,6 +121,8 @@
 		data() {
 			return {
 				publishType: 'sell',
+				isEdit: false,
+				editId: null,
 				categoryList: ['数码电子', '书籍教材', '生活用品', '运动户外', '服饰鞋包', '其他'],
 				campusList: ['东校园', '南校园', '北校园', '珠海校区', '深圳校区'],
 				conditionList: ['不限', '全新', '99新', '95新', '90新', '85新', '80新以下'],
@@ -161,6 +163,23 @@
 		onLoad(options) {
 			if (options.type === 'buy') {
 				this.publishType = 'buy'
+			}
+			if (options.edit === '1') {
+				this.isEdit = true
+				this.editId = parseInt(options.id)
+				const data = uni.getStorageSync('editWantedData')
+				if (data) {
+					this.buyForm = {
+						title: data.title || '',
+						budgetMin: data.budgetMin || '',
+						budgetMax: data.budgetMax || '',
+						category: data.categoryLabel || '',
+						campus: data.campus || '',
+						condition: data.condition || '',
+						desc: data.desc || '',
+						images: data.images || []
+					}
+				}
 			}
 		},
 		methods: {
@@ -236,7 +255,13 @@
 					uni.showToast({ title: '请检查预算范围', icon: 'none' })
 					return
 				}
-				uni.showToast({ title: '求购发布成功！', icon: 'success' })
+				if (this.isEdit) {
+					uni.showToast({ title: '修改成功！', icon: 'success' })
+					setTimeout(() => { uni.navigateBack() }, 1200)
+				} else {
+					uni.showToast({ title: '求购发布成功！', icon: 'success' })
+					setTimeout(() => { uni.switchTab({ url: '/pages/wanted/wanted' }) }, 1200)
+				}
 			}
 		}
 	}

@@ -176,6 +176,14 @@
 				"navigationBarBackgroundColor": "#375f3e",
 				"navigationBarTextStyle": "white"
 			}
+		},
+		{
+			"path": "pages/my-review/my-review",
+			"style": {
+				"navigationBarTitleText": "评价",
+				"navigationBarBackgroundColor": "#375f3e",
+				"navigationBarTextStyle": "white"
+			}
 		}
 	],
 	"globalStyle": {

@@ -62,13 +62,24 @@
 		</view>
 
 		<!-- 温馨提示 -->
-		<view class="wd-tips">
+		<view v-if="!isOwner" class="wd-tips">
 			<text class="wd-tips-icon">💡</text>
 			<text class="wd-tips-text">如果你有符合要求的物品，可以直接联系TA哦</text>
 		</view>
 
-		<!-- 底部操作栏 -->
-		<view class="wd-bottom-bar">
+		<!-- 本人求购中 - 状态标签 -->
+		<view v-if="isOwner" class="wd-status-tag" :class="detail.status === '求购中' ? 'status-seeking' : 'status-done'">
+			<text>{{ detail.status }}</text>
+		</view>
+
+		<!-- 底部操作栏：本人求购中 - 编辑/撤销 -->
+		<view v-if="isOwner && detail.status === '求购中'" class="wd-bottom-bar wd-owner-bar">
+			<button class="wd-edit-btn" @click="editWanted">编辑信息</button>
+			<button class="wd-cancel-btn" @click="cancelWanted">撤销求购</button>
+		</view>
+
+		<!-- 底部操作栏：非本人 - 收藏/联系 -->
+		<view v-else-if="!isOwner" class="wd-bottom-bar">
 			<view class="wd-collect" @click="toggleCollect">
 				<text class="wd-collect-icon iconfont" :class="isCollected ? 'icon-xz' : 'icon-shoucang'"></text>
 			</view>
@@ -83,17 +94,21 @@
 			return {
 				detail: {},
 				isCollected: false,
+				isOwner: false,
 				mockData: [
-					{ id: 101, title: '求购一台二手笔记本电脑', budgetMin: '2000', budgetMax: '3500', campus: '东校园', condition: '85新以上', categoryLabel: '数码电子', desc: '女生自用，主要用于写论文和看视频，电池续航好一些的。希望屏幕不要太小，14寸左右最好，品牌不限但最好是轻薄本。', username: '小橙子', time: '10分钟前', images: ['https://picsum.photos/seed/laptop1/400/400', 'https://picsum.photos/seed/laptop2/400/400', 'https://picsum.photos/seed/laptop3/400/400'] },
-					{ id: 102, title: '收高数下册+习题集', budgetMin: '15', budgetMax: '30', campus: '南校园', condition: '不限', categoryLabel: '书籍教材', desc: '下学期要用，有笔记也可以，价格好商量。最好是同济第七版的高等数学下册，配套习题集一起收。', username: '数学苦手', time: '1小时前' },
-					{ id: 103, title: '二手电动车代步用', budgetMin: '600', budgetMax: '1200', campus: '珠海校区', condition: '90新以上', categoryLabel: '生活用品', desc: '求购一辆二手电动车，续航好一点的。最好是雅迪或者小牛，电池能跑30公里以上就行。', username: '骑车上学', time: '3小时前', images: ['https://picsum.photos/seed/scooter1/400/400', 'https://picsum.photos/seed/scooter2/400/400'] },
-					{ id: 104, title: '收一双42码跑鞋', budgetMin: '100', budgetMax: '250', campus: '北校园', condition: '95新以上', categoryLabel: '运动户外', desc: '体育课需要，穿不了几次所以不想买全新的。耐克或者阿迪的都可以，42码，颜色不限，只要没有明显磨损就行。', username: '运动达人', time: '昨天' }
+					{ id: 101, title: 'MacBook Pro 14寸', budgetMin: '5000', budgetMax: '7000', campus: '东校园', condition: '90新以上', categoryLabel: '数码电子', status: '求购中', desc: '主要用来写代码和做设计，14寸最好，16寸也可以接受。最好是M系列芯片，16G内存以上，成色不要太差。', username: '测试用户', time: '2天前', images: ['https://images.unsplash.com/photo-1517336714731-489689fd1ca8?q=80&w=400&auto=format&fit=crop'] },
+					{ id: 102, title: 'iPad + 苹果笔', budgetMin: '2000', budgetMax: '3500', campus: '南校园', condition: '85新以上', categoryLabel: '数码电子', status: '求购中', desc: '主要用于记笔记和看网课，iPad Air或Pro都可以，带笔优先。屏幕不要有划痕，电池续航正常就行。', username: '测试用户', time: '3天前', images: ['https://images.unsplash.com/photo-1546868871-af0de0ae72be?q=80&w=400&auto=format&fit=crop'] },
+					{ id: 103, title: '数位板', budgetMin: '200', budgetMax: '500', campus: '东校园', condition: '不限', categoryLabel: '数码电子', status: '已找到', desc: '入门级数位板就行，Wacom或国产都可以，主要用来画一些简单的插画。', username: '测试用户', time: '1周前' },
+					{ id: 104, title: '收一双42码跑鞋', budgetMin: '100', budgetMax: '250', campus: '北校园', condition: '95新以上', categoryLabel: '运动户外', status: '求购中', desc: '体育课需要，穿不了几次所以不想买全新的。耐克或者阿迪的都可以，42码，颜色不限，只要没有明显磨损就行。', username: '运动达人', time: '昨天' }
 				]
 			}
 		},
 		onLoad(options) {
 			const id = parseInt(options.id)
 			this.detail = this.mockData.find(item => item.id === id) || this.mockData[0]
+			if (options.mode === 'self') {
+				this.isOwner = true
+			}
 		},
 		methods: {
 			toggleCollect() {
@@ -107,6 +122,22 @@
 				uni.previewImage({
 					current: idx,
 					urls: this.detail.images
+				})
+			},
+			editWanted() {
+				uni.setStorageSync('editWantedData', this.detail)
+				uni.navigateTo({ url: '/pages/publish-form/publish-form?type=buy&edit=1&id=' + this.detail.id })
+			},
+			cancelWanted() {
+				uni.showModal({
+					title: '撤销求购',
+					content: '确认撤销该求购？撤销后其他用户将无法看到该求购信息。',
+					success: (res) => {
+						if (res.confirm) {
+							this.detail.status = '已找到'
+							uni.showToast({ title: '已撤销', icon: 'success' })
+						}
+					}
 				})
 			},
 		}
@@ -252,19 +283,19 @@
 	}
 
 	.wd-pub-avatar {
-	width: 80rpx; height: 80rpx;
-	border-radius: 50%;
-	background: #EDF2F6;
-	color: #5A7D9E;
-	font-size: 36rpx;
-	font-weight: bold;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	flex-shrink: 0; overflow: hidden;
-}
-.wd-pub-avatar-img { width: 100%; height: 100%; border-radius: 50%; }
-.wd-pub-avatar-emoji { font-size: 36rpx; color: #5A7D9E; font-weight: bold; }
+		width: 80rpx; height: 80rpx;
+		border-radius: 50%;
+		background: #EDF2F6;
+		color: #5A7D9E;
+		font-size: 36rpx;
+		font-weight: bold;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		flex-shrink: 0; overflow: hidden;
+	}
+	.wd-pub-avatar-img { width: 100%; height: 100%; border-radius: 50%; }
+	.wd-pub-avatar-emoji { font-size: 36rpx; color: #5A7D9E; font-weight: bold; }
 
 	.wd-pub-info {
 		display: flex;
@@ -296,6 +327,18 @@
 		color: #5A7D9E;
 		line-height: 1;
 	}
+
+	/* ===== 本人状态标签 ===== */
+	.wd-status-tag {
+		margin: 0 20rpx 20rpx;
+		padding: 16rpx 24rpx;
+		border-radius: 12rpx;
+		text-align: center;
+		font-size: 26rpx;
+		font-weight: bold;
+	}
+	.status-seeking { background: #e8f5ee; color: #3A6341; }
+	.status-done { background: #f0f0f0; color: #999; }
 
 	/* ===== 提示 ===== */
 	.wd-tips {
@@ -359,5 +402,25 @@
 		border-radius: 40rpx;
 		border: none;
 		box-shadow: 0 8rpx 24rpx rgba(90,125,158,0.3);
+	}
+
+	/* ===== 本人操作栏 ===== */
+	.wd-owner-bar {
+		justify-content: center;
+		gap: 20rpx;
+	}
+	.wd-edit-btn {
+		flex: 1;
+		background: #e8f5ee; color: #3A6341;
+		font-size: 28rpx; font-weight: bold;
+		height: 80rpx; line-height: 80rpx;
+		border-radius: 40rpx; margin: 0; border: none;
+	}
+	.wd-cancel-btn {
+		flex: 1;
+		background: #f5f5f5; color: #3f3f3f;
+		font-size: 28rpx; font-weight: bold;
+		height: 80rpx; line-height: 80rpx;
+		border-radius: 40rpx; margin: 0; border: none;
 	}
 </style>
