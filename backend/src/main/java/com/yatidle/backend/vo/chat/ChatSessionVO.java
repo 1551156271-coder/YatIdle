@@ -20,7 +20,7 @@ public class ChatSessionVO {
 
     private String lastMessage;
 
-    private String lastSenderId;
+    private Long lastSenderId;
 
     private LocalDateTime lastMessageTime;
 
