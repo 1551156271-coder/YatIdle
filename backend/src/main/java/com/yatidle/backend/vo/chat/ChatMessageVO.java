@@ -12,7 +12,7 @@ public class ChatMessageVO {
 
     private Long senderId;
 
-    private Long reiveicerId;
+    private Long receiverId;
 
     private String messageType;
 
