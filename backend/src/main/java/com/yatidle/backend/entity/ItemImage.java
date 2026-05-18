@@ -1,7 +1,8 @@
 package com.yatidle.backend.entity;
 
-
+import com.baomidou.mybatisplus.annotation.FieldFill;
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
@@ -16,7 +17,9 @@ public class ItemImage {
     private Long itemId;
     private String imageUrl;
     private Integer sortOrder;
-    private LocalDateTime createTime;
-    private Integer isDeleted;
 
+    @TableField(fill = FieldFill.INSERT)
+    private LocalDateTime createTime;
+
+    private Integer isDeleted;
 }
