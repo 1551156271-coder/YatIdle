@@ -1,3 +1,5 @@
+SET NAMES utf8mb4;
+
 CREATE DATABASE IF NOT EXISTS yatidle DEFAULT CHARACTER SET utf8mb4 DEFAULT COLLATE utf8mb4_unicode_ci;
 USE yatidle;
 
@@ -49,6 +51,36 @@ CREATE TABLE IF NOT EXISTS item_image (
   is_deleted TINYINT NOT NULL DEFAULT 0 COMMENT '逻辑删除标记，0未删除，1已删除',
   INDEX idx_item_image_item_id (item_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='商品图片表';
+
+CREATE TABLE IF NOT EXISTS wanted (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '求购ID',
+  user_id BIGINT NOT NULL COMMENT '发布用户ID',
+  title VARCHAR(100) NOT NULL COMMENT '求购标题',
+  budget_min DECIMAL(10,2) NOT NULL DEFAULT 0.00 COMMENT '最低预算',
+  budget_max DECIMAL(10,2) NOT NULL DEFAULT 0.00 COMMENT '最高预算',
+  campus ENUM('南校园','东校园','北校园','珠海校区','深圳校区') DEFAULT NULL COMMENT '所在校区',
+  condition_level ENUM('全新','99新','95新','9成新','八成新','八成新以下') DEFAULT NULL COMMENT '期望成色',
+  description TEXT COMMENT '求购描述',
+  category_id BIGINT COMMENT '分类ID',
+  status VARCHAR(20) NOT NULL DEFAULT 'pending' COMMENT '状态：pending/active/sold/closed',
+  view_count INT NOT NULL DEFAULT 0 COMMENT '浏览次数',
+  create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  update_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  is_deleted TINYINT NOT NULL DEFAULT 0 COMMENT '逻辑删除标记',
+  INDEX idx_wanted_user_id (user_id),
+  INDEX idx_wanted_category_id (category_id),
+  INDEX idx_wanted_status (status),
+  INDEX idx_wanted_create_time (create_time)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='求购表';
+
+CREATE TABLE IF NOT EXISTS wanted_image (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '求购图片ID',
+  wanted_id BIGINT NOT NULL COMMENT '求购ID',
+  image_url VARCHAR(255) NOT NULL COMMENT '图片URL',
+  sort_order INT NOT NULL DEFAULT 0 COMMENT '排序值',
+  create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  INDEX idx_wanted_image_wanted_id (wanted_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='求购图片表';
 
 CREATE TABLE IF NOT EXISTS category (id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '分类ID',
   name VARCHAR(50) NOT NULL COMMENT '分类名称',
