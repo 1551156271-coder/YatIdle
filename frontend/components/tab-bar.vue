@@ -6,6 +6,8 @@
 			class="tb-item"
 			@click="onTabClick(item, index)"
 		>
+			<!-- 选中顶部指示条 -->
+			<view v-if="current === index" class="tb-indicator"></view>
 			<text
 				class="tb-icon iconfont"
 				:class="current === index && item.selectedIcon ? item.selectedIcon : item.icon"
@@ -13,6 +15,7 @@
 			></text>
 			<text
 				class="tb-text"
+				:class="{ 'tb-text-active': current === index }"
 				:style="{ color: current === index ? selectedColor : color }"
 			>{{ item.text }}</text>
 		</view>
@@ -23,15 +26,15 @@
 	export default {
 		data() {
 			return {
-				color: '#000000',
+				color: '#676767',
 				selectedColor: '#3A6341',
 				current: 0,
 				list: [
-					{ pagePath: '/pages/index/index', text: '首页', icon: 'icon-shouye1' },
+					{ pagePath: '/pages/index/index', text: '首页', icon: 'icon-shouye1', selectedIcon: 'icon-shouye' },
 					{ pagePath: '/pages/wanted/wanted', text: '求购', icon: 'icon-remenqiugou' },
 					{ pagePath: '/pages/publish/publish', text: '发布', icon: 'icon-fabu-', selectedIcon: 'icon-fabudianjizhuangtai-' },
-					{ pagePath: '/pages/messages/messages', text: '消息', icon: 'icon-xiaoxi' },
-					{ pagePath: '/pages/my/my', text: '我的', icon: 'icon-wode-copy' }
+					{ pagePath: '/pages/messages/messages', text: '消息', icon: 'icon-xiaoxi', selectedIcon: 'icon-xiaoxi2' },
+					{ pagePath: '/pages/my/my', text: '我的', icon: 'icon-wode-copy', selectedIcon: 'icon-wode' }
 				]
 			}
 		},
@@ -76,15 +79,32 @@
 		flex: 1;
 		height: 100%;
 		gap: 4rpx;
+		position: relative;
+	}
+
+	/* 选中顶部指示条 */
+	.tb-indicator {
+		position: absolute;
+		top: 0;
+		left: 50%;
+		transform: translateX(-50%);
+		width: 48rpx;
+		height: 6rpx;
+		background: #3A6341;
+		border-radius: 0 0 6rpx 6rpx;
 	}
 
 	.tb-icon {
-		font-size: 44rpx;
+		font-size: 50rpx;
 		line-height: 1;
 	}
 
 	.tb-text {
 		font-size: 20rpx;
 		line-height: 1;
+	}
+
+	.tb-text-active {
+		font-weight: bold;
 	}
 </style>

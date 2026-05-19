@@ -8,27 +8,33 @@
 						<text class="o-title">{{ o.title }}</text>
 						<text class="o-price">¥{{ o.price }}</text>
 					</view>
-					<text class="o-status" :class="statusClass(o.status)">{{ o.status }}</text>
+					<text class="o-status" :class="statusClass(o.status)">{{ o.statusLabel }}</text>
 				</view>
 				<view class="o-bottom">
-					<text class="o-people">{{ orderType === 'sold' ? '买家' : '卖家' }}：{{ o.counterparty }}</text>
+					<text class="o-people">订单号：{{ o.orderNo }}</text>
 					<text class="o-time">{{ o.time }}</text>
 				</view>
 			</view>
 		</view>
-		<view v-else class="empty-wrap">
+
+		<view v-else-if="!loading" class="empty-wrap">
 			<text class="empty-icon">{{ orderType === 'sold' ? '💰' : '🛒' }}</text>
 			<text class="empty-text">暂无{{ orderType === 'sold' ? '已售' : '已购' }}订单</text>
 		</view>
+
+		<view v-if="loading" class="loading-tip">加载中...</view>
 	</view>
 </template>
 
 <script>
+	import { getMySellOrders, getMyBuyOrders } from '@/api/order.js'
+
 	export default {
 		data() {
 			return {
 				orderType: 'sold',
-				orderList: []
+				orderList: [],
+				loading: false
 			}
 		},
 		onLoad(options) {
@@ -38,25 +44,54 @@
 			this.loadOrders()
 		},
 		methods: {
-			loadOrders() {
-				const soldOrders = [
-					{ id: 'S001', image: 'https://images.unsplash.com/photo-1485965120184-e220f721d03e?q=80&w=400&auto=format&fit=crop', title: '九成新公路自行车', price: '268.00', status: '已完成', counterparty: '李四', time: '2026-05-08' },
-					{ id: 'S002', image: 'https://images.unsplash.com/photo-1585435557343-3b092031a831?q=80&w=400&auto=format&fit=crop', title: 'LED护眼台灯', price: '35.00', status: '已完成', counterparty: '王五', time: '2026-05-03' },
-					{ id: 'S003', image: 'https://images.unsplash.com/photo-1495446815901-a7297e633e8d?q=80&w=400&auto=format&fit=crop', title: '二手教材《高等数学》', price: '8.00', status: '待发货', counterparty: '赵六', time: '2026-05-09' }
-				]
-				const purchasedOrders = [
-					{ id: 'P001', image: 'https://images.unsplash.com/photo-1544816155-12df9643f363?q=80&w=400&auto=format&fit=crop', title: '四六级真题全套', price: '12.00', status: '已完成', counterparty: '张三', time: '2026-04-28' },
-					{ id: 'P002', image: 'https://images.unsplash.com/photo-1586953208448-b95a79798f07?q=80&w=400&auto=format&fit=crop', title: '蓝牙耳机', price: '45.00', status: '待收货', counterparty: '张三', time: '2026-05-07' }
-				]
-				this.orderList = this.orderType === 'sold' ? soldOrders : purchasedOrders
+			async loadOrders() {
+				const user = uni.getStorageSync('user')
+				if (!user || !user.id) {
+					this.orderList = []
+					return
+				}
+				this.loading = true
+				try {
+					const list = this.orderType === 'sold'
+						? await getMySellOrders(user.id)
+						: await getMyBuyOrders(user.id)
+					this.orderList = list.map(o => ({
+						id: o.id,
+						orderNo: o.orderNo,
+						itemId: o.itemId,
+						buyerId: o.buyerId,
+						sellerId: o.sellerId,
+						image: '',
+						title: '商品 #' + o.itemId,
+						price: o.price,
+						status: o.status,
+						statusLabel: this.mapStatus(o.status),
+						tradeLocation: o.tradeLocation,
+						remark: o.remark,
+						counterparty: '',
+						createTime: o.createTime,
+						completeTime: o.completeTime,
+						cancelTime: o.cancelTime,
+						cancelReason: o.cancelReason,
+						time: o.createTime ? o.createTime.slice(0, 10) : ''
+					}))
+				} catch (e) {
+					this.orderList = []
+				} finally {
+					this.loading = false
+				}
+			},
+			mapStatus(status) {
+				const map = { PENDING: '待交易', COMPLETED: '已完成', CANCELLED: '已取消' }
+				return map[status] || status
 			},
 			statusClass(status) {
-				if (status === '已完成') return 'os-done'
-				if (status === '待发货') return 'os-pending'
-				if (status === '待收货') return 'os-pending'
-				return ''
+				if (status === 'COMPLETED') return 'os-done'
+				if (status === 'CANCELLED') return 'os-cancel'
+				return 'os-pending'
 			},
 			goDetail(o) {
+				uni.setStorageSync('currentOrder', o)
 				uni.navigateTo({ url: '/pages/order-detail/order-detail?id=' + o.id + '&type=' + this.orderType })
 			}
 		}
@@ -92,6 +127,7 @@
 	.o-status { font-size: 22rpx; padding: 4rpx 16rpx; border-radius: 6rpx; flex-shrink: 0; }
 	.os-done { color: #999; background: #f0f0f0; }
 	.os-pending { color: #f0ad4e; background: #fef5e7; }
+	.os-cancel { color: #999; background: #f0f0f0; }
 
 	.o-bottom { display: flex; justify-content: space-between; align-items: center; }
 	.o-people { font-size: 24rpx; color: #999; }
@@ -104,4 +140,6 @@
 	}
 	.empty-icon { font-size: 80rpx; margin-bottom: 24rpx; }
 	.empty-text { font-size: 28rpx; color: #999; }
+
+	.loading-tip { text-align: center; padding: 60rpx; font-size: 24rpx; color: #ccc; }
 </style>

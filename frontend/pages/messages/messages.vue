@@ -1,6 +1,21 @@
 <template>
 	<view class="messages-page">
 		<view class="chat-list">
+			<!-- 通知入口 -->
+			<view class="chat-item notify-item" @click="goNotifications">
+				<view class="chat-avatar notify-avatar">
+					<text class="chat-avatar-emoji">🔔</text>
+				</view>
+				<view class="chat-content">
+					<view class="chat-top">
+						<text class="chat-name">通知</text>
+					</view>
+					<view class="chat-bottom">
+						<text class="chat-msg">查看订单状态变更等系统通知</text>
+					</view>
+				</view>
+			</view>
+
 			<view v-for="item in chatList" :key="item.id" class="chat-item" @click="openChat(item)">
 				<view class="chat-avatar">
 					<image v-if="item.avatar" class="chat-avatar-img" :src="item.avatar" mode="aspectFill"></image>
@@ -19,8 +34,8 @@
 			</view>
 		</view>
 
-		<view v-if="chatList.length === 0" class="empty-state">
-			<text class="empty-icon">💬</text>
+		<view v-if="chatList.length === 0 && !loading" class="empty-state">
+			<text class="empty-icon iconfont icon-wuxiaoxi"></text>
 			<text class="empty-text">暂无消息</text>
 		</view>
 	</view>
@@ -29,24 +44,66 @@
 
 <script>
 	import TabBar from '@/components/tab-bar.vue'
+	import { getMySessions } from '@/api/chat.js'
 	export default {
 		components: { TabBar },
 		data() {
 			return {
-				chatList: [
-					{ id: 1, avatar: '', defaultAvatar: '🎓', name: '中大二手交易助手', lastMsg: '欢迎来到闲鸭蛋！', time: '昨天', unread: 1 },
-					{ id: 2, avatar: '', defaultAvatar: '🤝', name: '张三（卖家）', lastMsg: '好的，明天东校食堂门口见', time: '2小时前', unread: 2 },
-					{ id: 3, avatar: '', defaultAvatar: '📚', name: '李四（买家）', lastMsg: '这本教材还有吗？', time: '3天前', unread: 0 }
-				]
+				loading: false,
+				chatList: []
 			}
 		},
 		onShow() {
 			uni.hideTabBar()
+			this.loadSessions()
 		},
 		methods: {
+			async loadSessions() {
+				const user = uni.getStorageSync('user')
+				if (!user || !user.id) {
+					this.chatList = []
+					return
+				}
+				this.loading = true
+				try {
+					const list = await getMySessions(user.id)
+					this.chatList = list.map(s => {
+						const isBuyer = s.buyerId === user.id
+						const otherName = isBuyer ? '卖家' : '买家'
+						return {
+							id: s.id,
+							avatar: '',
+							defaultAvatar: isBuyer ? '🤝' : '🛒',
+							name: s.itemTitle || otherName,
+							lastMsg: s.lastMessage || '暂无消息',
+							time: this.formatTime(s.lastMessageTime),
+							unread: s.unreadCount || 0
+						}
+					})
+				} catch (e) {
+					this.chatList = []
+				} finally {
+					this.loading = false
+				}
+			},
+			formatTime(ts) {
+				if (!ts) return ''
+				const d = new Date(ts), now = new Date()
+				const pad = n => String(n).padStart(2, '0')
+				const hm = pad(d.getHours()) + ':' + pad(d.getMinutes())
+				if (d.toDateString() === now.toDateString()) return '今天 ' + hm
+				const y = new Date(now); y.setDate(now.getDate() - 1)
+				if (d.toDateString() === y.toDateString()) return '昨天 ' + hm
+				return (d.getMonth() + 1) + '/' + d.getDate() + ' ' + hm
+			},
 			openChat(item) {
 				uni.navigateTo({
 					url: '/pages/chat/chat?id=' + item.id
+				})
+			},
+			goNotifications() {
+				uni.navigateTo({
+					url: '/pages/notifications/notifications'
 				})
 			}
 		}
@@ -64,14 +121,18 @@
 	}
 	.chat-item:last-child { border-bottom: none; }
 
+	/* 通知入口 */
+	.notify-item { background: #f9faf9; }
+	.notify-avatar { background: #e8f5ee; }
+
 	.chat-avatar {
-	width: 96rpx; height: 96rpx;
-	background: #e8f5ee; border-radius: 50%;
-	display: flex; align-items: center; justify-content: center;
-	font-size: 44rpx; margin-right: 20rpx; flex-shrink: 0; overflow: hidden;
-}
-.chat-avatar-img { width: 100%; height: 100%; border-radius: 50%; }
-.chat-avatar-emoji { font-size: 44rpx; }
+		width: 96rpx; height: 96rpx;
+		background: #e8f5ee; border-radius: 50%;
+		display: flex; align-items: center; justify-content: center;
+		font-size: 44rpx; margin-right: 20rpx; flex-shrink: 0; overflow: hidden;
+	}
+	.chat-avatar-img { width: 100%; height: 100%; border-radius: 50%; }
+	.chat-avatar-emoji { font-size: 44rpx; }
 
 	.chat-content { flex: 1; overflow: hidden; }
 	.chat-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8rpx; }
@@ -87,6 +148,6 @@
 	}
 
 	.empty-state { display: flex; flex-direction: column; align-items: center; padding-top: 200rpx; }
-	.empty-icon { font-size: 100rpx; margin-bottom: 20rpx; }
+	.empty-icon { font-size: 100rpx; margin-bottom: 20rpx; color: #b6b6b6}
 	.empty-text { font-size: 28rpx; color: #999; }
 </style>

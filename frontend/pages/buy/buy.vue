@@ -17,7 +17,7 @@
 				<view class="goods-info">
 					<text class="goods-title">{{ goods.title }}</text>
 					<view class="goods-tags">
-						<text class="g-tag">{{ goods.condition }}</text>
+						<text class="g-tag" v-if="goods.conditionLevel">{{ goods.conditionLevel }}</text>
 						<text class="g-tag">{{ goods.campus }}</text>
 					</view>
 				</view>
@@ -30,11 +30,10 @@
 			<view class="seller-row">
 				<view class="seller-avatar">
 					<image v-if="seller.avatar" class="seller-avatar-img" :src="seller.avatar" mode="aspectFill"></image>
-					<text v-else class="seller-avatar-emoji">{{ seller.defaultAvatar }}</text>
+					<text v-else class="seller-avatar-emoji">🎓</text>
 				</view>
 				<view class="seller-info">
-					<text class="seller-name">{{ seller.name }}</text>
-					<text class="seller-credit">信用分 {{ seller.credit }}</text>
+					<text class="seller-name">{{ seller.username || '卖家' }}</text>
 				</view>
 			</view>
 		</view>
@@ -50,6 +49,11 @@
 						<text class="trade-desc">与卖家协商见面交易</text>
 					</view>
 				</view>
+			</view>
+			<!-- 交易地点 -->
+			<view class="form-item" style="margin-top: 20rpx;">
+				<text class="form-label">交易地点 <text class="section-hint">（选填）</text></text>
+				<input class="form-input" v-model="tradeLocation" placeholder="如：东校园教学楼门口" />
 			</view>
 		</view>
 
@@ -85,7 +89,7 @@
 				<text class="bp-label">合计：</text>
 				<text class="bp-value">¥{{ goods.price }}</text>
 			</view>
-			<button class="submit-btn" @click="onSubmit">确认购买</button>
+			<button class="submit-btn" @click="onSubmit" :disabled="submitting">确认购买</button>
 		</view>
 
 		<!-- 安全提示 -->
@@ -97,25 +101,29 @@
 </template>
 
 <script>
+	import { getItemDetail } from '@/api/item.js'
+	import { createOrder } from '@/api/order.js'
+
 	export default {
 		data() {
 			return {
 				statusBarHeight: 44,
 				remark: '',
+				tradeLocation: '',
+				submitting: false,
 				goods: {
-					id: 1,
-					image: 'https://images.unsplash.com/photo-1485965120184-e220f721d03e?q=80&w=400&auto=format&fit=crop',
-					title: '九成新公路自行车，带锁和挡泥板',
-					price: '268.00',
-					condition: '九成新',
-					campus: '东校园'
+					id: null,
+					image: '',
+					title: '加载中...',
+					price: '0.00',
+					conditionLevel: '',
+					campus: '',
+					userId: null
 				},
 				seller: {
-					id: 2,
-					avatar: '', defaultAvatar: '🎓',
-					name: '中大在校生',
-					credit: 98
-				}
+					username: ''
+				},
+				user: null
 			}
 		},
 		onLoad(options) {
@@ -125,29 +133,54 @@
 			} catch (e) {
 				this.statusBarHeight = 44
 			}
-			// 接收商品参数
+			const user = uni.getStorageSync('user')
+			if (!user || !user.id) {
+				uni.showToast({ title: '请先登录', icon: 'none' })
+				setTimeout(() => uni.navigateBack(), 1500)
+				return
+			}
+			this.user = user
 			if (options.id) {
-				// TODO: 根据id请求商品详情
 				this.goods.id = options.id
+				this.loadItem(options.id)
 			}
 		},
 		methods: {
+			async loadItem(id) {
+				try {
+					const data = await getItemDetail(id)
+					this.goods = {
+						id: data.id,
+						image: (data.imageUrls && data.imageUrls[0]) || '',
+						title: data.title,
+						price: data.price,
+						conditionLevel: data.conditionLevel,
+						campus: data.campus,
+						userId: data.userId
+					}
+				} catch (e) {
+					uni.showToast({ title: '加载商品失败', icon: 'none' })
+				}
+			},
 			goBack() {
 				uni.navigateBack()
 			},
-			onSubmit() {
-				uni.showModal({
-					title: '确认购买',
-					content: '确认购买该商品？下单后请等待卖家确认。',
-					success: (res) => {
-						if (res.confirm) {
-							uni.showToast({ title: '下单成功', icon: 'success' })
-							setTimeout(() => {
-								uni.navigateBack()
-							}, 1500)
-						}
-					}
-				})
+			async onSubmit() {
+				if (this.submitting) return
+				this.submitting = true
+				try {
+					const data = await createOrder(this.user.id, {
+						itemId: Number(this.goods.id),
+						tradeLocation: this.tradeLocation || undefined,
+						remark: this.remark || undefined
+					})
+					uni.showToast({ title: '下单成功', icon: 'success' })
+					setTimeout(() => {
+						uni.navigateBack()
+					}, 1500)
+				} catch (e) {
+					this.submitting = false
+				}
 			}
 		}
 	}
@@ -349,13 +382,13 @@
 		color: #999;
 	}
 
-	.trade-radio {
-		font-size: 32rpx;
-		color: #ccc;
-	}
-
-	.trade-active .trade-radio {
-		color: #3A6341;
+	.form-item { margin-bottom: 0; }
+	.form-label { font-size: 26rpx; color: #666; margin-bottom: 12rpx; display: block; }
+	.form-input {
+		width: 100%; height: 72rpx;
+		background: #f5f5f5; border-radius: 12rpx;
+		padding: 0 20rpx; font-size: 26rpx;
+		box-sizing: border-box;
 	}
 
 	/* ===== 价格明细 ===== */
@@ -375,11 +408,6 @@
 		font-size: 28rpx;
 		color: #333;
 		font-weight: bold;
-	}
-
-	.price-hint {
-		color: #999;
-		font-weight: normal;
 	}
 
 	.price-divider {

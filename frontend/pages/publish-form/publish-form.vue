@@ -10,9 +10,15 @@
 		<view v-if="publishType === 'sell'" class="form-card">
 			<view class="form-item">
 				<text class="form-label">商品图片</text>
-				<view class="upload-box" @click="uploadImage">
-					<text class="upload-icon">+</text>
-					<text class="upload-text">添加图片</text>
+				<view class="image-grid">
+					<view class="image-item" v-for="(img, idx) in sellForm.images" :key="idx" @click="previewSellImage(idx)">
+						<image class="image-thumb" :src="img" mode="aspectFill" />
+						<view class="image-remove" @click.stop="removeSellImage(idx)">✕</view>
+					</view>
+					<view class="upload-box" @click="uploadSellImage" v-if="sellForm.images.length < 9">
+						<text class="upload-icon">+</text>
+						<text class="upload-text">添加图片</text>
+					</view>
 				</view>
 			</view>
 			<view class="form-item">
@@ -28,8 +34,8 @@
 			</view>
 			<view class="form-item">
 				<text class="form-label">商品分类</text>
-				<picker :range="categoryList" @change="onSellCategoryChange">
-					<view class="picker-text">{{ sellForm.category || '请选择分类' }}</view>
+				<picker :range="categoryLabels" @change="onSellCategoryChange">
+					<view class="picker-text">{{ sellForm.categoryName || '请选择分类' }}</view>
 				</picker>
 			</view>
 			<view class="form-item">
@@ -45,14 +51,10 @@
 				</picker>
 			</view>
 			<view class="form-item">
-				<text class="form-label">标签</text>
-				<input class="form-input" v-model="sellForm.tags" placeholder="多个标签用空格隔开，如：电子产品 数码" />
-			</view>
-			<view class="form-item">
 				<text class="form-label">商品描述</text>
 				<textarea class="form-textarea" v-model="sellForm.desc" placeholder="描述一下你的商品吧~" :maxlength="500" />
 			</view>
-			<button class="submit-btn" @click="onSellSubmit">发布商品</button>
+			<button class="submit-btn" @click="onSellSubmit" :disabled="submitting">发布商品</button>
 		</view>
 
 		<!-- ===== 求购表单 ===== -->
@@ -78,8 +80,8 @@
 			</view>
 			<view class="form-item">
 				<text class="form-label">商品分类</text>
-				<picker :range="categoryList" @change="onBuyCategoryChange">
-					<view class="picker-text">{{ buyForm.category || '请选择分类' }}</view>
+				<picker :range="categoryLabels" @change="onBuyCategoryChange">
+					<view class="picker-text">{{ buyForm.categoryName || '请选择分类' }}</view>
 				</picker>
 			</view>
 			<view class="form-item">
@@ -117,23 +119,27 @@
 </template>
 
 <script>
+	import { publishItem, getCategories, uploadImage } from '@/api/item.js'
+
 	export default {
 		data() {
 			return {
 				publishType: 'sell',
 				isEdit: false,
 				editId: null,
-				categoryList: ['数码电子', '书籍教材', '生活用品', '运动户外', '服饰鞋包', '其他'],
+				submitting: false,
+				categories: [],
+				categoryLabels: [],
 				campusList: ['东校园', '南校园', '北校园', '珠海校区', '深圳校区'],
 				conditionList: ['不限', '全新', '99新', '95新', '90新', '85新', '80新以下'],
 
 				sellForm: {
 					title: '',
 					price: '',
-					category: '',
+					categoryId: null,
+					categoryName: '',
 					campus: '',
 					condition: '',
-					tags: '',
 					desc: '',
 					images: []
 				},
@@ -142,7 +148,8 @@
 					title: '',
 					budgetMin: '',
 					budgetMax: '',
-					category: '',
+					categoryId: null,
+					categoryName: '',
 					campus: '',
 					condition: '',
 					desc: '',
@@ -173,7 +180,8 @@
 						title: data.title || '',
 						budgetMin: data.budgetMin || '',
 						budgetMax: data.budgetMax || '',
-						category: data.categoryLabel || '',
+						categoryId: data.categoryId || null,
+						categoryName: data.categoryLabel || '',
 						campus: data.campus || '',
 						condition: data.condition || '',
 						desc: data.desc || '',
@@ -181,20 +189,42 @@
 					}
 				}
 			}
+			this.loadCategories()
 		},
 		methods: {
-			uploadImage() {
+			async loadCategories() {
+				try {
+					this.categories = await getCategories()
+					this.categoryLabels = this.categories.map(c => c.name)
+				} catch (e) {
+					this.categories = [
+						{ id: 1, name: '数码电子' }, { id: 2, name: '书籍教材' },
+						{ id: 3, name: '生活用品' }, { id: 4, name: '运动户外' },
+						{ id: 5, name: '服饰鞋包' }, { id: 6, name: '其他' }
+					]
+					this.categoryLabels = this.categories.map(c => c.name)
+				}
+			},
+
+			uploadSellImage() {
 				uni.chooseImage({
-					count: 9,
+					count: 9 - this.sellForm.images.length,
 					success: (res) => {
 						this.sellForm.images = this.sellForm.images.concat(res.tempFilePaths)
-						uni.showToast({ title: '已选择 ' + res.tempFilePaths.length + ' 张', icon: 'none' })
 					}
 				})
 			},
+			previewSellImage(idx) {
+				uni.previewImage({ current: idx, urls: this.sellForm.images })
+			},
+			removeSellImage(idx) {
+				this.sellForm.images.splice(idx, 1)
+			},
 
 			onSellCategoryChange(e) {
-				this.sellForm.category = this.categoryList[e.detail.value]
+				const idx = e.detail.value
+				this.sellForm.categoryName = this.categoryLabels[idx]
+				this.sellForm.categoryId = this.categories[idx].id
 			},
 			onSellCampusChange(e) {
 				this.sellForm.campus = this.campusList[e.detail.value]
@@ -204,7 +234,7 @@
 				this.sellForm.condition = val === '不限' ? '' : val
 			},
 
-			onSellSubmit() {
+			async onSellSubmit() {
 				if (!this.sellForm.title) {
 					uni.showToast({ title: '请输入商品名称', icon: 'none' })
 					return
@@ -213,11 +243,52 @@
 					uni.showToast({ title: '请输入价格', icon: 'none' })
 					return
 				}
-				uni.showToast({ title: '发布成功！', icon: 'success' })
+				if (!this.sellForm.categoryId) {
+					uni.showToast({ title: '请选择分类', icon: 'none' })
+					return
+				}
+				const user = uni.getStorageSync('user')
+				if (!user || !user.id) {
+					uni.showToast({ title: '请先登录', icon: 'none' })
+					return
+				}
+				this.submitting = true
+				try {
+					uni.showLoading({ title: '上传图片中...' })
+					const imageUrls = []
+					for (const img of this.sellForm.images) {
+						if (img.startsWith('http') || img.startsWith('/uploads')) {
+							imageUrls.push(img)
+						} else {
+							const url = await uploadImage(img)
+							imageUrls.push(url)
+						}
+					}
+					uni.hideLoading()
+					const payload = {
+						userId: user.id,
+						title: this.sellForm.title,
+						price: Number(this.sellForm.price),
+						categoryId: this.sellForm.categoryId,
+						campus: this.sellForm.campus || undefined,
+						conditionLevel: this.sellForm.condition || undefined,
+						description: this.sellForm.desc || undefined,
+						imageUrls
+					}
+					const data = await publishItem(payload)
+					uni.showToast({ title: '发布成功！', icon: 'success' })
+					setTimeout(() => {
+						uni.navigateTo({ url: '/pages/goods-detail/goods-detail?id=' + data.id })
+					}, 1200)
+				} catch (e) {
+					this.submitting = false
+				}
 			},
 
 			onBuyCategoryChange(e) {
-				this.buyForm.category = this.categoryList[e.detail.value]
+				const idx = e.detail.value
+				this.buyForm.categoryName = this.categoryLabels[idx]
+				this.buyForm.categoryId = this.categories[idx].id
 			},
 			onBuyCampusChange(e) {
 				this.buyForm.campus = this.campusList[e.detail.value]
@@ -232,15 +303,11 @@
 					count: remain,
 					success: (res) => {
 						this.buyForm.images = this.buyForm.images.concat(res.tempFilePaths)
-						uni.showToast({ title: '已选择 ' + res.tempFilePaths.length + ' 张', icon: 'none' })
 					}
 				})
 			},
 			previewBuyImage(idx) {
-				uni.previewImage({
-					current: idx,
-					urls: this.buyForm.images
-				})
+				uni.previewImage({ current: idx, urls: this.buyForm.images })
 			},
 			removeBuyImage(idx) {
 				this.buyForm.images.splice(idx, 1)
@@ -255,13 +322,8 @@
 					uni.showToast({ title: '请检查预算范围', icon: 'none' })
 					return
 				}
-				if (this.isEdit) {
-					uni.showToast({ title: '修改成功！', icon: 'success' })
-					setTimeout(() => { uni.navigateBack() }, 1200)
-				} else {
-					uni.showToast({ title: '求购发布成功！', icon: 'success' })
-					setTimeout(() => { uni.switchTab({ url: '/pages/wanted/wanted' }) }, 1200)
-				}
+				// 求购功能后端暂未实现，仅本地提示
+				uni.showToast({ title: '求购发布功能需后端支持', icon: 'none' })
 			}
 		}
 	}
@@ -354,7 +416,7 @@
 	.picker-text {
 		width: 100%; height: 80rpx; line-height: 80rpx;
 		background: #f5f5f5; border-radius: 12rpx;
-		padding: 0 20rpx; font-size: 28rpx; color: #999;
+		padding: 0 20rpx; font-size: 28rpx; color: #333;
 		box-sizing: border-box;
 	}
 

@@ -1,4 +1,4 @@
-import { post, get, put } from './index'
+import { post, get, put, del } from './index'
 
 export function register(username, password) {
 	return post('/api/user/register', { username, password })
@@ -14,4 +14,8 @@ export function getUserInfo(id) {
 
 export function updateProfile(data) {
 	return put('/api/user/profile', data)
+}
+
+export function deleteUser(id) {
+	return del('/api/user/' + id)
 }

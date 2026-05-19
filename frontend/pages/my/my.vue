@@ -10,9 +10,9 @@
 				<text class="sidebar-close" @click="closeSidebar">✕</text>
 			</view>
 			<view class="sidebar-menu">
-				<view class="sidebar-item" @click="onSidebarClick('浏览历史')">
-					<text class="si-icon">🕐</text>
-					<text class="si-text">浏览历史</text>
+				<view class="sidebar-item" @click="goNotifications">
+					<text class="si-icon">🔔</text>
+					<text class="si-text">通知中心</text>
 					<text class="si-arrow">›</text>
 				</view>
 				<view class="sidebar-item" @click="onSidebarClick('认证中心')">
@@ -20,7 +20,7 @@
 					<text class="si-text">认证中心</text>
 					<text class="si-arrow">›</text>
 				</view>
-				<view class="sidebar-item" @click="onSidebarClick('设置')">
+				<view class="sidebar-item" @click="goSettings">
 					<text class="si-icon">⚙️</text>
 					<text class="si-text">设置</text>
 					<text class="si-arrow">›</text>
@@ -58,7 +58,6 @@
 				<!-- 标签 -->
 				<view class="user-tags" v-if="userInfo.isLogin">
 					<text class="u-tag">{{ userInfo.campus }}</text>
-					<text v-if="userInfo.verified" class="u-tag u-tag-verified">已认证</text>
 				</view>
 				<view class="user-tags" v-else>
 					<text class="u-tag u-tag-dim">登录后解锁更多</text>
@@ -69,7 +68,7 @@
 		<!-- ========== 未登录占位 ========== -->
 		<view v-if="!userInfo.isLogin" class="login-hint-card">
 			<text class="login-hint-icon">🔒</text>
-			<text class="login-hint-text">登录后可查看交易与信用信息</text>
+			<text class="login-hint-text">登录后可查看交易与收藏信息</text>
 			<view class="login-hint-btn" @click="goToLogin">立即登录</view>
 		</view>
 
@@ -82,59 +81,31 @@
 				</view>
 				<view class="trade-row">
 					<view class="trade-item" @click="goToListings">
-						<text class="trade-num">{{ userInfo.publishCount }}</text>
+						<text class="trade-num">{{ stats.sellCount }}</text>
 						<text class="trade-label">发布</text>
 					</view>
 					<view class="trade-item" @click="goToOrders('sold')">
-						<text class="trade-num">{{ userInfo.soldCount }}</text>
+						<text class="trade-num">{{ stats.soldCount }}</text>
 						<text class="trade-label">已售</text>
 					</view>
 					<view class="trade-item" @click="goToOrders('purchased')">
-						<text class="trade-num">{{ userInfo.purchasedCount }}</text>
-						<text class="trade-label">已购</text>
+						<text class="trade-num">{{ stats.buyCount }}</text>
+						<text class="trade-label">订单</text>
 					</view>
 				</view>
 			</view>
 
-			<!-- 卡片2: 我的信用 -->
-			<view class="card card-credit" @click="goToCredit">
-				<view class="card-head">
-					<text class="card-title">我的信用</text>
-					<text class="card-more">详情 ›</text>
+			<!-- 卡片2: 信用 + 心愿单 左右排布 -->
+			<view class="card-row">
+				<view class="card card-half card-credit" @click="goCredit">
+					<text class="card-half-title">我的信用</text>
+					<text class="credit-score-num" :class="creditLevel">{{ credit.score }}</text>
+					<text class="credit-score-desc" :class="creditLevel">{{ creditDesc }}</text>
 				</view>
-				<view class="credit-row">
-					<view class="credit-main">
-						<text class="credit-score" :class="creditLevel">{{ userInfo.creditScore }}</text>
-						<text class="credit-desc">{{ creditDesc }}</text>
-					</view>
-					<view class="credit-stats">
-						<view class="cs-item">
-							<text class="cs-num">{{ userInfo.dealCount }}</text>
-							<text class="cs-label">成交</text>
-						</view>
-						<view class="cs-item">
-							<text class="cs-num">{{ userInfo.goodsCount }}</text>
-							<text class="cs-label">在售</text>
-						</view>
-						<view class="cs-item">
-							<text class="cs-num">{{ userInfo.reviewCount }}</text>
-							<text class="cs-label">评价</text>
-						</view>
-					</view>
-				</view>
-			</view>
-
-			<!-- 卡片3: 心愿单 -->
-			<view class="card card-wish" @click="goToWishlist">
-				<view class="card-head">
-					<text class="card-title"><text class="iconfont icon-xinyuandan" style="font-size: 32rpx; margin-right: 4rpx;"></text>心愿单</text>
-					<text class="card-more">{{ userInfo.wishCount }} 件商品 ›</text>
-				</view>
-				<view v-if="userInfo.wishCount > 0" class="wish-preview">
-					<text class="wish-hint">点击查看你收藏的宝贝</text>
-				</view>
-				<view v-else class="wish-empty">
-					<text class="wish-empty-text">暂无收藏，去逛逛吧</text>
+				<view class="card card-half card-wish" @click="goToWishlist">
+					<text class="card-half-title"><text class="iconfont icon-xinyuandan" style="font-size: 28rpx; margin-right: 4rpx;"></text>心愿单</text>
+					<text class="wish-count-num">{{ stats.wishCount }}</text>
+					<text class="wish-count-label">件收藏</text>
 				</view>
 			</view>
 		</block>
@@ -144,79 +115,77 @@
 
 <script>
 	import TabBar from '@/components/tab-bar.vue'
+	import { getMySellOrders, getMyBuyOrders } from '@/api/order.js'
+	import { getMyFavorites } from '@/api/favorite.js'
 	export default {
 		components: { TabBar },
 		data() {
-			// TODO: 开发完后删掉 mock，改回 uni.getStorageSync('user')
-	const user = uni.getStorageSync('user') || { username: '测试用户', campus: '东校园', verified: true, creditScore: 85, publishCount: 3, soldCount: 5, purchasedCount: 2, dealCount: 7, goodsCount: 3, reviewCount: 12, wishCount: 4 }
+			const user = uni.getStorageSync('user')
 			return {
 				showSidebar: false,
 				userInfo: user ? {
 					isLogin: true,
 					nickname: user.username || '',
 					avatar: user.avatar || '',
-					campus: user.campus || '',
-					verified: user.verified || false,
-					creditScore: user.creditScore || 0,
-					publishCount: user.publishCount || 0,
-					soldCount: user.soldCount || 0,
-					purchasedCount: user.purchasedCount || 0,
-					dealCount: user.dealCount || 0,
-					goodsCount: user.goodsCount || 0,
-					reviewCount: user.reviewCount || 0,
-					wishCount: user.wishCount || 0
+					campus: user.campus || ''
 				} : {
 					isLogin: false,
 					nickname: '',
 					avatar: '',
-					campus: '',
-					verified: false,
-					creditScore: 0,
-					publishCount: 0,
+					campus: ''
+				},
+				stats: {
+					sellCount: 0,
 					soldCount: 0,
-					purchasedCount: 0,
-					dealCount: 0,
-					goodsCount: 0,
-					reviewCount: 0,
+					buyCount: 0,
 					wishCount: 0
+				},
+				credit: {
+					score: 92
 				}
-			}
-		},
-		onShow() {
-			uni.hideTabBar()
-			// TODO: 开发完后删掉 mock，改回 uni.getStorageSync('user')
-	const user = uni.getStorageSync('user') || { username: '测试用户', campus: '东校园', verified: true, creditScore: 85, publishCount: 3, soldCount: 5, purchasedCount: 2, dealCount: 7, goodsCount: 3, reviewCount: 12, wishCount: 4 }
-			if (user) {
-				this.userInfo.isLogin = true
-				this.userInfo.nickname = user.username || ''
-				this.userInfo.avatar = user.avatar || ''
-				this.userInfo.campus = user.campus || ''
-				this.userInfo.verified = user.verified || false
-				this.userInfo.creditScore = user.creditScore || 0
-				this.userInfo.publishCount = user.publishCount || 0
-				this.userInfo.soldCount = user.soldCount || 0
-				this.userInfo.purchasedCount = user.purchasedCount || 0
-				this.userInfo.dealCount = user.dealCount || 0
-				this.userInfo.goodsCount = user.goodsCount || 0
-				this.userInfo.reviewCount = user.reviewCount || 0
-				this.userInfo.wishCount = user.wishCount || 0
 			}
 		},
 		computed: {
 			creditLevel() {
-				const s = this.userInfo.creditScore
+				const s = this.credit.score
 				if (s >= 90) return 'credit-high'
 				if (s >= 70) return 'credit-mid'
 				return 'credit-low'
 			},
 			creditDesc() {
-				const s = this.userInfo.creditScore
+				const s = this.credit.score
 				if (s >= 90) return '信用极好'
 				if (s >= 70) return '信用良好'
 				return '信用较差'
 			}
 		},
+		onShow() {
+			uni.hideTabBar()
+			const user = uni.getStorageSync('user')
+			if (user) {
+				this.userInfo.isLogin = true
+				this.userInfo.nickname = user.username || ''
+				this.userInfo.avatar = user.avatar || ''
+				this.userInfo.campus = user.campus || ''
+				this.loadStats()
+			}
+		},
 		methods: {
+			async loadStats() {
+				const user = uni.getStorageSync('user')
+				if (!user || !user.id) return
+				try {
+					const [sellOrders, buyOrders, favorites] = await Promise.all([
+						getMySellOrders(user.id).catch(() => []),
+						getMyBuyOrders(user.id).catch(() => []),
+						getMyFavorites(user.id).catch(() => [])
+					])
+					this.stats.sellCount = sellOrders.length
+					this.stats.soldCount = sellOrders.filter(o => o.status === 'COMPLETED').length
+					this.stats.buyCount = buyOrders.length
+					this.stats.wishCount = favorites.length
+				} catch (e) {}
+			},
 			openSidebar() {
 				this.showSidebar = true
 			},
@@ -239,11 +208,19 @@
 			goToOrders(type) {
 				uni.navigateTo({ url: '/pages/my-orders/my-orders?type=' + type })
 			},
-			goToCredit() {
+			goCredit() {
 				uni.navigateTo({ url: '/pages/my-credit/my-credit' })
 			},
 			goToWishlist() {
 				uni.navigateTo({ url: '/pages/my-wishlist/my-wishlist' })
+			},
+			goSettings() {
+				this.showSidebar = false
+				uni.navigateTo({ url: '/pages/settings/settings' })
+			},
+			goNotifications() {
+				this.showSidebar = false
+				uni.navigateTo({ url: '/pages/notifications/notifications' })
 			}
 		}
 	}
@@ -375,7 +352,7 @@
 
 	/* ===== 通用卡片 ===== */
 	.card {
-		background: #ffffff; margin: 20rpx; border-radius: 20rpx;
+		background: #ffffff; margin: 0 20rpx 20rpx; border-radius: 20rpx;
 		padding: 24rpx 24rpx 20rpx;
 		box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
 	}
@@ -393,31 +370,26 @@
 		padding: 10rpx 30rpx;
 	}
 	.trade-num { font-size: 40rpx; color: #3A6341; font-weight: bold; margin-bottom: 6rpx; }
-	.trade-icon { font-size: 40rpx; margin-bottom: 6rpx; }
 	.trade-label { font-size: 24rpx; color: #999; }
 
-	/* ===== 信用卡片 ===== */
-	.credit-row {
-		display: flex; align-items: center;
-	}
-	.credit-main {
+	/* ===== 左右排布卡片 ===== */
+	.card-row { display: flex; gap: 16rpx; margin: 0 20rpx 20rpx; }
+	.card-half {
+		flex: 1; background: #ffffff; border-radius: 20rpx;
+		padding: 24rpx 24rpx 20rpx; margin: 0;
 		display: flex; flex-direction: column; align-items: center;
-		padding-right: 30rpx; border-right: 1rpx solid #f0f0f0; margin-right: 30rpx;
+		box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
 	}
-	.credit-score { font-size: 64rpx; font-weight: bold; line-height: 1; margin-bottom: 6rpx; }
-	.credit-high { color: #4cd964; }
-	.credit-mid { color: #f0ad4e; }
-	.credit-low { color: #e74c3c; }
-	.credit-desc { font-size: 22rpx; color: #999; }
+	.card-half-title { font-size: 26rpx; color: #333; font-weight: bold; margin-bottom: 20rpx; align-self: flex-start; }
 
-	.credit-stats { flex: 1; display: flex; justify-content: space-around; }
-	.cs-item { display: flex; flex-direction: column; align-items: center; }
-	.cs-num { font-size: 36rpx; color: #333; font-weight: bold; }
-	.cs-label { font-size: 22rpx; color: #999; margin-top: 4rpx; }
+	/* 信用分 */
+	.credit-score-num { font-size: 64rpx; font-weight: bold; line-height: 1; margin-bottom: 6rpx; text-align: center; }
+	.credit-score-num.credit-high { color: #4cd964; }
+	.credit-score-num.credit-mid { color: #f0ad4e; }
+	.credit-score-num.credit-low { color: #e74c3c; }
+	.credit-score-desc { font-size: 24rpx; color: #999; text-align: center; }
 
-	/* ===== 心愿单卡片 ===== */
-	.wish-preview { text-align: center; padding: 10rpx 0; }
-	.wish-hint { font-size: 26rpx; color: #999; }
-	.wish-empty { text-align: center; padding: 10rpx 0; }
-	.wish-empty-text { font-size: 26rpx; color: #ccc; }
+	/* 心愿单 */
+	.wish-count-num { font-size: 48rpx; color: #3A6341; font-weight: bold; line-height: 1; margin-bottom: 6rpx; text-align: center; }
+	.wish-count-label { font-size: 24rpx; color: #999; text-align: center; }
 </style>

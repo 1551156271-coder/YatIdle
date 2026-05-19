@@ -1,68 +1,43 @@
 <template>
 	<view class="container">
 		<view class="image-box">
-			<image class="main-image" src="https://images.unsplash.com/photo-1485965120184-e220f721d03e?q=80&w=1000&auto=format&fit=crop" mode="aspectFill"></image>
+			<image class="main-image" :src="mainImage" mode="aspectFill"></image>
 			<view v-if="isSeller" class="status-badge" :class="statusClass">{{ statusText }}</view>
 		</view>
 
 		<view class="info-card">
 			<view class="price-row">
 				<text class="symbol">￥</text>
-				<text class="price">{{ price }}</text>
-				<view class="tag-badge">九成新</view>
+				<text class="price">{{ item.price }}</text>
+				<text class="tag-badge" v-if="item.conditionLevel">{{ item.conditionLevel }}</text>
 			</view>
-			<view class="title">{{ title }}</view>
+			<view class="title">{{ item.title }}</view>
 			<view class="meta-row">
 				<view class="meta-item">📦 自提</view>
-				<view class="meta-item">📍 东校园</view>
-				<view class="meta-item">🕐 2天前发布</view>
+				<view class="meta-item">📍 {{ item.campus }}</view>
+				<view class="meta-item">🕐 {{ item.createTime }}</view>
 			</view>
 		</view>
 
 		<!-- 买家模式：卖家信息卡 -->
-		<view v-if="!isSeller" class="seller-card">
+		<view v-if="!isSeller" class="seller-card" @click="goToProfile">
 			<view class="seller-left">
-				<view class="avatar" @click="goToProfile">
-					<image v-if="sellerAvatar" class="avatar-img" :src="sellerAvatar" mode="aspectFill"></image>
+				<view class="avatar">
+					<image v-if="sellerInfo.avatar" class="avatar-img" :src="sellerInfo.avatar" mode="aspectFill"></image>
 					<text v-else class="avatar-emoji">🎓</text>
 				</view>
 				<view class="seller-text">
 					<view class="name-row">
-						<text class="seller-name">中大在校生</text>
-						<text class="verified-badge">已认证</text>
+						<text class="seller-name">{{ sellerInfo.username || '卖家' }}</text>
+						<text v-if="sellerInfo.verified" class="verified-badge">已认证</text>
 					</view>
 				</view>
 			</view>
-		</view>
-
-		<!-- 卖家模式 + 已售：买家信息卡 -->
-		<view v-if="isSeller && goodsStatus === 'sold'" class="seller-card buyer-card">
-			<view class="section-label">购买者信息</view>
-			<view class="seller-left" style="margin-top: 16rpx;">
-				<view class="avatar" @click="goToBuyerProfile">
-					<image v-if="buyerAvatar" class="avatar-img" :src="buyerAvatar" mode="aspectFill"></image>
-					<text v-else class="avatar-emoji">📚</text>
-				</view>
-				<view class="seller-text">
-					<view class="name-row">
-						<text class="seller-name">李四（买家）</text>
-						<text class="verified-badge">已认证</text>
-					</view>
-					<text class="buyer-contact">交易时间：2024-05-09</text>
-				</view>
-			</view>
-			<view class="contact-buyer-btn" @click="contactBuyer">联系买家</view>
 		</view>
 
 		<view class="detail-section">
 			<view class="section-title">商品详情</view>
-			<text class="description">{{ description }}</text>
-		</view>
-
-		<view class="tags-section">
-			<view class="tag">自行车</view>
-			<view class="tag">出行</view>
-			<view class="tag">东校区自提</view>
+			<text class="description">{{ item.description || '暂无描述' }}</text>
 		</view>
 
 		<!-- 底部操作栏：买家模式 -->
@@ -71,111 +46,163 @@
 				<text class="collect-icon iconfont" :class="isCollected ? 'icon-xz' : 'icon-shoucang'"></text>
 			</view>
 			<view class="btn-group">
-				<button class="chat-btn" @click="handleAction('咨询')">💬 咨询</button>
-				<button class="buy-btn" @click="handleAction('购买')">立即购买</button>
+				<button class="chat-btn" @click="handleConsult">💬 咨询</button>
+				<button class="buy-btn" @click="handleBuy">立即购买</button>
 			</view>
 		</view>
 
 		<!-- 底部操作栏：卖家模式 - 在售 -->
-		<view v-if="isSeller && goodsStatus === 'selling'" class="bottom-action seller-bottom">
+		<view v-if="isSeller && itemStatus === 'ON_SALE'" class="bottom-action seller-bottom">
 			<button class="edit-btn" @click="editGoods">编辑信息</button>
-			<button class="cancel-btn" @click="cancelListing">下架商品</button>
+			<button class="cancel-btn" @click="offlineGoods">下架商品</button>
 		</view>
 
 		<!-- 底部操作栏：卖家模式 - 已下架 -->
-		<view v-if="isSeller && goodsStatus === 'off'" class="bottom-action seller-bottom">
+		<view v-if="isSeller && itemStatus === 'REMOVED'" class="bottom-action seller-bottom">
 			<button class="buy-btn" style="flex:1;" @click="relistGoods">重新上架</button>
 		</view>
-	</view>
+
+		</view>
 </template>
 
 <script>
+	import { getItemDetail, offlineItem, onlineItem } from '@/api/item.js'
+	import { addFavorite, removeFavorite } from '@/api/favorite.js'
+	import { createSession } from '@/api/chat.js'
+	import { getUserInfo } from '@/api/user.js'
+
 	export default {
 		data() {
 			return {
-				goodsId: 1,
-				title: "出九成新公路自行车，带锁和挡泥板",
-				price: "268.00",
-				description: "去年学期初在校外车行买的，平时只在教学楼和宿舍之间通勤。车架很轻，变速灵敏。离校转手，东校园自提。配件齐全，包括车锁和挡泥板，骑行体验非常好。",
+				goodsId: null,
+				item: {
+					title: '',
+					price: 0,
+					description: '',
+					campus: '',
+					conditionLevel: '',
+					imageUrls: [],
+					userId: null,
+					status: 'ON_SALE',
+					createTime: ''
+				},
 				isCollected: false,
 				isSeller: false,
-				sellerAvatar: "",
-				buyerAvatar: "",
-				goodsStatus: 'selling', // 'selling' | 'sold' | 'off'
+				itemStatus: 'ON_SALE',
+				sellerInfo: {}
 			}
 		},
 		computed: {
+			mainImage() {
+				return (this.item.imageUrls && this.item.imageUrls[0]) || ''
+			},
 			statusText() {
-				const map = { selling: '在售', sold: '已售', off: '已下架' }
-				return map[this.goodsStatus] || ''
+				const map = { ON_SALE: '在售', SOLD: '已售', REMOVED: '已下架' }
+				return map[this.itemStatus] || this.itemStatus
 			},
 			statusClass() {
-				return this.goodsStatus === 'selling' ? 'status-on' : 'status-off'
+				return this.itemStatus === 'ON_SALE' ? 'status-on' : 'status-off'
 			}
 		},
 		onLoad(options) {
-			if (options.mode === 'seller') {
-				this.isSeller = true
-			}
+			if (options.mode === 'seller') this.isSeller = true
 			if (options.status) {
-				// status: 'selling' | 'sold' | 'off'
-				const statusMap = { '在售': 'selling', '已售': 'sold', '已下架': 'off' }
-				this.goodsStatus = statusMap[options.status] || 'selling'
+				const statusMap = { '在售': 'ON_SALE', '已售': 'SOLD', '已下架': 'REMOVED' }
+				this.itemStatus = statusMap[options.status] || 'ON_SALE'
 			}
 			if (options.id) {
 				this.goodsId = options.id
+				this.loadItem()
 			}
 		},
 		methods: {
-			goToProfile() {
-				uni.navigateTo({ url: '/pages/profile/profile?id=2' })
-			},
-			goToBuyerProfile() {
-				uni.navigateTo({ url: '/pages/profile/profile?id=3' })
-			},
-			contactBuyer() {
-				uni.navigateTo({ url: '/pages/chat/chat?id=3' })
-			},
-			toggleCollect() {
-				this.isCollected = !this.isCollected;
-				uni.showToast({
-					title: this.isCollected ? '已收藏' : '取消收藏',
-					icon: 'none'
-				});
-			},
-			handleAction(type) {
-				if (type === '咨询') {
-					uni.navigateTo({ url: '/pages/chat/chat?id=2' })
-				} else {
-					uni.navigateTo({ url: '/pages/buy/buy?id=' + this.goodsId })
+			async loadItem() {
+				try {
+					const data = await getItemDetail(this.goodsId)
+					this.item = data
+					this.itemStatus = data.status || 'ON_SALE'
+					const user = uni.getStorageSync('user')
+					if (user && user.id === data.userId) {
+						this.isSeller = true
+					}
+					if (data.userId) {
+						this.loadSellerInfo(data.userId)
+					}
+				} catch (e) {
+					uni.showToast({ title: '加载商品失败', icon: 'none' })
 				}
+			},
+			async loadSellerInfo(userId) {
+				try {
+					this.sellerInfo = await getUserInfo(userId)
+				} catch (e) {}
+			},
+			goToProfile() {
+				if (this.item.userId) {
+					uni.navigateTo({ url: '/pages/profile/profile?id=' + this.item.userId })
+				}
+			},
+			async toggleCollect() {
+				const user = uni.getStorageSync('user')
+				if (!user || !user.id) {
+					uni.showToast({ title: '请先登录', icon: 'none' })
+					return
+				}
+				try {
+					if (this.isCollected) {
+						await removeFavorite(this.goodsId, user.id)
+						this.isCollected = false
+						uni.showToast({ title: '已取消收藏', icon: 'none' })
+					} else {
+						await addFavorite(this.goodsId, user.id)
+						this.isCollected = true
+						uni.showToast({ title: '已收藏', icon: 'none' })
+					}
+				} catch (e) {}
+			},
+			async handleConsult() {
+				const user = uni.getStorageSync('user')
+				if (!user || !user.id) {
+					uni.showToast({ title: '请先登录', icon: 'none' })
+					return
+				}
+				try {
+					const session = await createSession(user.id, { itemId: Number(this.goodsId) })
+					uni.navigateTo({ url: '/pages/chat/chat?id=' + session.id })
+				} catch (e) {
+					uni.navigateTo({ url: '/pages/chat/chat?id=' + this.goodsId })
+				}
+			},
+			handleBuy() {
+				uni.navigateTo({ url: '/pages/buy/buy?id=' + this.goodsId })
 			},
 			editGoods() {
 				uni.navigateTo({ url: '/pages/goods-edit/goods-edit?id=' + this.goodsId })
 			},
-			cancelListing() {
+			async offlineGoods() {
 				uni.showModal({
 					title: '下架商品',
 					content: '确认下架该商品？下架后其他用户将无法看到该商品。',
-					success: (res) => {
+					success: async (res) => {
 						if (res.confirm) {
-							this.goodsStatus = 'off'
-							uni.showToast({ title: '已下架', icon: 'success' })
+							try {
+								const user = uni.getStorageSync('user')
+							await offlineItem(this.goodsId, user ? user.id : 0)
+							this.itemStatus = 'REMOVED'
+								uni.showToast({ title: '已下架', icon: 'success' })
+							} catch (e) {}
 						}
 					}
 				})
 			},
-			relistGoods() {
-				uni.showModal({
-					title: '重新上架',
-					content: '确认重新上架该商品？',
-					success: (res) => {
-						if (res.confirm) {
-							this.goodsStatus = 'selling'
-							uni.showToast({ title: '已上架', icon: 'success' })
-						}
-					}
-				})
+			async relistGoods() {
+				const user = uni.getStorageSync('user')
+				if (!user || !user.id) return
+				try {
+					await onlineItem(this.goodsId, user.id)
+					this.itemStatus = 'ON_SALE'
+					uni.showToast({ title: '已重新上架', icon: 'success' })
+				} catch (e) {}
 			}
 		}
 	}
@@ -263,32 +290,6 @@
 		white-space: nowrap;
 	}
 
-	/* ===== 买家信息卡（卖家视角） ===== */
-	.buyer-card {
-		flex-direction: column;
-		align-items: stretch;
-	}
-	.section-label {
-		font-size: 24rpx;
-		color: #999;
-	}
-	.buyer-contact {
-		font-size: 24rpx;
-		color: #999;
-		margin-top: 6rpx;
-	}
-	.contact-buyer-btn {
-		margin-top: 24rpx;
-		height: 72rpx;
-		line-height: 72rpx;
-		text-align: center;
-		background: #e8f5ee;
-		color: #3A6341;
-		font-size: 26rpx;
-		font-weight: bold;
-		border-radius: 36rpx;
-	}
-
 	.detail-section {
 		background: white;
 		margin: 0 20rpx 20rpx;
@@ -297,9 +298,6 @@
 	}
 	.section-title { font-size: 28rpx; color: #3A6341; font-weight: bold; margin-bottom: 20rpx; letter-spacing: 2rpx; }
 	.description { font-size: 30rpx; color: #444; line-height: 1.8; }
-
-	.tags-section { display: flex; gap: 16rpx; padding: 0 20rpx 20rpx; flex-wrap: wrap; }
-	.tag { background: #e8f5ee; color: #3A6341; font-size: 24rpx; padding: 10rpx 24rpx; border-radius: 30rpx; }
 
 	.bottom-action {
 		position: fixed; bottom: 0; left: 0; right: 0;

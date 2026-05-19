@@ -6,6 +6,34 @@
   "description": "",
   "glyphs": [
     {
+      "icon_id": "3651629",
+      "name": "无消息",
+      "font_class": "wuxiaoxi",
+      "unicode": "e615",
+      "unicode_decimal": 58901
+    },
+    {
+      "icon_id": "10017413",
+      "name": "empty",
+      "font_class": "weizhaodao",
+      "unicode": "e661",
+      "unicode_decimal": 58977
+    },
+    {
+      "icon_id": "11061561",
+      "name": "语音",
+      "font_class": "saying",
+      "unicode": "e62f",
+      "unicode_decimal": 58927
+    },
+    {
+      "icon_id": "15686654",
+      "name": "语音",
+      "font_class": "yuyin",
+      "unicode": "e6e0",
+      "unicode_decimal": 59104
+    },
+    {
       "icon_id": "5270852",
       "name": "收 藏-产品详情",
       "font_class": "shoucang",

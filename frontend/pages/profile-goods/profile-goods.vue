@@ -26,7 +26,7 @@
 			</view>
 		</view>
 
-		<view v-else class="empty-state">
+		<view v-else-if="!loading" class="empty-state">
 			<text class="empty-icon">📦</text>
 			<text class="empty-text">暂无在售商品</text>
 		</view>
@@ -34,12 +34,15 @@
 </template>
 
 <script>
+	import { getUserItems } from '@/api/item.js'
+
 	export default {
 		data() {
 			return {
 				statusBarHeight: 44,
 				user: { nickname: '用户' },
-				goodsList: []
+				goodsList: [],
+				loading: false
 			}
 		},
 		onLoad(options) {
@@ -54,22 +57,22 @@
 			}
 		},
 		methods: {
-			loadGoods(userId) {
-				// TODO: 从API获取，此处模拟数据
-				const mockUsers = {
-					'2': {
-						nickname: '张三（卖家）',
-						goods: [
-							{ id: 1, image: 'https://images.unsplash.com/photo-1485965120184-e220f721d03e?q=80&w=400&auto=format&fit=crop', title: '九成新公路自行车，带锁和挡泥板', price: '268.00', campus: '东校园' },
-							{ id: 4, image: 'https://images.unsplash.com/photo-1495446815901-a7297e633e8d?q=80&w=400&auto=format&fit=crop', title: '二手教材《高等数学》', price: '8.00', campus: '东校园' },
-							{ id: 5, image: 'https://images.unsplash.com/photo-1586953208448-b95a79798f07?q=80&w=400&auto=format&fit=crop', title: '蓝牙耳机', price: '45.00', campus: '东校园' }
-						]
-					}
-				}
-				const data = mockUsers[userId]
-				if (data) {
-					this.user.nickname = data.nickname
-					this.goodsList = data.goods
+			async loadGoods(userId) {
+				this.loading = true
+				try {
+					const result = await getUserItems(userId, { status: 'ON_SALE' })
+					const list = result.records || result || []
+					this.goodsList = list.map(item => ({
+						id: item.id,
+						image: item.imageUrl || '',
+						title: item.title,
+						price: item.price,
+						campus: item.campus || ''
+					}))
+				} catch (e) {
+					this.goodsList = []
+				} finally {
+					this.loading = false
 				}
 			},
 			goBack() {
@@ -102,108 +105,33 @@
 		background: linear-gradient(135deg, #3A6341, #4E7D56);
 		box-sizing: border-box;
 	}
+	.header-back { width: 60rpx; display: flex; align-items: center; justify-content: center; }
+	.back-icon { font-size: 60rpx; color: #fff; line-height: 1; }
+	.header-title { font-size: 34rpx; color: #fff; font-weight: bold; flex: 1; text-align: center; }
+	.header-placeholder { width: 60rpx; }
 
-	.header-back {
-		width: 60rpx;
-		height: 60rpx;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-	}
-
-	.back-icon {
-		font-size: 80rpx;
-		color: #ffffff;
-		font-weight: 300;
-		line-height: 0.9;
-	}
-
-	.header-title {
-		font-size: 36rpx;
-		color: #ffffff;
-		font-weight: bold;
-	}
-
-	.header-placeholder {
-		width: 60rpx;
-	}
-
-	/* ===== 商品列表 ===== */
-	.goods-grid {
-		display: flex;
-		flex-wrap: wrap;
-		justify-content: space-between;
-		padding: 20rpx 16rpx 0;
-		box-sizing: border-box;
-	}
-
+	/* ===== 商品网格 ===== */
+	.goods-grid { display: flex; flex-wrap: wrap; padding: 16rpx; gap: 16rpx; }
 	.goods-card {
-		width: calc(50% - 10rpx);
-		background: #ffffff;
-		border-radius: 16rpx;
-		overflow: hidden;
-		margin-bottom: 20rpx;
-		box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
-		box-sizing: border-box;
+		width: calc(50% - 8rpx);
+		background: #ffffff; border-radius: 16rpx;
+		overflow: hidden; box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
 	}
-
-	.goods-img {
-		width: 100%;
-		height: 340rpx;
-		background: #f0f0f0;
-	}
-
-	.goods-info {
-		padding: 16rpx 20rpx 20rpx;
-		box-sizing: border-box;
-	}
-
+	.goods-img { width: 100%; height: 340rpx; background: #eee; }
+	.goods-info { padding: 16rpx; }
 	.goods-title {
-		font-size: 26rpx;
-		color: #333;
-		line-height: 1.4;
-		display: -webkit-box;
-		-webkit-box-orient: vertical;
-		-webkit-line-clamp: 2;
-		overflow: hidden;
-		margin-bottom: 16rpx;
+		font-size: 26rpx; color: #333; line-height: 1.4;
+		display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2;
+		overflow: hidden; margin-bottom: 12rpx;
 	}
+	.goods-bottom { display: flex; justify-content: space-between; align-items: center; }
+	.goods-price { display: flex; align-items: baseline; }
+	.price-symbol { font-size: 22rpx; color: #e74c3c; font-weight: bold; }
+	.price-num { font-size: 30rpx; color: #e74c3c; font-weight: bold; }
+	.goods-meta { font-size: 20rpx; color: #999; }
 
-	.goods-bottom {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-	}
-
-	.goods-price {
-		display: flex;
-		align-items: baseline;
-	}
-
-	.price-symbol {
-		font-size: 22rpx;
-		color: #e74c3c;
-		font-weight: bold;
-	}
-
-	.price-num {
-		font-size: 34rpx;
-		color: #e74c3c;
-		font-weight: bold;
-	}
-
-	.goods-meta {
-		font-size: 22rpx;
-		color: #999;
-	}
-
-	/* ===== 空状态 ===== */
-	.empty-state {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		padding-top: 240rpx;
-	}
-	.empty-icon { font-size: 80rpx; margin-bottom: 20rpx; }
+	/* 空态 */
+	.empty-state { display: flex; flex-direction: column; align-items: center; padding-top: 200rpx; }
+	.empty-icon { font-size: 80rpx; margin-bottom: 24rpx; }
 	.empty-text { font-size: 28rpx; color: #999; }
 </style>

@@ -184,6 +184,22 @@
 				"navigationBarBackgroundColor": "#375f3e",
 				"navigationBarTextStyle": "white"
 			}
+		},
+		{
+			"path": "pages/notifications/notifications",
+			"style": {
+				"navigationBarTitleText": "通知",
+				"navigationBarBackgroundColor": "#375f3e",
+				"navigationBarTextStyle": "white"
+			}
+		},
+		{
+			"path": "pages/settings/settings",
+			"style": {
+				"navigationBarTitleText": "设置",
+				"navigationBarBackgroundColor": "#375f3e",
+				"navigationBarTextStyle": "white"
+			}
 		}
 	],
 	"globalStyle": {

@@ -44,8 +44,8 @@
 			<!-- 商品分类 -->
 			<view class="form-item">
 				<text class="form-label">商品分类</text>
-				<picker :range="categoryList" @change="onCategoryChange">
-					<view class="picker-text">{{ form.category || '请选择分类' }}</view>
+				<picker :range="categoryLabels" @change="onCategoryChange">
+					<view class="picker-text">{{ form.categoryName || '请选择分类' }}</view>
 				</picker>
 			</view>
 
@@ -65,12 +65,6 @@
 				</picker>
 			</view>
 
-			<!-- 标签 -->
-			<view class="form-item">
-				<text class="form-label">标签</text>
-				<input class="form-input" v-model="form.tags" placeholder="多个标签用空格隔开，如：电子产品 数码" />
-			</view>
-
 			<!-- 商品描述 -->
 			<view class="form-item">
 				<text class="form-label">商品描述</text>
@@ -78,27 +72,31 @@
 				<text class="char-count">{{ form.desc.length }}/500</text>
 			</view>
 
-			<button class="submit-btn" @click="onSave">保存修改</button>
+			<button class="submit-btn" @click="onSave" :disabled="submitting">保存修改</button>
 		</view>
 	</view>
 </template>
 
 <script>
+	import { getItemDetail, updateItem, getCategories, uploadImage } from '@/api/item.js'
+
 	export default {
 		data() {
 			return {
 				statusBarHeight: 44,
-				goodsId: '',
-				categoryList: ['数码电子', '书籍教材', '生活用品', '运动户外', '服饰鞋包', '其他'],
+				goodsId: null,
+				submitting: false,
+				categories: [],
+				categoryLabels: [],
 				campusList: ['东校园', '南校园', '北校园', '珠海校区', '深圳校区'],
 				conditionList: ['全新', '99新', '95新', '90新', '85新', '80新以下'],
 				form: {
 					title: '',
 					price: '',
-					category: '',
+					categoryId: null,
+					categoryName: '',
 					campus: '',
 					condition: '',
-					tags: '',
 					desc: '',
 					images: []
 				}
@@ -111,25 +109,42 @@
 			} catch (e) {
 				this.statusBarHeight = 44
 			}
+			this.loadCategories()
 			if (options.id) {
 				this.goodsId = options.id
-				this.loadGoodsData(options.id)
+				this.loadItem(options.id)
 			}
 		},
 		methods: {
-			loadGoodsData(id) {
-				// TODO: 从API获取商品数据，此处用模拟数据
-				this.form = {
-					title: '九成新公路自行车，带锁和挡泥板',
-					price: '268.00',
-					category: '运动户外',
-					campus: '东校园',
-					condition: '九成新',
-					tags: '自行车 出行 东校区自提',
-					desc: '去年学期初在校外车行买的，平时只在教学楼和宿舍之间通勤。车架很轻，变速灵敏。离校转手，东校园自提。配件齐全，包括车锁和挡泥板，骑行体验非常好。',
-					images: [
-						'https://images.unsplash.com/photo-1485965120184-e220f721d03e?q=80&w=400&auto=format&fit=crop'
+			async loadCategories() {
+				try {
+					this.categories = await getCategories()
+					this.categoryLabels = this.categories.map(c => c.name)
+				} catch (e) {
+					this.categories = [
+						{ id: 1, name: '数码电子' }, { id: 2, name: '书籍教材' },
+						{ id: 3, name: '生活用品' }, { id: 4, name: '运动户外' },
+						{ id: 5, name: '服饰鞋包' }, { id: 6, name: '其他' }
 					]
+					this.categoryLabels = this.categories.map(c => c.name)
+				}
+			},
+			async loadItem(id) {
+				try {
+					const data = await getItemDetail(id)
+					const catIdx = this.categories.findIndex(c => c.id === data.categoryId)
+					this.form = {
+						title: data.title || '',
+						price: String(data.price || ''),
+						categoryId: data.categoryId,
+						categoryName: catIdx >= 0 ? this.categoryLabels[catIdx] : '',
+						campus: data.campus || '',
+						condition: data.conditionLevel || '',
+						desc: data.description || '',
+						images: data.imageUrls || []
+					}
+				} catch (e) {
+					uni.showToast({ title: '加载商品失败', icon: 'none' })
 				}
 			},
 			goBack() {
@@ -145,16 +160,15 @@
 				})
 			},
 			previewImage(idx) {
-				uni.previewImage({
-					current: idx,
-					urls: this.form.images
-				})
+				uni.previewImage({ current: idx, urls: this.form.images })
 			},
 			removeImage(idx) {
 				this.form.images.splice(idx, 1)
 			},
 			onCategoryChange(e) {
-				this.form.category = this.categoryList[e.detail.value]
+				const idx = e.detail.value
+				this.form.categoryName = this.categoryLabels[idx]
+				this.form.categoryId = this.categories[idx].id
 			},
 			onCampusChange(e) {
 				this.form.campus = this.campusList[e.detail.value]
@@ -162,7 +176,7 @@
 			onConditionChange(e) {
 				this.form.condition = this.conditionList[e.detail.value]
 			},
-			onSave() {
+			async onSave() {
 				if (!this.form.title) {
 					uni.showToast({ title: '请输入商品名称', icon: 'none' })
 					return
@@ -171,18 +185,39 @@
 					uni.showToast({ title: '请输入价格', icon: 'none' })
 					return
 				}
-				uni.showModal({
-					title: '保存修改',
-					content: '确认保存对该商品的修改？',
-					success: (res) => {
-						if (res.confirm) {
-							uni.showToast({ title: '保存成功', icon: 'success' })
-							setTimeout(() => {
-								uni.navigateBack()
-							}, 1500)
+				const user = uni.getStorageSync('user')
+				if (!user || !user.id) {
+					uni.showToast({ title: '请先登录', icon: 'none' })
+					return
+				}
+				this.submitting = true
+				try {
+					uni.showLoading({ title: '上传图片中...' })
+					const imageUrls = []
+					for (const img of this.form.images) {
+						if (img.startsWith('http') || img.startsWith('/uploads')) {
+							imageUrls.push(img)
+						} else {
+							const url = await uploadImage(img)
+							imageUrls.push(url)
 						}
 					}
-				})
+					uni.hideLoading()
+					await updateItem(this.goodsId, {
+						userId: user.id,
+						title: this.form.title,
+						price: Number(this.form.price),
+						categoryId: this.form.categoryId,
+						campus: this.form.campus || undefined,
+						conditionLevel: this.form.condition || undefined,
+						description: this.form.desc || undefined,
+						imageUrls
+					})
+					uni.showToast({ title: '保存成功', icon: 'success' })
+					setTimeout(() => uni.navigateBack(), 1500)
+				} catch (e) {
+					this.submitting = false
+				}
 			}
 		}
 	}
