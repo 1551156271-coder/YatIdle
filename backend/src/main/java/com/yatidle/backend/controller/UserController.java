@@ -55,7 +55,7 @@ public class UserController {
         return Result.success(UserVO.from(user));
     }
 
-    @GetMapping("/show_me_all!")
+    @GetMapping("/list")
     public Result<List<UserVO>> findAll() {
         List<User> users = userService.findAll();
         List<UserVO> voList = users.stream().map(UserVO::from).collect(Collectors.toList());
