@@ -19,12 +19,12 @@ CREATE TABLE IF NOT EXISTS item (
   id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '商品ID',
   user_id BIGINT NOT NULL COMMENT '发布用户ID',
   title VARCHAR(100) NOT NULL COMMENT '商品标题',
-  campus enum('南校园', '东校园', '北校园', '珠海校区', '深圳校区') default null COMMENT '商品所在校区',
-  condition_level enum('全新', '99新', '95新', '9成新', '八成新', '八成新以下') default null COMMENT '商品成色',
+  campus VARCHAR(50) DEFAULT NULL COMMENT '商品所在校区',
+  condition_level VARCHAR(50) DEFAULT NULL COMMENT '商品成色',
   description TEXT COMMENT '商品描述',
   price DECIMAL(10,2) NOT NULL DEFAULT 0.00 COMMENT '商品价格',
   category_id BIGINT COMMENT '分类ID',
-  status VARCHAR(20) NOT NULL DEFAULT 'pending' COMMENT '商品状态',
+  status VARCHAR(20) NOT NULL DEFAULT 'ON_SALE' COMMENT '商品状态：ON_SALE在售，SOLD已售出，REMOVED已下架',
   view_count INT NOT NULL DEFAULT 0 COMMENT '浏览次数',
   favorite_count INT NOT NULL DEFAULT 0 COMMENT '收藏次数',
   create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
@@ -58,6 +58,19 @@ CREATE TABLE IF NOT EXISTS category (id BIGINT PRIMARY KEY AUTO_INCREMENT COMMEN
   INDEX idx_category_status (status),
   INDEX idx_category_sort_order (sort_order)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='商品分类表';
+
+INSERT INTO category (name, sort_order, status, is_deleted)
+VALUES
+  ('数码电子', 1, 1, 0),
+  ('书籍教材', 2, 1, 0),
+  ('生活用品', 3, 1, 0),
+  ('运动户外', 4, 1, 0),
+  ('服饰鞋包', 5, 1, 0),
+  ('其他', 6, 1, 0)
+ON DUPLICATE KEY UPDATE
+  sort_order = VALUES(sort_order),
+  status = VALUES(status),
+  is_deleted = 0;
 
 CREATE TABLE IF NOT EXISTS trade_order (
   id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '订单ID',

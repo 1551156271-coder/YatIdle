@@ -1,4 +1,4 @@
-package com.yatidle.backend.vo;
+package com.yatidle.backend.vo.item;
 
 import lombok.Data;
 
