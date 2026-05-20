@@ -5,7 +5,6 @@ import com.yatidle.backend.dto.order.CancelOrderDTO;
 import com.yatidle.backend.dto.order.CreateOrderDTO;
 import com.yatidle.backend.service.TradeOrderService;
 import com.yatidle.backend.vo.order.TradeOrderVO;
-import jakarta.annotation.Resource;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,22 +18,23 @@ public class TradeOrderController {
     private final TradeOrderService tradeOrderService;
 
     @PostMapping
-    public Result<TradeOrderVO> createOrder(@RequestBody CreateOrderDTO dto) {
-        Long currentUserId = 1L;
-        TradeOrderVO vo = tradeOrderService.createOrder(dto, currentUserId);;
+    public Result<TradeOrderVO> createOrder(
+            @RequestBody CreateOrderDTO dto,
+            @RequestParam Long userId) {
+
+        TradeOrderVO vo = tradeOrderService.createOrder(dto, userId);;
         return Result.success(vo);
     }
     @GetMapping("/my-buy")
-    public Result<List<TradeOrderVO>> listMyBuyOrders() {
-        Long currentUserId = 1L;
-        List<TradeOrderVO> list = tradeOrderService.listMyBuyOrders(currentUserId);
+    public Result<List<TradeOrderVO>> listMyBuyOrders(@RequestParam Long userId) {
+
+        List<TradeOrderVO> list = tradeOrderService.listMyBuyOrders(userId);
         return Result.success(list);
     }
 
     @GetMapping("/my-sell")
-    public Result<List<TradeOrderVO>> listMySellOrders() {
-        Long currentUserId = 1L;
-        List<TradeOrderVO> list = tradeOrderService.listMySellOrders(currentUserId);
+    public Result<List<TradeOrderVO>> listMySellOrders(@RequestParam Long userId) {
+        List<TradeOrderVO> list = tradeOrderService.listMySellOrders(userId);
         return Result.success(list);
     }
 
