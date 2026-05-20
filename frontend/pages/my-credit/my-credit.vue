@@ -30,9 +30,12 @@
 		<!-- 收到的评价 -->
 		<view class="section-card">
 			<view class="section-head">
-				<text class="section-title">收到的评价</text>
+				<text class="section-title">收到的评价（{{ reviews.length }}条）</text>
 			</view>
-			<view v-if="reviews.length > 0" class="review-list">
+			<view v-if="loading" class="empty-inline">
+				<text class="empty-txt">加载中...</text>
+			</view>
+			<view v-else-if="reviews.length > 0" class="review-list">
 				<view v-for="r in reviews" :key="r.id" class="review-item">
 					<view class="rv-top">
 						<view class="rv-user">
@@ -58,22 +61,19 @@
 </template>
 
 <script>
+	import { getMyReviews, getMyCredit } from '@/api/review.js'
+
 	export default {
 		data() {
 			return {
 				credit: {
-					creditScore: 92,
-					dealCount: 23,
-					goodsCount: 3,
-					reviewCount: 8
+					creditScore: 0,
+					dealCount: 0,
+					goodsCount: 0,
+					reviewCount: 0
 				},
-				reviews: [
-					{ id: 1, avatar: '', defaultAvatar: '📚', name: '李四', rating: 5, content: '卖家很爽快，车况和描述完全一致，还送了挡泥板！', time: '3天前' },
-					{ id: 2, avatar: '', defaultAvatar: '🎧', name: '王五', rating: 5, content: '交易顺利，当面验货很放心', time: '1周前' },
-					{ id: 3, avatar: '', defaultAvatar: '📱', name: '赵六', rating: 4, content: '台灯好用，就是有点小划痕，整体不错', time: '2周前' },
-					{ id: 4, avatar: '', defaultAvatar: '💻', name: '孙七', rating: 5, content: '非常好的卖家，书保护得很好', time: '3周前' },
-					{ id: 5, avatar: '', defaultAvatar: '🎮', name: '周八', rating: 4, content: '交易顺利', time: '1个月前' }
-				]
+				reviews: [],
+				loading: true
 			}
 		},
 		computed: {
@@ -88,6 +88,56 @@
 				if (s >= 90) return '信用极好'
 				if (s >= 70) return '信用良好'
 				return '信用较差'
+			}
+		},
+		onLoad() {
+			this.loadData()
+		},
+		methods: {
+			async loadData() {
+				const user = uni.getStorageSync('user')
+				const userId = user ? user.id : 1
+				this.loading = true
+				try {
+					const [creditData, reviewList] = await Promise.all([
+						getMyCredit(userId).catch(() => null),
+						getMyReviews(userId).catch(() => [])
+					])
+					if (creditData) {
+						this.credit = {
+							creditScore: creditData.creditScore || 0,
+							dealCount: creditData.dealCount || 0,
+							goodsCount: creditData.goodsCount || 0,
+							reviewCount: creditData.reviewCount || 0
+						}
+					}
+					this.reviews = (reviewList || []).map(r => ({
+						id: r.id,
+						avatar: r.reviewerAvatar || '',
+						defaultAvatar: r.reviewerName ? r.reviewerName.charAt(0) : '?',
+						name: r.reviewerName || '匿名用户',
+						rating: r.rating || 5,
+						content: r.content || '',
+						time: this.formatTime(r.createTime)
+					}))
+				} catch (e) {
+					// ignore
+				} finally {
+					this.loading = false
+				}
+			},
+			formatTime(dateStr) {
+				if (!dateStr) return ''
+				const now = Date.now()
+				const t = new Date(dateStr).getTime()
+				const diff = now - t
+				const day = 86400000
+				if (diff < day) return '今天'
+				if (diff < 2 * day) return '昨天'
+				if (diff < 7 * day) return Math.floor(diff / day) + '天前'
+				if (diff < 30 * day) return Math.floor(diff / (7 * day)) + '周前'
+				if (diff < 365 * day) return Math.floor(diff / (30 * day)) + '个月前'
+				return Math.floor(diff / (365 * day)) + '年前'
 			}
 		}
 	}

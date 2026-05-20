@@ -108,6 +108,18 @@
 					<text class="wish-count-label">件收藏</text>
 				</view>
 			</view>
+
+			<!-- 卡片3: 钱包 -->
+			<view class="card" @click="goWallet">
+				<view class="card-head">
+					<text class="card-title">我的钱包</text>
+					<text class="card-more">查看明细 ›</text>
+				</view>
+				<view class="wallet-balance-row">
+					<text class="wallet-label">余额</text>
+					<text class="wallet-num">¥{{ walletBalanceText }}</text>
+				</view>
+			</view>
 		</block>
 	</view>
 	<tab-bar />
@@ -117,6 +129,7 @@
 	import TabBar from '@/components/tab-bar.vue'
 	import { getMySellOrders, getMyBuyOrders } from '@/api/order.js'
 	import { getMyFavorites } from '@/api/favorite.js'
+	import { getWallet } from '@/api/wallet.js'
 	export default {
 		components: { TabBar },
 		data() {
@@ -138,7 +151,8 @@
 					sellCount: 0,
 					soldCount: 0,
 					buyCount: 0,
-					wishCount: 0
+					wishCount: 0,
+					walletBalance: 0.00
 				},
 				credit: {
 					score: 92
@@ -157,6 +171,9 @@
 				if (s >= 90) return '信用极好'
 				if (s >= 70) return '信用良好'
 				return '信用较差'
+			},
+			walletBalanceText() {
+				return Number(this.stats.walletBalance || 0).toFixed(2)
 			}
 		},
 		onShow() {
@@ -175,15 +192,17 @@
 				const user = uni.getStorageSync('user')
 				if (!user || !user.id) return
 				try {
-					const [sellOrders, buyOrders, favorites] = await Promise.all([
+					const [sellOrders, buyOrders, favorites, walletData] = await Promise.all([
 						getMySellOrders(user.id).catch(() => []),
 						getMyBuyOrders(user.id).catch(() => []),
-						getMyFavorites(user.id).catch(() => [])
+						getMyFavorites(user.id).catch(() => []),
+						getWallet(user.id).catch(() => null)
 					])
 					this.stats.sellCount = sellOrders.length
 					this.stats.soldCount = sellOrders.filter(o => o.status === 'COMPLETED').length
 					this.stats.buyCount = buyOrders.length
 					this.stats.wishCount = favorites.length
+					if (walletData) this.stats.walletBalance = walletData.balance || 0
 				} catch (e) {}
 			},
 			openSidebar() {
@@ -214,6 +233,9 @@
 			goToWishlist() {
 				uni.navigateTo({ url: '/pages/my-wishlist/my-wishlist' })
 			},
+			goWallet() {
+				uni.navigateTo({ url: '/pages/my-wallet/my-wallet' })
+			},
 			goSettings() {
 				this.showSidebar = false
 				uni.navigateTo({ url: '/pages/settings/settings' })
@@ -233,7 +255,7 @@
 		background: #f5f5f5;
 		overflow: hidden;
 		box-sizing: border-box;
-		padding-bottom: 20rpx;
+		padding-bottom: 140rpx;
 	}
 
 	/* ===== 侧边栏遮罩 ===== */
@@ -277,7 +299,7 @@
 	/* ===== 头部 ===== */
 	.header-card { position: relative; }
 	.header-bg {
-		height: 200rpx;
+		height: 240rpx;
 		background: linear-gradient(135deg, #3A6341, #4E7D56);
 		position: relative;
 	}
@@ -297,7 +319,7 @@
 
 	.header-content {
 		background: #ffffff;
-		margin: -60rpx 20rpx 0;
+		margin: -60rpx 20rpx 24rpx;
 		border-radius: 20rpx;
 		padding: 0 30rpx 36rpx;
 		display: flex; flex-direction: column; align-items: center;
@@ -353,7 +375,7 @@
 	/* ===== 通用卡片 ===== */
 	.card {
 		background: #ffffff; margin: 0 20rpx 20rpx; border-radius: 20rpx;
-		padding: 24rpx 24rpx 20rpx;
+		padding: 28rpx 28rpx 24rpx;
 		box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
 	}
 	.card-head {
@@ -367,29 +389,37 @@
 	.trade-row { display: flex; justify-content: space-around; }
 	.trade-item {
 		display: flex; flex-direction: column; align-items: center;
-		padding: 10rpx 30rpx;
+		padding: 16rpx 36rpx;
 	}
-	.trade-num { font-size: 40rpx; color: #3A6341; font-weight: bold; margin-bottom: 6rpx; }
+	.trade-num { font-size: 44rpx; color: #3A6341; font-weight: bold; margin-bottom: 8rpx; }
 	.trade-label { font-size: 24rpx; color: #999; }
 
 	/* ===== 左右排布卡片 ===== */
 	.card-row { display: flex; gap: 16rpx; margin: 0 20rpx 20rpx; }
 	.card-half {
 		flex: 1; background: #ffffff; border-radius: 20rpx;
-		padding: 24rpx 24rpx 20rpx; margin: 0;
+		padding: 28rpx 28rpx 24rpx; margin: 0;
 		display: flex; flex-direction: column; align-items: center;
 		box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
 	}
-	.card-half-title { font-size: 26rpx; color: #333; font-weight: bold; margin-bottom: 20rpx; align-self: flex-start; }
+	.card-half-title { font-size: 26rpx; color: #333; font-weight: bold; margin-bottom: 28rpx; align-self: flex-start; line-height: 1.2; }
 
 	/* 信用分 */
-	.credit-score-num { font-size: 64rpx; font-weight: bold; line-height: 1; margin-bottom: 6rpx; text-align: center; }
+	.credit-score-num { font-size: 52rpx; font-weight: bold; line-height: 1; margin-bottom: 8rpx; text-align: center; }
 	.credit-score-num.credit-high { color: #4cd964; }
 	.credit-score-num.credit-mid { color: #f0ad4e; }
 	.credit-score-num.credit-low { color: #e74c3c; }
 	.credit-score-desc { font-size: 24rpx; color: #999; text-align: center; }
 
 	/* 心愿单 */
-	.wish-count-num { font-size: 48rpx; color: #3A6341; font-weight: bold; line-height: 1; margin-bottom: 6rpx; text-align: center; }
+	.wish-count-num { font-size: 52rpx; color: #3A6341; font-weight: bold; line-height: 1; margin-bottom: 8rpx; text-align: center; }
 	.wish-count-label { font-size: 24rpx; color: #999; text-align: center; }
+
+	/* ===== 钱包卡片 ===== */
+	.wallet-balance-row {
+		display: flex; align-items: baseline; justify-content: space-between;
+		padding: 0 8rpx;
+	}
+	.wallet-label { font-size: 24rpx; color: #999; }
+	.wallet-num { font-size: 44rpx; color: #e74c3c; font-weight: bold; }
 </style>

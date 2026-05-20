@@ -253,7 +253,7 @@
 		margin-bottom: 20rpx;
 	}
 	.od-status-card.status-done {
-		background: linear-gradient(135deg, #4cd964, #5ee074);
+		background: linear-gradient(135deg, #3A6341, #4E7D56);
 	}
 	.od-status-card.status-cancel {
 		background: linear-gradient(135deg, #999, #b0b0b0);
@@ -304,7 +304,7 @@
 	.info-value { font-size: 26rpx; color: #333; text-align: right; word-break: break-all; flex: 1; }
 	.info-price { color: #e74c3c; font-weight: bold; font-size: 30rpx; }
 	.selectable { user-select: text; }
-	.text-done { color: #4cd964; }
+	.text-done { color: #2E7D32; }
 	.text-cancel { color: #999; }
 	.text-pending { color: #f0ad4e; }
 

@@ -52,9 +52,10 @@
 				}
 				this.loading = true
 				try {
-					const list = this.orderType === 'sold'
+					const result = this.orderType === 'sold'
 						? await getMySellOrders(user.id)
 						: await getMyBuyOrders(user.id)
+					const list = (result && result.records) || result || []
 					this.orderList = list.map(o => ({
 						id: o.id,
 						orderNo: o.orderNo,
@@ -125,7 +126,7 @@
 	}
 	.o-price { font-size: 30rpx; color: #e74c3c; font-weight: bold; }
 	.o-status { font-size: 22rpx; padding: 4rpx 16rpx; border-radius: 6rpx; flex-shrink: 0; }
-	.os-done { color: #999; background: #f0f0f0; }
+	.os-done { color: #2E7D32; background: #e8f5e9; }
 	.os-pending { color: #f0ad4e; background: #fef5e7; }
 	.os-cancel { color: #999; background: #f0f0f0; }
 

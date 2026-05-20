@@ -4,12 +4,12 @@ export function createOrder(userId, data) {
   return post('/api/orders?userId=' + userId, data)
 }
 
-export function getMyBuyOrders(userId) {
-  return get('/api/orders/my-buy', { userId })
+export function getMyBuyOrders(userId, pageNum = 1, pageSize = 10) {
+  return get('/api/orders/my-buy', { userId, pageNum, pageSize })
 }
 
-export function getMySellOrders(userId) {
-  return get('/api/orders/my-sell', { userId })
+export function getMySellOrders(userId, pageNum = 1, pageSize = 10) {
+  return get('/api/orders/my-sell', { userId, pageNum, pageSize })
 }
 
 export function cancelOrder(id, userId, data) {

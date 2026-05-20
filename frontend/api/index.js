@@ -2,7 +2,7 @@ const BASE_URL = 'http://localhost:8080'
 const TIMEOUT = 10000
 
 // ========== Mock 开关：true=用假数据，false=调真实接口 ==========
-export const MOCK = false
+export const MOCK = true
 // ================================================================
 
 // Mock 模式下自动写入登录态
@@ -63,7 +63,49 @@ mockData.favorites = [
 mockData.chatSessions = [
 	{ id: 1, itemId: 4, itemTitle: 'Nike Air Force 1 白色 42码', buyerId: 1, sellerId: 4, lastMessage: '鞋子还在吗？多大码的？', lastSenderId: 1, lastMessageTime: '2026-05-18T20:15:00', unreadCount: 0 },
 	{ id: 2, itemId: 5, itemTitle: '羽毛球拍 Yonex 单拍', buyerId: 1, sellerId: 3, lastMessage: '好的，晚上体育馆见', lastSenderId: 3, lastMessageTime: '2026-05-19T07:30:00', unreadCount: 1 },
-	{ id: 3, itemId: 1, itemTitle: 'iPad Pro 2021 128G 几乎全新', buyerId: 5, sellerId: 1, lastMessage: '还能便宜点吗？', lastSenderId: 5, lastMessageTime: '2026-05-19T10:00:00', unreadCount: 2 }
+	{ id: 3, itemId: 1, itemTitle: 'iPad Pro 2021 128G 几乎全新', buyerId: 5, sellerId: 1, lastMessage: '还能便宜点吗？', lastSenderId: 5, lastMessageTime: '2026-05-19T10:00:00', unreadCount: 2 },
+	{ id: 4, itemId: 2, itemTitle: '高等数学第七版 同济大学', buyerId: 1, sellerId: 2, lastMessage: '书还有吗？明天方便面交吗', lastSenderId: 1, lastMessageTime: '2026-05-17T19:00:00', unreadCount: 0 },
+	{ id: 5, itemId: 6, itemTitle: '闲置键盘 Cherry MX 红轴', buyerId: 3, sellerId: 1, lastMessage: '键盘什么轴', lastSenderId: 3, lastMessageTime: '2026-05-20T09:00:00', unreadCount: 1 },
+	{ id: 6, itemId: 3, itemTitle: '宿舍用小台灯 LED 护眼', buyerId: 4, sellerId: 1, lastMessage: '台灯还在吗？', lastSenderId: 4, lastMessageTime: '2026-05-18T10:00:00', unreadCount: 0 },
+	{ id: 7, itemId: 4, itemTitle: 'Nike Air Force 1 白色 42码', buyerId: 6, sellerId: 2, lastMessage: '能小刀吗', lastSenderId: 6, lastMessageTime: '2026-05-19T15:00:00', unreadCount: 1 }
+]
+
+// 评价（收到的评价，userId=1 即当前用户）
+mockData.reviews = [
+	{ id: 1, reviewerName: '李四', reviewerAvatar: '', rating: 5, content: '卖家很爽快，车况和描述完全一致，还送了挡泥板！', createTime: '2026-05-17T10:00:00' },
+	{ id: 2, reviewerName: '王五', reviewerAvatar: '', rating: 5, content: '交易顺利，当面验货很放心', createTime: '2026-05-14T14:00:00' },
+	{ id: 3, reviewerName: '赵六', reviewerAvatar: '', rating: 4, content: '台灯好用，就是有点小划痕，整体不错', createTime: '2026-05-10T09:00:00' },
+	{ id: 4, reviewerName: '孙七', reviewerAvatar: '', rating: 5, content: '非常好的卖家，书保护得很好', createTime: '2026-05-06T16:00:00' },
+	{ id: 5, reviewerName: '周八', reviewerAvatar: '', rating: 4, content: '交易顺利', createTime: '2026-04-28T11:00:00' },
+	{ id: 6, reviewerName: '吴九', reviewerAvatar: '', rating: 5, content: '很满意的一次交易，卖家回复很快', createTime: '2026-04-20T15:00:00' },
+	{ id: 7, reviewerName: '郑十', reviewerAvatar: '', rating: 3, content: '东西还行，但比描述稍微旧了一点', createTime: '2026-04-12T08:00:00' },
+	{ id: 8, reviewerName: '钱二', reviewerAvatar: '', rating: 5, content: '第二次交易了，一如既往靠谱', createTime: '2026-04-05T10:00:00' }
+]
+
+// 用户信用统计（userId=1 即当前用户）
+mockData.userCredit = {
+	creditScore: 92,
+	dealCount: 23,
+	goodsCount: 3,
+	reviewCount: 8
+}
+
+// 钱包
+mockData.wallet = {
+	balance: 386.50,
+	frozenAmount: 0,
+	totalIncome: 1280.00,
+	totalExpense: 893.50
+}
+mockData.walletTransactions = [
+	{ id: 1, type: 'INCOME', title: '出售 iPad Pro 2021', amount: 4200, balanceAfter: 4200, createTime: '2026-05-15T10:40:00' },
+	{ id: 2, type: 'EXPENSE', title: '购买 高等数学第七版', amount: -15, balanceAfter: 4185, createTime: '2026-05-16T14:10:00' },
+	{ id: 3, type: 'INCOME', title: '出售 小台灯', amount: 35, balanceAfter: 4220, createTime: '2026-05-17T09:20:00' },
+	{ id: 4, type: 'EXPENSE', title: '购买 Nike Air Force 1', amount: -200, balanceAfter: 4020, createTime: '2026-05-18T16:30:00' },
+	{ id: 5, type: 'INCOME', title: '出售 羽毛球拍', amount: 150, balanceAfter: 4170, createTime: '2026-05-19T08:15:00' },
+	{ id: 6, type: 'EXPENSE', title: '提现', amount: -3800, balanceAfter: 370, createTime: '2026-05-19T12:00:00' },
+	{ id: 7, type: 'INCOME', title: '退款 买家取消订单', amount: 35, balanceAfter: 405, createTime: '2026-05-20T09:00:00' },
+	{ id: 8, type: 'EXPENSE', title: '购买 键盘 Cherry MX 红轴', amount: -18.50, balanceAfter: 386.50, createTime: '2026-05-20T14:00:00' }
 ]
 
 // 聊天消息
@@ -85,10 +127,36 @@ mockData.chatMessages[3] = [
 	{ id: 10, sessionId: 3, senderId: 1, receiverId: 5, messageType: 'TEXT', content: '在的', readFlag: 1, createTime: '2026-05-19T09:35:00' },
 	{ id: 11, sessionId: 3, senderId: 5, receiverId: 1, messageType: 'TEXT', content: '还能便宜点吗？', readFlag: 0, createTime: '2026-05-19T10:00:00' }
 ]
+mockData.chatMessages[4] = [
+	{ id: 12, sessionId: 4, senderId: 1, receiverId: 2, messageType: 'TEXT', content: '学姐你好，书还有吗？明天方便面交吗', readFlag: 1, createTime: '2026-05-17T19:00:00' }
+]
+mockData.chatMessages[5] = [
+	{ id: 13, sessionId: 5, senderId: 3, receiverId: 1, messageType: 'TEXT', content: '键盘什么轴', readFlag: 0, createTime: '2026-05-20T09:00:00' }
+]
+mockData.chatMessages[6] = [
+	{ id: 14, sessionId: 6, senderId: 4, receiverId: 1, messageType: 'TEXT', content: '台灯还在吗？', readFlag: 1, createTime: '2026-05-18T10:00:00' }
+]
+mockData.chatMessages[7] = [
+	{ id: 15, sessionId: 7, senderId: 6, receiverId: 2, messageType: 'TEXT', content: '能小刀吗', readFlag: 0, createTime: '2026-05-19T15:00:00' }
+]
 
 // 模拟网络延迟
 function fakeDelay() {
 	return new Promise(resolve => setTimeout(resolve, 200 + Math.random() * 300))
+}
+
+// 分页辅助函数
+function paginate(arr, pageNum, pageSize) {
+	const total = arr.length
+	const pn = parseInt(pageNum) || 1
+	const ps = parseInt(pageSize) || 10
+	const start = (pn - 1) * ps
+	return {
+		total,
+		pageNum: pn,
+		pageSize: ps,
+		records: arr.slice(start, start + ps)
+	}
 }
 
 // 根据 URL 匹配 mock 数据
@@ -167,10 +235,10 @@ function getMockResponse(method, url, data) {
 
 	// 订单
 	if (url === '/api/orders/my-buy') {
-		return [...mockData.orders.buy]
+		return paginate(mockData.orders.buy, data.pageNum, data.pageSize)
 	}
 	if (url === '/api/orders/my-sell') {
-		return [...mockData.orders.sell]
+		return paginate(mockData.orders.sell, data.pageNum, data.pageSize)
 	}
 	if (url === '/api/orders' && method === 'POST') {
 		return {
@@ -196,33 +264,80 @@ function getMockResponse(method, url, data) {
 	}
 
 	// 收藏
-	if (url === '/api/favorites') {
-		return [...mockData.favorites]
+	if (url === '/api/favorites' && method === 'GET') {
+		return paginate(mockData.favorites, data.pageNum, data.pageSize)
 	}
-	const favMatch = url.match(/^\/api\/favorites\/(\d+)$/)
-	if (favMatch) {
+	const favAddMatch = url.match(/^\/api\/favorites\/(\d+)$/)
+	if (favAddMatch && method === 'POST') {
+		const itemId = parseInt(favAddMatch[1])
+		const item = mockData.items.find(i => i.id === itemId)
+		if (!item) return null
+		const exists = mockData.favorites.find(f => f.itemId === itemId)
+		if (!exists) {
+			const newFav = {
+				id: mockData.favorites.length + 1,
+				itemId: item.id,
+				itemTitle: item.title,
+				price: item.price,
+				itemStatus: item.status,
+				favoriteTime: new Date().toISOString()
+			}
+			mockData.favorites.unshift(newFav)
+		}
+		return null
+	}
+	if (favAddMatch && method === 'DELETE') {
+		const itemId = parseInt(favAddMatch[1])
+		const idx = mockData.favorites.findIndex(f => f.itemId === itemId)
+		if (idx >= 0) mockData.favorites.splice(idx, 1)
 		return null
 	}
 
 	// 聊天会话
-	if (url === '/api/chat/sessions') {
-		return method === 'GET' ? [...mockData.chatSessions] : { ...mockData.chatSessions[0], id: mockData.chatSessions[0].id }
+	if (url === '/api/chat/sessions' && method === 'GET') {
+		return paginate(mockData.chatSessions, data.pageNum, data.pageSize)
+	}
+	if (url === '/api/chat/sessions' && method === 'POST') {
+		const itemId = data ? data.itemId : null
+		const item = mockData.items.find(i => i.id === itemId)
+		if (!item) return null
+		const existing = mockData.chatSessions.find(s => s.itemId === itemId && s.buyerId === 1)
+		if (existing) return { ...existing }
+		const newSess = {
+			id: mockData.chatSessions.length + 1,
+			itemId: item.id,
+			itemTitle: item.title,
+			buyerId: 1,
+			sellerId: item.userId,
+			lastMessage: null,
+			lastSenderId: null,
+			lastMessageTime: null,
+			unreadCount: 0
+		}
+		mockData.chatSessions.push(newSess)
+		mockData.chatMessages[newSess.id] = []
+		return newSess
 	}
 	// 聊天消息
 	const msgMatch = url.match(/^\/api\/chat\/sessions\/(\d+)\/messages$/)
 	if (msgMatch) {
-		return [...(mockData.chatMessages[parseInt(msgMatch[1])] || [])]
+		const msgs = mockData.chatMessages[parseInt(msgMatch[1])] || []
+		return method === 'GET' ? paginate(msgs, data.pageNum, data.pageSize || 20) : null
 	}
 	// 消息已读
 	const readMatch = url.match(/^\/api\/chat\/sessions\/(\d+)\/read$/)
 	if (readMatch) {
+		const sid = parseInt(readMatch[1])
+		const sess = mockData.chatSessions.find(s => s.id === sid)
+		if (sess) sess.unreadCount = 0
 		return null
 	}
 	// 发送消息
 	if (url === '/api/chat/messages' && method === 'POST') {
-		return {
+		const sid = data ? data.sessionId : 1
+		const newMsg = {
 			id: Date.now(),
-			sessionId: data ? data.sessionId : 1,
+			sessionId: sid,
 			senderId: 1,
 			receiverId: 2,
 			messageType: 'TEXT',
@@ -230,6 +345,30 @@ function getMockResponse(method, url, data) {
 			readFlag: 0,
 			createTime: new Date().toISOString()
 		}
+		if (!mockData.chatMessages[sid]) mockData.chatMessages[sid] = []
+		mockData.chatMessages[sid].push(newMsg)
+		const sess = mockData.chatSessions.find(s => s.id === sid)
+		if (sess) {
+			sess.lastMessage = newMsg.content
+			sess.lastSenderId = newMsg.senderId
+			sess.lastMessageTime = newMsg.createTime
+		}
+		return newMsg
+	}
+
+	// 评价
+	if (url.match(/^\/api\/reviews/)) {
+		return [...mockData.reviews]
+	}
+	if (url.match(/^\/api\/user-credit/)) {
+		return { ...mockData.userCredit }
+	}
+	// 钱包
+	if (url.match(/^\/api\/wallet\/transactions/)) {
+		return [...mockData.walletTransactions]
+	}
+	if (url.match(/^\/api\/wallet/)) {
+		return { ...mockData.wallet }
 	}
 
 	// 其他更新类接口默认返回 null

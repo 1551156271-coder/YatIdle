@@ -40,7 +40,7 @@
 				if (!user || !user.id) return
 				this.loading = true
 				try {
-					const list = await getMyFavorites(user.id)
+					const result = await getMyFavorites(user.id); const list = (result && result.records) || result || []
 					this.wishList = list.map(f => ({
 						id: f.itemId,
 						image: '',

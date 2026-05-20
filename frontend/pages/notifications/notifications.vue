@@ -51,10 +51,12 @@
 				}
 				this.loading = true
 				try {
-					const [sellOrders, buyOrders] = await Promise.all([
-						getMySellOrders(user.id).catch(() => []),
-						getMyBuyOrders(user.id).catch(() => [])
+					const [sellResult, buyResult] = await Promise.all([
+						getMySellOrders(user.id).catch(() => ({ records: [] })),
+						getMyBuyOrders(user.id).catch(() => ({ records: [] }))
 					])
+					const sellOrders = (sellResult && sellResult.records) || sellResult || []
+					const buyOrders = (buyResult && buyResult.records) || buyResult || []
 
 					const notifications = []
 

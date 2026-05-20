@@ -201,7 +201,7 @@ export default {
 			try {
 				// 标记已读
 				await markRead(this.sessionId, this.userId).catch(() => {})
-				const list = await getMessages(this.sessionId, this.userId)
+				const result = await getMessages(this.sessionId, this.userId); const list = (result && result.records) || result || []
 				this.msgs = list.map(m => ({
 					id: m.id,
 					fromMe: m.senderId === this.userId,

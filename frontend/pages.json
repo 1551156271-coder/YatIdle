@@ -178,6 +178,14 @@
 			}
 		},
 		{
+			"path": "pages/my-wallet/my-wallet",
+			"style": {
+				"navigationBarTitleText": "我的钱包",
+				"navigationBarBackgroundColor": "#375f3e",
+				"navigationBarTextStyle": "white"
+			}
+		},
+		{
 			"path": "pages/my-review/my-review",
 			"style": {
 				"navigationBarTitleText": "评价",

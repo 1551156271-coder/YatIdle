@@ -66,7 +66,7 @@
 				}
 				this.loading = true
 				try {
-					const list = await getMySessions(user.id)
+					const result = await getMySessions(user.id); const list = (result && result.records) || result || []
 					this.chatList = list.map(s => {
 						const isBuyer = s.buyerId === user.id
 						const otherName = isBuyer ? '卖家' : '买家'
