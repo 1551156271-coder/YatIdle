@@ -1,0 +1,190 @@
+{
+	"pages": [
+		{
+			"path": "pages/index/index",
+			"style": {
+				"navigationBarTitleText": "闲鸭蛋",
+				"navigationBarBackgroundColor": "#00613C",
+				"navigationBarTextStyle": "white",
+				"enablePullDownRefresh": true,
+				"backgroundColor": "#f5f5f5"
+			}
+		},
+		{
+			"path": "pages/wanted/wanted",
+			"style": {
+				"navigationBarTitleText": "求购",
+				"navigationBarBackgroundColor": "#FF8F00",
+				"navigationBarTextStyle": "white"
+			}
+		},
+		{
+			"path": "pages/search/search",
+			"style": {
+				"navigationBarTitleText": "搜索",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/report/report",
+			"style": {
+				"navigationBarTitleText": "举报",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/goods-detail/goods-detail",
+			"style": {
+				"navigationBarTitleText": "商品详情"
+			}
+		},
+		{
+			"path": "pages/publish/publish",
+			"style": {
+				"navigationBarTitleText": "发布商品",
+				"navigationBarBackgroundColor": "#00613C",
+				"navigationBarTextStyle": "white"
+			}
+		},
+		{
+			"path": "pages/publish-form/publish-form",
+			"style": {
+				"navigationBarTitleText": "发布",
+				"navigationBarBackgroundColor": "#00613C",
+				"navigationBarTextStyle": "white"
+			}
+		},
+		{
+			"path": "pages/profile/profile",
+			"style": {
+				"navigationBarTitleText": "用户主页",
+				"navigationBarBackgroundColor": "#00613C",
+				"navigationBarTextStyle": "white"
+			}
+		},
+		{
+			"path": "pages/chat/chat",
+			"style": {
+				"navigationBarTitleText": "聊天",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/messages/messages",
+			"style": {
+				"navigationBarTitleText": "消息",
+				"navigationBarBackgroundColor": "#00613C",
+				"navigationBarTextStyle": "white"
+			}
+		},
+		{
+			"path": "pages/login/login",
+			"style": {
+				"navigationBarTitleText": "登录/注册",
+				"navigationBarBackgroundColor": "#00613C",
+				"navigationBarTextStyle": "white"
+			}
+		},
+		{
+			"path": "pages/my/my",
+			"style": {
+				"navigationBarTitleText": "我的",
+				"navigationBarBackgroundColor": "#00613C",
+				"navigationBarTextStyle": "white"
+			}
+		},
+		{
+			"path": "pages/my-edit/my-edit",
+			"style": {
+				"navigationBarTitleText": "编辑资料",
+				"navigationBarBackgroundColor": "#00613C",
+				"navigationBarTextStyle": "white"
+			}
+		},
+		{
+			"path": "pages/my-listings/my-listings",
+			"style": {
+				"navigationBarTitleText": "我的发布",
+				"navigationBarBackgroundColor": "#00613C",
+				"navigationBarTextStyle": "white"
+			}
+		},
+		{
+			"path": "pages/my-orders/my-orders",
+			"style": {
+				"navigationBarTitleText": "我的订单",
+				"navigationBarBackgroundColor": "#00613C",
+				"navigationBarTextStyle": "white"
+			}
+		},
+		{
+			"path": "pages/order-detail/order-detail",
+			"style": {
+				"navigationBarTitleText": "订单详情",
+				"navigationBarBackgroundColor": "#00613C",
+				"navigationBarTextStyle": "white"
+			}
+		},
+		{
+			"path": "pages/my-credit/my-credit",
+			"style": {
+				"navigationBarTitleText": "我的信用",
+				"navigationBarBackgroundColor": "#00613C",
+				"navigationBarTextStyle": "white"
+			}
+		},
+		{
+			"path": "pages/my-wishlist/my-wishlist",
+			"style": {
+				"navigationBarTitleText": "心愿单",
+				"navigationBarBackgroundColor": "#00613C",
+				"navigationBarTextStyle": "white"
+			}
+		}
+	],
+	"globalStyle": {
+		"navigationBarTextStyle": "white",
+		"navigationBarTitleText": "闲鸭蛋",
+		"navigationBarBackgroundColor": "#00613C",
+		"backgroundColor": "#f5f5f5"
+	},
+	"tabBar": {
+		"color": "#999999",
+		"selectedColor": "#00613C",
+		"backgroundColor": "#ffffff",
+		"borderStyle": "white",
+		"list": [
+			{
+				"pagePath": "pages/index/index",
+				"text": "首页",
+				"iconPath": "static/tabbar/home.png",
+				"selectedIconPath": "static/tabbar/home-active.png"
+			},
+			{
+				"pagePath": "pages/wanted/wanted",
+				"text": "求购",
+				"iconPath": "static/tabbar/wanted.png",
+				"selectedIconPath": "static/tabbar/wanted.png"
+			},
+			{
+				"pagePath": "pages/publish/publish",
+				"text": "发布",
+				"iconPath": "static/tabbar/publish.png",
+				"selectedIconPath": "static/tabbar/publish.png"
+			},
+			{
+				"pagePath": "pages/messages/messages",
+				"text": "消息",
+				"iconPath": "static/tabbar/msg.png",
+				"selectedIconPath": "static/tabbar/msg-active.png"
+			},
+			{
+				"pagePath": "pages/my/my",
+				"text": "我的",
+				"iconPath": "static/tabbar/my.png",
+				"selectedIconPath": "static/tabbar/my-active.png"
+			}
+		]
+	},
+	"uniIdRouter": {}
+}
