@@ -1,4 +1,4 @@
-package com.yatidle.backend.vo;
+package com.yatidle.backend.vo.item;
 
 import lombok.Data;
 
@@ -13,6 +13,7 @@ public class ItemCardVO {
     private BigDecimal price;
     private String conditionLevel;
     private String imageUrl;       // 封面图（第一张）
+    private String status;
     private Integer viewCount;
     private Integer favoriteCount;
     private LocalDateTime createTime;

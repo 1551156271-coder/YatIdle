@@ -1,4 +1,4 @@
-package com.yatidle.backend.dto;
+package com.yatidle.backend.dto.item;
 
 import lombok.Data;
 
@@ -9,6 +9,8 @@ public class ItemSearchDTO {
     private String keyword;
     private Long categoryId;
     private String campus;
+    private String conditionLevel;
     private BigDecimal minPrice;
     private BigDecimal maxPrice;
+    private String priceSort;
 }
