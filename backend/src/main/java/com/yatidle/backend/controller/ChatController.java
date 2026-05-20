@@ -1,9 +1,11 @@
 package com.yatidle.backend.controller;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.yatidle.backend.common.Result;
 import com.yatidle.backend.dto.chat.CreateChatSessionDTO;
 import com.yatidle.backend.dto.chat.SendMessageDTO;
 import com.yatidle.backend.service.ChatService;
+import com.yatidle.backend.vo.PageVO;
 import com.yatidle.backend.vo.chat.ChatMessageVO;
 import com.yatidle.backend.vo.chat.ChatSessionVO;
 import lombok.RequiredArgsConstructor;
@@ -27,9 +29,13 @@ public class ChatController {
     }
 
     @GetMapping("/sessions")
-    public Result<List<ChatSessionVO>> listMySessions(@RequestParam Long userId){
-        List<ChatSessionVO> list = chatService.listMySessions(userId);
-        return Result.success(list);
+    public Result<PageVO<ChatSessionVO>> listMySessions(
+            @RequestParam Long userId,
+            @RequestParam(defaultValue = "1") Long pageNum,
+            @RequestParam(defaultValue = "10") Long pageSize){
+
+        PageVO<ChatSessionVO> page = chatService.listMySessions(userId, pageNum, pageSize);
+        return Result.success(page);
     }
 
     @PostMapping("/messages")
@@ -42,12 +48,14 @@ public class ChatController {
     }
 
     @GetMapping("/sessions/{sessionId}/messages")
-    public Result<List<ChatMessageVO>> listMessages(
+    public Result<PageVO<ChatMessageVO>> listMessages(
             @PathVariable Long sessionId,
-            @RequestParam Long userId){
+            @RequestParam Long userId,
+            @RequestParam(defaultValue = "1") Long pageNum,
+            @RequestParam(defaultValue = "20") Long pageSize){
 
-        List<ChatMessageVO> list = chatService.listMessages(sessionId, userId);
-        return Result.success(list);
+        PageVO<ChatMessageVO> page = chatService.listMessages(sessionId, userId, pageNum, pageSize);
+        return Result.success(page);
     }
 
     @PutMapping("/sessions/{sessionId}/read")

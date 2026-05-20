@@ -1,11 +1,13 @@
 package com.yatidle.backend.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.yatidle.backend.entity.Favorite;
 import com.yatidle.backend.entity.Item;
 import com.yatidle.backend.mapper.FavoriteMapper;
 import com.yatidle.backend.mapper.ItemMapper;
+import com.yatidle.backend.vo.PageVO;
 import com.yatidle.backend.vo.favorite.FavoriteVO;
 import jakarta.servlet.http.PushBuilder;
 import lombok.RequiredArgsConstructor;
@@ -59,16 +61,18 @@ public class FavoriteService {
         );
     }
 
-    public List<FavoriteVO> listMyFavorites(Long currentUserId){
-        List<Favorite> favorites = favoriteMapper.selectList(
-                new LambdaQueryWrapper<Favorite>()
-                        .eq(Favorite::getUserId, currentUserId)
-                        .orderByDesc(Favorite::getCreateTime)
-        );
+    public PageVO<FavoriteVO> listMyFavorites(Long currentUserId, Long pageNum, Long pageSize){
+        Page<Favorite> page = new Page<>(pageNum, pageSize);
+
+        LambdaQueryWrapper<Favorite> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(Favorite::getUserId, currentUserId)
+                .orderByDesc(Favorite::getCreateTime);
+
+        Page<Favorite> resultPage = favoriteMapper.selectPage(page, wrapper);
 
         List<FavoriteVO> result = new ArrayList<>();
 
-        for (Favorite favorite : favorites) {
+        for (Favorite favorite : resultPage.getRecords()) {
             Item item = itemMapper.selectById(favorite.getItemId());
 
             if(item == null || (item.getIsDeleted() != null && item.getIsDeleted() == 1)){
@@ -85,6 +89,13 @@ public class FavoriteService {
 
             result.add(vo);
         }
-        return result;
+
+        PageVO<FavoriteVO> vo = new PageVO<>();
+        vo.setTotal(page.getTotal());
+        vo.setPageNum(pageNum);
+        vo.setPageSize(pageSize);
+        vo.setRecords(result);
+
+        return vo;
     }
 }

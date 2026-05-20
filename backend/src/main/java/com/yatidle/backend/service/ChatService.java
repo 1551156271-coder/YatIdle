@@ -1,6 +1,7 @@
 package com.yatidle.backend.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.yatidle.backend.dto.chat.CreateChatSessionDTO;
 import com.yatidle.backend.dto.chat.SendMessageDTO;
 import com.yatidle.backend.entity.ChatMessage;
@@ -10,6 +11,7 @@ import com.yatidle.backend.enums.MessageTypeEnum;
 import com.yatidle.backend.mapper.ChatMessageMapper;
 import com.yatidle.backend.mapper.ChatSessionMapper;
 import com.yatidle.backend.mapper.ItemMapper;
+import com.yatidle.backend.vo.PageVO;
 import com.yatidle.backend.vo.chat.ChatMessageVO;
 import com.yatidle.backend.vo.chat.ChatSessionVO;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -71,26 +74,35 @@ public class ChatService {
         return toSessionVO(session, item, currentUserId);
     }
 
-    public List<ChatSessionVO> listMySessions(Long currentUserId) {
-        List<ChatSession> sessions = chatSessionMapper.selectList(
-                new LambdaQueryWrapper<ChatSession>()
-                    .and(wrapper -> wrapper
-                        .eq(ChatSession::getBuyerId, currentUserId)
-                        .or()
-                        .eq(ChatSession::getSellerId, currentUserId)
-                    )
-                        .eq(ChatSession::getIsDeleted, 0)
-                        .orderByDesc(ChatSession::getLastMessageTime)
-        );
+    public PageVO<ChatSessionVO> listMySessions(Long currentUserId, Long pageNum, Long pageSize) {
+        Page<ChatSession> page = new Page<>(pageNum, pageSize);
 
-        List<ChatSessionVO> result = new ArrayList<>();
+        LambdaQueryWrapper<ChatSession> wrapper = new LambdaQueryWrapper<>();
+        wrapper.and(w->w
+                .eq(ChatSession::getBuyerId, currentUserId)
+                .or()
+                .eq(ChatSession::getSellerId, currentUserId)
+        )
+                .eq(ChatSession::getIsDeleted, 0)
+                .orderByDesc(ChatSession::getLastMessage);
 
-        for(ChatSession session : sessions)
+        Page<ChatSession> resultPage = chatSessionMapper.selectPage(page, wrapper);
+
+        List<ChatSessionVO> records = new ArrayList<>();
+
+        for(ChatSession session : resultPage.getRecords())
         {
             Item item = itemMapper.selectById(session.getItemId());
-            result.add(toSessionVO(session, item, currentUserId));
+            records.add(toSessionVO(session, item, currentUserId));
         }
-        return result;
+
+        PageVO<ChatSessionVO> vo = new PageVO<>();
+        vo.setTotal(resultPage.getTotal());
+        vo.setPageNum(resultPage.getCurrent());
+        vo.setPageSize(resultPage.getSize());
+        vo.setRecords(records);
+
+        return vo;
     }
 
     @Transactional
@@ -142,7 +154,7 @@ public class ChatService {
         return toMessageVO(message);
     }
 
-    public List<ChatMessageVO> listMessages(Long sessionId, Long currentUserId) {
+    public PageVO<ChatMessageVO> listMessages(Long sessionId, Long currentUserId, Long pageNum, Long pageSize) {
         if(sessionId == null){
             throw new RuntimeException("会话ID不能为空");
         }
@@ -158,19 +170,27 @@ public class ChatService {
             throw new RuntimeException("无权查看该会话消息");
         }
 
-        List<ChatMessage> messages = chatMessageMapper.selectList(
-                new LambdaQueryWrapper<ChatMessage>()
-                    .eq(ChatMessage::getSessionId, sessionId)
-                    .eq(ChatMessage::getIsDeleted, 0)
-                        .orderByAsc(ChatMessage::getCreateTime)
-        );
 
-        List<ChatMessageVO> result = new ArrayList<>();
-        for(ChatMessage message : messages)
-        {
-            result.add(toMessageVO(message));
-        }
-        return result;
+        Page<ChatMessage> page = new Page<>(pageNum, pageSize);
+
+        LambdaQueryWrapper<ChatMessage> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(ChatMessage::getSessionId, sessionId)
+                .eq(ChatMessage::getIsDeleted, 0)
+                .orderByAsc(ChatMessage::getCreateTime);
+        Page<ChatMessage> resultPage = chatMessageMapper.selectPage(page, wrapper);
+
+        List<ChatMessageVO> records = resultPage.getRecords()
+                .stream()
+                .map(this::toMessageVO)
+                .collect(Collectors.toList());
+
+        PageVO<ChatMessageVO> vo = new PageVO<>();
+        vo.setTotal(resultPage.getTotal());
+        vo.setPageNum(resultPage.getCurrent());
+        vo.setPageSize(resultPage.getSize());
+        vo.setRecords(records);
+
+        return vo;
     }
 
     @Transactional

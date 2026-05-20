@@ -2,6 +2,7 @@ package com.yatidle.backend.controller;
 
 import com.yatidle.backend.common.Result;
 import com.yatidle.backend.service.FavoriteService;
+import com.yatidle.backend.vo.PageVO;
 import com.yatidle.backend.vo.favorite.FavoriteVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -32,8 +33,12 @@ public class FavoriteController {
     }
 
     @GetMapping
-    public Result<List<FavoriteVO>> listMyFavorites(@RequestParam Long userId) {
-        List<FavoriteVO> list = favoriteService.listMyFavorites(userId);
-        return Result.success(list);
+    public Result<PageVO<FavoriteVO>> listMyFavorites(
+            @RequestParam Long userId,
+            @RequestParam(defaultValue = "1") Long pageNum,
+            @RequestParam(defaultValue = "10") Long pageSize) {
+
+        PageVO<FavoriteVO> page = favoriteService.listMyFavorites(userId, pageNum, pageSize);
+        return Result.success(page);
     }
 }

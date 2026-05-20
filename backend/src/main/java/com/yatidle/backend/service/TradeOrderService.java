@@ -1,6 +1,7 @@
 package com.yatidle.backend.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.yatidle.backend.dto.order.CancelOrderDTO;
 import com.yatidle.backend.dto.order.CreateOrderDTO;
@@ -12,6 +13,7 @@ import com.yatidle.backend.enums.OrderStatusEnum;
 import com.yatidle.backend.mapper.ItemMapper;
 import com.yatidle.backend.mapper.TradeOrderLogMapper;
 import com.yatidle.backend.mapper.TradeOrderMapper;
+import com.yatidle.backend.vo.PageVO;
 import com.yatidle.backend.vo.order.TradeOrderVO;
 import jakarta.annotation.Resource;
 import lombok.RequiredArgsConstructor;
@@ -88,29 +90,52 @@ public class TradeOrderService extends ServiceImpl<TradeOrderMapper, TradeOrder>
         return toVO(order);
     }
 
-    public List<TradeOrderVO> listMyBuyOrders(Long currentUserId){
+    public PageVO<TradeOrderVO> listMyBuyOrders(Long currentUserId, Long pageNum, Long pageSize){
+        Page<TradeOrder> page = new Page<>(pageNum, pageSize);
+
         LambdaQueryWrapper<TradeOrder> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(TradeOrder::getBuyerId, currentUserId)
                 .eq(TradeOrder::getIsDeleted, 0)
                 .orderByDesc(TradeOrder::getCreateTime);
-        List<TradeOrder> list = tradeOrderMapper.selectList(wrapper);
 
-        return list.stream()
+        Page<TradeOrder> resultPage = tradeOrderMapper.selectPage(page,wrapper);
+
+        List<TradeOrderVO> records = resultPage.getRecords()
+                .stream()
                 .map(this::toVO)
                 .collect(Collectors.toList());
+
+        PageVO<TradeOrderVO> vo = new PageVO<>();
+        vo.setTotal(resultPage.getTotal());
+        vo.setPageNum(pageNum);
+        vo.setPageSize(pageSize);
+        vo.setRecords(records);
+
+        return vo;
     }
 
-    public List<TradeOrderVO> listMySellOrders(Long currentUserId){
+    public PageVO<TradeOrderVO> listMySellOrders(Long currentUserId, Long pageNum, Long pageSize){
+        Page<TradeOrder> page = new Page<>(pageNum, pageSize);
+
         LambdaQueryWrapper<TradeOrder> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(TradeOrder::getSellerId, currentUserId)
                 .eq(TradeOrder::getIsDeleted, 0)
                 .orderByDesc(TradeOrder::getCreateTime);
 
-        List<TradeOrder> list = tradeOrderMapper.selectList(wrapper);
+        Page<TradeOrder> resultPage = tradeOrderMapper.selectPage(page,wrapper);
 
-        return list.stream()
+        List<TradeOrderVO> records = resultPage.getRecords()
+                .stream()
                 .map(this::toVO)
                 .collect(Collectors.toList());
+
+        PageVO<TradeOrderVO> vo = new PageVO<>();
+        vo.setTotal(resultPage.getTotal());
+        vo.setPageNum(pageNum);
+        vo.setPageSize(pageSize);
+        vo.setRecords(records);
+
+        return vo;
     }
 
     public TradeOrderVO cancelOrder(Long orderId, CancelOrderDTO dto, Long currentUserId){
