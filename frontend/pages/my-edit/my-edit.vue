@@ -25,19 +25,10 @@
 					maxlength="16"
 				/>
 			</view>
-			<view class="edit-row">
-				<text class="edit-label">简介</text>
-				<input
-					class="edit-input"
-					v-model="form.bio"
-					placeholder="介绍一下自己吧"
-					maxlength="60"
-				/>
-			</view>
 			<view class="edit-row" @click="showCampusPicker">
 				<text class="edit-label">校区</text>
 				<view class="avatar-right">
-					<text class="edit-value">{{ form.campus }}</text>
+					<text class="edit-value">{{ form.campus || '未设置' }}</text>
 					<text class="row-arrow">›</text>
 				</view>
 			</view>
@@ -66,16 +57,17 @@
 </template>
 
 <script>
+	import { updateProfile } from '@/api/user.js'
 	export default {
 		data() {
+			const user = uni.getStorageSync('user') || {}
 			return {
 				campusVisible: false,
 				campusList: ['东校园', '南校园', '北校园', '珠海校区', '深圳校区'],
 				form: {
-					avatar: '',
-					nickname: '中大在校生',
-					bio: '爱生活爱二手，诚信交易',
-					campus: '东校园'
+					avatar: user.avatar || '',
+					nickname: user.username || '',
+					campus: user.campus || ''
 				}
 			}
 		},
@@ -97,16 +89,30 @@
 				this.form.campus = c
 				this.campusVisible = false
 			},
-			onSave() {
+			async onSave() {
 				const nickname = (this.form.nickname || '').trim()
 				if (!nickname) {
 					uni.showToast({ title: '昵称不能为空', icon: 'none' })
 					return
 				}
-				uni.showToast({ title: '保存成功', icon: 'none' })
-				setTimeout(() => {
-					uni.navigateBack()
-				}, 800)
+				const user = uni.getStorageSync('user')
+				if (!user || !user.id) {
+					uni.showToast({ title: '请先登录', icon: 'none' })
+					return
+				}
+				try {
+					await updateProfile({
+						userId: user.id,
+						avatar: this.form.avatar || undefined
+					})
+					// 更新本地存储
+					user.username = nickname
+					user.avatar = this.form.avatar
+					user.campus = this.form.campus
+					uni.setStorageSync('user', user)
+					uni.showToast({ title: '保存成功', icon: 'none' })
+					setTimeout(() => uni.navigateBack(), 800)
+				} catch (e) {}
 			}
 		}
 	}
@@ -175,7 +181,7 @@
 		padding: 28rpx 0;
 	}
 	.picker-item:active { background: #f5f5f5; }
-	.picker-active { color: #00613C; font-weight: bold; }
+	.picker-active { color: #3A6341; font-weight: bold; }
 	.picker-cancel {
 		font-size: 30rpx; color: #999; text-align: center;
 		padding: 28rpx 0; margin-top: 10rpx;
@@ -187,7 +193,7 @@
 	.save-btn {
 		width: 100%; height: 88rpx; line-height: 88rpx;
 		text-align: center;
-		background: linear-gradient(135deg, #00613C, #00804B);
+		background: linear-gradient(135deg, #3A6341, #4E7D56);
 		color: #ffffff; font-size: 32rpx; font-weight: bold;
 		border-radius: 44rpx;
 	}

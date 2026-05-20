@@ -2,8 +2,11 @@
 	<view class="home-page">
 		<!-- 顶部搜索栏 -->
 		<view class="search-bar" @click="onSearchClick">
-			<text class="search-icon">🔍</text>
-			<text class="search-placeholder">搜索你想要的二手好物</text>
+			<view class="search-box">
+				<text class="search-icon iconfont icon-sousuo"></text>
+				<text class="search-placeholder">搜索你想要的二手好物</text>
+			</view>
+			<text class="search-btn">搜索</text>
 		</view>
 
 		<!-- 分类标签 -->
@@ -45,48 +48,34 @@
 		<view v-if="!hasMore && goodsList.length > 0" class="loading-tip">— 没有更多了 —</view>
 
 		<view v-if="goodsList.length === 0 && !loading" class="empty-state">
-			<text class="empty-icon">📦</text>
+			<text class="empty-icon iconfont icon-weizhaodao"></text>
 			<text class="empty-text">该分类暂无商品</text>
 		</view>
 
 		<!-- 底部安全距离 -->
 		<view class="bottom-safe"></view>
 	</view>
+	<tab-bar />
 </template>
 
 <script>
+	import TabBar from '@/components/tab-bar.vue'
+	import { getCategories, searchItems } from '@/api/item.js'
 	export default {
+		components: { TabBar },
 		data() {
 			return {
-				activeCategory: 'all',
+				activeCategory: 0,
 				loading: false,
 				hasMore: true,
 				page: 1,
-				categories: [
-					{ label: '全部', value: 'all' },
-					{ label: '数码电子', value: 'digital' },
-					{ label: '书籍教材', value: 'book' },
-					{ label: '生活用品', value: 'life' },
-					{ label: '运动户外', value: 'sport' },
-					{ label: '服饰鞋包', value: 'fashion' },
-					{ label: '其他', value: 'other' }
-				],
-				mockGoods: [
-					{ id: 1, image: 'https://images.unsplash.com/photo-1485965120184-e220f721d03e?q=80&w=400&auto=format&fit=crop', title: '九成新公路自行车，带锁和挡泥板', price: '268.00', campus: '东校园', category: 'sport' },
-					{ id: 2, image: 'https://images.unsplash.com/photo-1546868871-af0de0ae72be?q=80&w=400&auto=format&fit=crop', title: 'iPad 2021 64G 银色，考研自用', price: '1580.00', campus: '南校园', category: 'digital' },
-					{ id: 3, image: 'https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?q=80&w=400&auto=format&fit=crop', title: '高等数学上下册+习题集', price: '25.00', campus: '北校园', category: 'book' },
-					{ id: 4, image: 'https://images.unsplash.com/photo-1585435557343-3b092031a831?q=80&w=400&auto=format&fit=crop', title: '台灯 LED 护眼学习灯', price: '35.00', campus: '东校园', category: 'life' },
-					{ id: 5, image: 'https://images.unsplash.com/photo-1602143407151-7111542de6e8?q=80&w=400&auto=format&fit=crop', title: '头戴式降噪耳机，99新', price: '189.00', campus: '深圳校区', category: 'digital' },
-					{ id: 6, image: 'https://images.unsplash.com/photo-1511499767150-a48a237f0083?q=80&w=400&auto=format&fit=crop', title: '雷朋太阳镜经典款', price: '320.00', campus: '珠海校区', category: 'fashion' },
-					{ id: 7, image: 'https://images.unsplash.com/photo-1509042239860-f550ce710b93?q=80&w=400&auto=format&fit=crop', title: 'Dell 24寸显示器，带HDMI线', price: '450.00', campus: '东校园', category: 'digital' },
-					{ id: 8, image: 'https://images.unsplash.com/photo-1544816155-12df9643f363?q=80&w=400&auto=format&fit=crop', title: '大学英语四六级真题全套', price: '12.00', campus: '南校园', category: 'book' },
-					{ id: 9, image: 'https://images.unsplash.com/photo-1461896836934-bd45ba33ea39?q=80&w=400&auto=format&fit=crop', title: '瑜伽垫加厚防滑，只用过两次', price: '28.00', campus: '北校园', category: 'sport' },
-					{ id: 10, image: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?q=80&w=400&auto=format&fit=crop', title: 'Kindle Paperwhite 电子书', price: '420.00', campus: '东校园', category: 'digital' }
-				],
+				pageSize: 10,
+				categories: [],
 				goodsList: []
 			}
 		},
 		onLoad() {
+			this.loadCategories()
 			this.loadGoods()
 		},
 		onPullDownRefresh() {
@@ -99,11 +88,33 @@
 			this.page++
 			this.loadGoods()
 		},
+		onShow() {
+			uni.hideTabBar()
+		},
 		methods: {
 			onSearchClick() {
 				uni.navigateTo({
 					url: '/pages/search/search'
 				})
+			},
+			async loadCategories() {
+				try {
+					const list = await getCategories()
+					this.categories = [
+						{ label: '全部', value: 0 },
+						...list.map(c => ({ label: c.name, value: c.id }))
+					]
+				} catch (e) {
+					this.categories = [
+						{ label: '全部', value: 0 },
+						{ label: '数码电子', value: 1 },
+						{ label: '书籍教材', value: 2 },
+						{ label: '生活用品', value: 3 },
+						{ label: '运动户外', value: 4 },
+						{ label: '服饰鞋包', value: 5 },
+						{ label: '其他', value: 6 }
+					]
+				}
 			},
 			switchCategory(value) {
 				if (this.activeCategory === value) return
@@ -112,27 +123,37 @@
 				this.hasMore = true
 				this.loadGoods()
 			},
-			loadGoods() {
+			async loadGoods() {
 				this.loading = true
-				setTimeout(() => {
-					let filtered = this.activeCategory === 'all'
-						? this.mockGoods
-						: this.mockGoods.filter(g => g.category === this.activeCategory)
-
-					const pageSize = 8
-					const start = (this.page - 1) * pageSize
-					const pageData = filtered.slice(start, start + pageSize)
-
-					if (this.page === 1) {
-						this.goodsList = pageData
-					} else {
-						this.goodsList = this.goodsList.concat(pageData)
+				try {
+					const params = {
+						page: this.page,
+						size: this.pageSize
 					}
-
-					this.hasMore = start + pageSize < filtered.length
+					if (this.activeCategory !== 0) {
+						params.categoryId = this.activeCategory
+					}
+					const data = await searchItems(params)
+					const records = (data && data.records) ? data.records : []
+					const mapped = records.map(r => ({
+						id: r.id,
+						image: r.imageUrl || '',
+						title: r.title,
+						price: r.price,
+						campus: r.campus
+					}))
+					if (this.page === 1) {
+						this.goodsList = mapped
+					} else {
+						this.goodsList = this.goodsList.concat(mapped)
+					}
+					this.hasMore = this.page < (data.pages || 1)
+				} catch (e) {
+					if (this.page === 1) this.goodsList = []
+				} finally {
 					this.loading = false
 					uni.stopPullDownRefresh()
-				}, 300)
+				}
 			},
 			goToDetail(goods) {
 				uni.navigateTo({
@@ -154,21 +175,43 @@
 
 	/* ===== 搜索栏 ===== */
 	.search-bar {
-		background: linear-gradient(135deg, #00613C, #00804B);
-		padding: 20rpx 30rpx 30rpx;
+		background: linear-gradient(135deg, #3A6341, #4E7D56);
+		padding: 20rpx 24rpx 24rpx;
 		display: flex;
 		align-items: center;
+		gap: 16rpx;
+		box-sizing: border-box;
+	}
+
+	.search-box {
+		flex: 1;
+		background: #ffffff;
+		border-radius: 36rpx;
+		height: 72rpx;
+		display: flex;
+		align-items: center;
+		padding: 0 24rpx;
+		box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.1);
 		box-sizing: border-box;
 	}
 
 	.search-icon {
-		font-size: 30rpx;
+		font-size: 28rpx;
 		margin-right: 12rpx;
+		flex-shrink: 0;
 	}
 
 	.search-placeholder {
+		font-size: 26rpx;
+		color: #bbb;
+		flex: 1;
+	}
+
+	.search-btn {
 		font-size: 28rpx;
-		color: #999;
+		color: #ffffff;
+		font-weight: bold;
+		flex-shrink: 0;
 	}
 
 	/* ===== 分类标签 ===== */
@@ -192,7 +235,7 @@
 	}
 
 	.category-active {
-		background: #00613C;
+		background: #3A6341;
 		color: #ffffff;
 		font-weight: bold;
 	}
@@ -282,8 +325,9 @@
 	}
 
 	.empty-icon {
-		font-size: 100rpx;
+		font-size: 120rpx;
 		margin-bottom: 20rpx;
+		color: #999
 	}
 
 	.empty-text {

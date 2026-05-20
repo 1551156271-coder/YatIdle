@@ -37,10 +37,6 @@
 					<text class="cs-num">{{ user.goodsCount }}</text>
 					<text class="cs-label">在售</text>
 				</view>
-				<view class="cs-item">
-					<text class="cs-num">{{ user.fansCount }}</text>
-					<text class="cs-label">粉丝</text>
-				</view>
 			</view>
 		</view>
 
@@ -74,7 +70,10 @@
 				<view v-for="r in user.reviews" :key="r.id" class="review-item">
 					<view class="rv-top">
 						<view class="rv-user">
-							<text class="rv-avatar">{{ r.avatar }}</text>
+							<view class="rv-avatar">
+							<image v-if="r.avatar" class="rv-avatar-img" :src="r.avatar" mode="aspectFill"></image>
+							<text v-else class="rv-avatar-emoji">{{ r.defaultAvatar }}</text>
+						</view>
 							<text class="rv-name">{{ r.name }}</text>
 						</view>
 						<view class="rv-stars">
@@ -90,15 +89,6 @@
 			</view>
 		</view>
 
-		<!-- 底部操作 -->
-		<view class="bottom-bar">
-			<view class="bb-btn bb-chat" @click="startChat">💬 聊一聊</view>
-			<view class="bb-btn bb-follow" :class="{ 'bb-followed': isFollowed }" @click="toggleFollow">
-				{{ isFollowed ? '已关注' : '+ 关注' }}
-			</view>
-		</view>
-
-		<view class="bottom-safe"></view>
 	</view>
 </template>
 
@@ -106,7 +96,6 @@
 	export default {
 		data() {
 			return {
-				isFollowed: false,
 				user: {
 					nickname: '中大在校生',
 					defaultAvatar: '🎓',
@@ -117,16 +106,15 @@
 					creditScore: 92,
 					dealCount: 23,
 					goodsCount: 3,
-					fansCount: 56,
 					goods: [
 						{ id: 1, image: 'https://images.unsplash.com/photo-1485965120184-e220f721d03e?q=80&w=400&auto=format&fit=crop', title: '九成新公路自行车', price: '268.00' },
 						{ id: 2, image: 'https://images.unsplash.com/photo-1585435557343-3b092031a831?q=80&w=400&auto=format&fit=crop', title: 'LED护眼台灯', price: '35.00' },
 						{ id: 3, image: 'https://images.unsplash.com/photo-1544816155-12df9643f363?q=80&w=400&auto=format&fit=crop', title: '四六级真题全套', price: '12.00' }
 					],
 					reviews: [
-						{ id: 1, avatar: '📚', name: '李四', rating: 5, content: '卖家很爽快，车况和描述完全一致，还送了挡泥板！', time: '3天前' },
-						{ id: 2, avatar: '🎧', name: '王五', rating: 5, content: '交易顺利，当面验货很放心', time: '1周前' },
-						{ id: 3, avatar: '📱', name: '赵六', rating: 4, content: '台灯好用，就是有点小划痕，整体不错', time: '2周前' }
+						{ id: 1, avatar: '', defaultAvatar: '📚', name: '李四', rating: 5, content: '卖家很爽快，车况和描述完全一致，还送了挡泥板！', time: '3天前' },
+						{ id: 2, avatar: '', defaultAvatar: '🎧', name: '王五', rating: 5, content: '交易顺利，当面验货很放心', time: '1周前' },
+						{ id: 3, avatar: '', defaultAvatar: '📱', name: '赵六', rating: 4, content: '台灯好用，就是有点小划痕，整体不错', time: '2周前' }
 					]
 				}
 			}
@@ -153,28 +141,22 @@
 		methods: {
 			loadUser(id) {
 				const users = {
-					'2': { nickname: '张三（卖家）', defaultAvatar: '🤝', bio: '爱生活爱二手，诚信交易', campus: '东校园', verified: true, creditScore: 92, dealCount: 23, goodsCount: 3, fansCount: 56 },
-					'3': { nickname: '李四（买家）', defaultAvatar: '📚', bio: '', campus: '南校园', verified: false, creditScore: 75, dealCount: 8, goodsCount: 0, fansCount: 12 }
+					'2': { nickname: '张三（卖家）', defaultAvatar: '🤝', bio: '爱生活爱二手，诚信交易', campus: '东校园', verified: true, creditScore: 92, dealCount: 23, goodsCount: 3,  },
+					'3': { nickname: '李四（买家）', defaultAvatar: '📚', bio: '', campus: '南校园', verified: false, creditScore: 75, dealCount: 8, goodsCount: 0, }
 				}
 				if (users[id]) {
 					Object.assign(this.user, users[id])
+				this.user._id = id
 				}
 			},
 			goGoodsDetail(g) {
 				uni.navigateTo({ url: '/pages/goods-detail/goods-detail?id=' + g.id })
 			},
 			viewAllGoods() {
-				uni.showToast({ title: '全部商品即将上线', icon: 'none' })
+				uni.navigateTo({ url: '/pages/profile-goods/profile-goods?id=' + (this.user._id || '2') })
 			},
 			viewAllReviews() {
-				uni.showToast({ title: '全部评价即将上线', icon: 'none' })
-			},
-			startChat() {
-				uni.navigateTo({ url: '/pages/chat/chat?id=' + (this.user._id || '2') })
-			},
-			toggleFollow() {
-				this.isFollowed = !this.isFollowed
-				uni.showToast({ title: this.isFollowed ? '已关注' : '已取消关注', icon: 'none' })
+				uni.navigateTo({ url: '/pages/profile-reviews/profile-reviews?id=' + (this.user._id || '2') })
 			},
 			showMoreActions() {
 				uni.showActionSheet({
@@ -206,7 +188,7 @@
 
 	.header-bg {
 		height: 200rpx;
-		background: linear-gradient(135deg, #00613C, #00804B);
+		background: linear-gradient(135deg, #3A6341, #4E7D56);
 		position: relative;
 	}
 
@@ -258,7 +240,7 @@
 	}
 	.user-tags { display: flex; gap: 12rpx; margin-top: 16rpx; }
 	.u-tag {
-		font-size: 22rpx; color: #00613C; background: #e8f5ee;
+		font-size: 22rpx; color: #3A6341; background: #e8f5ee;
 		padding: 6rpx 20rpx; border-radius: 20rpx;
 	}
 	.u-tag-verified { color: #1565C0; background: #e3f2fd; }
@@ -314,9 +296,17 @@
 	.rv-top { display: flex; align-items: center; gap: 12rpx; margin-bottom: 10rpx; }
 	.rv-user { display: flex; align-items: center; gap: 8rpx; }
 	.rv-avatar {
-		width: 48rpx; height: 48rpx; background: #f0f0f0; border-radius: 50%;
-		display: flex; align-items: center; justify-content: center; font-size: 24rpx;
-	}
+	width: 48rpx; height: 48rpx;
+	background: #f0f0f0;
+	border-radius: 50%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 24rpx;
+	flex-shrink: 0; overflow: hidden;
+}
+.rv-avatar-img { width: 100%; height: 100%; border-radius: 50%; }
+.rv-avatar-emoji { font-size: 24rpx; }
 	.rv-name { font-size: 26rpx; color: #333; }
 	.rv-stars { display: flex; gap: 2rpx; }
 	.star { font-size: 26rpx; color: #eee; }
@@ -328,19 +318,4 @@
 	.empty-inline { padding: 30rpx 0; text-align: center; }
 	.empty-txt { font-size: 24rpx; color: #ccc; }
 
-	/* ===== 底部栏 ===== */
-	.bottom-bar {
-		position: fixed; bottom: 0; left: 0; right: 0;
-		height: 100rpx; background: #ffffff;
-		display: flex; align-items: center; padding: 0 30rpx; gap: 20rpx;
-		border-top: 1rpx solid #f0f0f0;
-		box-shadow: 0 -4rpx 16rpx rgba(0,0,0,0.04);
-		box-sizing: border-box;
-	}
-	.bb-btn { flex: 1; height: 72rpx; line-height: 72rpx; text-align: center; border-radius: 36rpx; font-size: 28rpx; font-weight: bold; }
-	.bb-chat { background: #e8f5ee; color: #00613C; }
-	.bb-follow { background: #00613C; color: #ffffff; }
-	.bb-followed { background: #f0f0f0; color: #666; }
-
-	.bottom-safe { height: 120rpx; }
 </style>

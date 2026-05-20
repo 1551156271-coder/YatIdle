@@ -4,7 +4,7 @@
 			"path": "pages/index/index",
 			"style": {
 				"navigationBarTitleText": "闲鸭蛋",
-				"navigationBarBackgroundColor": "#00613C",
+				"navigationBarBackgroundColor": "#375f3e",
 				"navigationBarTextStyle": "white",
 				"enablePullDownRefresh": true,
 				"backgroundColor": "#f5f5f5"
@@ -14,7 +14,15 @@
 			"path": "pages/wanted/wanted",
 			"style": {
 				"navigationBarTitleText": "求购",
-				"navigationBarBackgroundColor": "#FF8F00",
+				"navigationBarBackgroundColor": "#375f3e",
+				"navigationBarTextStyle": "white"
+			}
+		},
+		{
+			"path": "pages/wanted-detail/wanted-detail",
+			"style": {
+				"navigationBarTitleText": "求购详情",
+				"navigationBarBackgroundColor": "#375f3e",
 				"navigationBarTextStyle": "white"
 			}
 		},
@@ -39,10 +47,38 @@
 			}
 		},
 		{
+			"path": "pages/buy/buy",
+			"style": {
+				"navigationBarTitleText": "确认购买",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/goods-edit/goods-edit",
+			"style": {
+				"navigationBarTitleText": "编辑物品信息",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/profile-goods/profile-goods",
+			"style": {
+				"navigationBarTitleText": "TA的在售商品",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/profile-reviews/profile-reviews",
+			"style": {
+				"navigationBarTitleText": "TA的评价",
+				"navigationStyle": "custom"
+			}
+		},
+		{
 			"path": "pages/publish/publish",
 			"style": {
 				"navigationBarTitleText": "发布商品",
-				"navigationBarBackgroundColor": "#00613C",
+				"navigationBarBackgroundColor": "#375f3e",
 				"navigationBarTextStyle": "white"
 			}
 		},
@@ -50,7 +86,7 @@
 			"path": "pages/publish-form/publish-form",
 			"style": {
 				"navigationBarTitleText": "发布",
-				"navigationBarBackgroundColor": "#00613C",
+				"navigationBarBackgroundColor": "#375f3e",
 				"navigationBarTextStyle": "white"
 			}
 		},
@@ -58,7 +94,7 @@
 			"path": "pages/profile/profile",
 			"style": {
 				"navigationBarTitleText": "用户主页",
-				"navigationBarBackgroundColor": "#00613C",
+				"navigationBarBackgroundColor": "#375f3e",
 				"navigationBarTextStyle": "white"
 			}
 		},
@@ -73,7 +109,7 @@
 			"path": "pages/messages/messages",
 			"style": {
 				"navigationBarTitleText": "消息",
-				"navigationBarBackgroundColor": "#00613C",
+				"navigationBarBackgroundColor": "#375f3e",
 				"navigationBarTextStyle": "white"
 			}
 		},
@@ -81,7 +117,7 @@
 			"path": "pages/login/login",
 			"style": {
 				"navigationBarTitleText": "登录/注册",
-				"navigationBarBackgroundColor": "#00613C",
+				"navigationBarBackgroundColor": "#375f3e",
 				"navigationBarTextStyle": "white"
 			}
 		},
@@ -89,7 +125,7 @@
 			"path": "pages/my/my",
 			"style": {
 				"navigationBarTitleText": "我的",
-				"navigationBarBackgroundColor": "#00613C",
+				"navigationBarBackgroundColor": "#375f3e",
 				"navigationBarTextStyle": "white"
 			}
 		},
@@ -97,7 +133,7 @@
 			"path": "pages/my-edit/my-edit",
 			"style": {
 				"navigationBarTitleText": "编辑资料",
-				"navigationBarBackgroundColor": "#00613C",
+				"navigationBarBackgroundColor": "#375f3e",
 				"navigationBarTextStyle": "white"
 			}
 		},
@@ -105,7 +141,7 @@
 			"path": "pages/my-listings/my-listings",
 			"style": {
 				"navigationBarTitleText": "我的发布",
-				"navigationBarBackgroundColor": "#00613C",
+				"navigationBarBackgroundColor": "#375f3e",
 				"navigationBarTextStyle": "white"
 			}
 		},
@@ -113,7 +149,7 @@
 			"path": "pages/my-orders/my-orders",
 			"style": {
 				"navigationBarTitleText": "我的订单",
-				"navigationBarBackgroundColor": "#00613C",
+				"navigationBarBackgroundColor": "#375f3e",
 				"navigationBarTextStyle": "white"
 			}
 		},
@@ -121,7 +157,7 @@
 			"path": "pages/order-detail/order-detail",
 			"style": {
 				"navigationBarTitleText": "订单详情",
-				"navigationBarBackgroundColor": "#00613C",
+				"navigationBarBackgroundColor": "#375f3e",
 				"navigationBarTextStyle": "white"
 			}
 		},
@@ -129,7 +165,7 @@
 			"path": "pages/my-credit/my-credit",
 			"style": {
 				"navigationBarTitleText": "我的信用",
-				"navigationBarBackgroundColor": "#00613C",
+				"navigationBarBackgroundColor": "#375f3e",
 				"navigationBarTextStyle": "white"
 			}
 		},
@@ -137,7 +173,39 @@
 			"path": "pages/my-wishlist/my-wishlist",
 			"style": {
 				"navigationBarTitleText": "心愿单",
-				"navigationBarBackgroundColor": "#00613C",
+				"navigationBarBackgroundColor": "#375f3e",
+				"navigationBarTextStyle": "white"
+			}
+		},
+		{
+			"path": "pages/my-wallet/my-wallet",
+			"style": {
+				"navigationBarTitleText": "我的钱包",
+				"navigationBarBackgroundColor": "#375f3e",
+				"navigationBarTextStyle": "white"
+			}
+		},
+		{
+			"path": "pages/my-review/my-review",
+			"style": {
+				"navigationBarTitleText": "评价",
+				"navigationBarBackgroundColor": "#375f3e",
+				"navigationBarTextStyle": "white"
+			}
+		},
+		{
+			"path": "pages/notifications/notifications",
+			"style": {
+				"navigationBarTitleText": "通知",
+				"navigationBarBackgroundColor": "#375f3e",
+				"navigationBarTextStyle": "white"
+			}
+		},
+		{
+			"path": "pages/settings/settings",
+			"style": {
+				"navigationBarTitleText": "设置",
+				"navigationBarBackgroundColor": "#375f3e",
 				"navigationBarTextStyle": "white"
 			}
 		}
@@ -145,12 +213,12 @@
 	"globalStyle": {
 		"navigationBarTextStyle": "white",
 		"navigationBarTitleText": "闲鸭蛋",
-		"navigationBarBackgroundColor": "#00613C",
+		"navigationBarBackgroundColor": "#375f3e",
 		"backgroundColor": "#f5f5f5"
 	},
 	"tabBar": {
 		"color": "#999999",
-		"selectedColor": "#00613C",
+		"selectedColor": "#375f3e",
 		"backgroundColor": "#ffffff",
 		"borderStyle": "white",
 		"list": [

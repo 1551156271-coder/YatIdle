@@ -38,10 +38,13 @@
 			<text class="empty-text">暂无求购信息</text>
 		</view>
 	</view>
+	<tab-bar />
 </template>
 
 <script>
+	import TabBar from '@/components/tab-bar.vue'
 	export default {
+		components: { TabBar },
 		data() {
 			return {
 				wantedList: [
@@ -52,9 +55,14 @@
 				]
 			}
 		},
+		onShow() {
+			uni.hideTabBar()
+		},
 		methods: {
 			goToDetail(item) {
-				uni.showToast({ title: '求购详情即将上线', icon: 'none' })
+				uni.navigateTo({
+						url: '/pages/wanted-detail/wanted-detail?id=' + item.id
+					})
 			}
 		}
 	}
@@ -70,7 +78,7 @@
 	}
 
 	.wanted-hero {
-		background: linear-gradient(135deg, #FF8F00, #FFB300);
+		background: linear-gradient(135deg, #3A6341, #4E7D56);
 		padding: 40rpx 30rpx 50rpx;
 		display: flex;
 		flex-direction: column;
@@ -95,7 +103,7 @@
 		margin-bottom: 20rpx;
 		box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
 		box-sizing: border-box;
-		border-left: 8rpx solid #FF8F00;
+		border-left: 8rpx solid #598f62;
 	}
 
 	.wanted-card:active {
@@ -133,7 +141,7 @@
 
 	.wanted-budget {
 		font-size: 26rpx;
-		color: #FF8F00;
+		color: #5A7D9E;
 		font-weight: bold;
 	}
 
@@ -150,8 +158,8 @@
 
 	.wanted-tag {
 		font-size: 22rpx;
-		color: #FF8F00;
-		background: #fff8e1;
+		color: #5A7D9E;
+		background: #EDF2F6;
 		padding: 4rpx 16rpx;
 		border-radius: 20rpx;
 	}

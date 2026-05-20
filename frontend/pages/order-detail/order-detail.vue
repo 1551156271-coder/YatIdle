@@ -1,9 +1,12 @@
 <template>
 	<view class="od-page">
 		<!-- 订单状态 -->
-		<view class="od-status-card">
+		<view class="od-status-card" :class="statusBgClass">
 			<view class="od-status-icon">{{ statusIcon }}</view>
-			<text class="od-status-text">{{ order.status }}</text>
+			<text class="od-status-text">{{ statusLabel }}</text>
+			<text class="od-status-hint" v-if="order.status === 'PENDING'">等待双方确认交易</text>
+			<text class="od-status-hint" v-else-if="order.status === 'COMPLETED'">交易已完成</text>
+			<text class="od-status-hint" v-else-if="order.status === 'CANCELLED'">订单已取消</text>
 		</view>
 
 		<!-- 商品信息 -->
@@ -24,15 +27,35 @@
 			<view class="section-title">订单信息</view>
 			<view class="info-row">
 				<text class="info-label">订单编号</text>
-				<text class="info-value">{{ order.id }}</text>
+				<text class="info-value selectable">{{ order.orderNo || order.id }}</text>
 			</view>
 			<view class="info-row">
-				<text class="info-label">{{ orderType === 'sold' ? '买家' : '卖家' }}</text>
-				<text class="info-value">{{ order.counterparty }}</text>
+				<text class="info-label">订单状态</text>
+				<text class="info-value" :class="statusTextClass">{{ statusLabel }}</text>
+			</view>
+			<view class="info-row" v-if="order.tradeLocation">
+				<text class="info-label">交易地点</text>
+				<text class="info-value">{{ order.tradeLocation }}</text>
+			</view>
+			<view class="info-row" v-if="order.remark">
+				<text class="info-label">买家留言</text>
+				<text class="info-value">{{ order.remark }}</text>
 			</view>
 			<view class="info-row">
-				<text class="info-label">交易时间</text>
-				<text class="info-value">{{ order.time }}</text>
+				<text class="info-label">创建时间</text>
+				<text class="info-value">{{ order.createTime || order.time }}</text>
+			</view>
+			<view class="info-row" v-if="order.completeTime">
+				<text class="info-label">完成时间</text>
+				<text class="info-value">{{ order.completeTime }}</text>
+			</view>
+			<view class="info-row" v-if="order.cancelTime">
+				<text class="info-label">取消时间</text>
+				<text class="info-value">{{ order.cancelTime }}</text>
+			</view>
+			<view class="info-row" v-if="order.cancelReason">
+				<text class="info-label">取消原因</text>
+				<text class="info-value">{{ order.cancelReason }}</text>
 			</view>
 			<view class="info-row">
 				<text class="info-label">交易金额</text>
@@ -40,69 +63,173 @@
 			</view>
 		</view>
 
-		<!-- 底部操作 -->
-		<view class="od-bottom" v-if="order.status !== '已完成'">
-			<view class="od-btn od-btn-outline" @click="onContact">联系对方</view>
-			<view class="od-btn od-btn-primary" @click="onConfirm">
-				{{ orderType === 'sold' ? '确认发货' : '确认收货' }}
+		<!-- 买卖双方信息 -->
+		<view class="section-card">
+			<view class="section-title">交易双方</view>
+			<view class="party-row">
+				<view class="party-item">
+					<text class="party-label">买家</text>
+					<text class="party-name">用户 #{{ order.buyerId }}</text>
+				</view>
+				<view class="party-arrow">⇄</view>
+				<view class="party-item">
+					<text class="party-label">卖家</text>
+					<text class="party-name">用户 #{{ order.sellerId }}</text>
+				</view>
 			</view>
+		</view>
+
+		<!-- 底部操作：待交易状态 -->
+		<view class="od-bottom" v-if="order.status === 'PENDING'">
+			<button class="od-btn od-btn-outline" @click="onCancel">取消订单</button>
+			<button class="od-btn od-btn-primary" @click="onComplete">确认完成</button>
+		</view>
+
+		<!-- 底部操作：已完成 + 已购订单可评价 -->
+		<view class="od-bottom" v-if="order.status === 'COMPLETED' && orderType === 'purchased'">
+			<button class="od-btn od-btn-review" @click="goReview">去评价</button>
+		</view>
+
+		<!-- 底部操作：已完成 + 已售订单 -->
+		<view class="od-bottom" v-if="order.status === 'COMPLETED' && orderType === 'sold'">
+			<view class="od-done-text">交易已完成</view>
+		</view>
+
+		<!-- 已取消 -->
+		<view class="od-bottom" v-if="order.status === 'CANCELLED'">
+			<view class="od-done-text">订单已取消</view>
 		</view>
 	</view>
 </template>
 
 <script>
+	import { cancelOrder, completeOrder } from '@/api/order.js'
+
 	export default {
 		data() {
 			return {
 				orderType: 'sold',
 				order: {
 					id: '',
+					orderNo: '',
+					itemId: null,
+					buyerId: null,
+					sellerId: null,
 					image: '',
-					title: '',
+					title: '加载中...',
 					price: '',
 					status: '',
+					tradeLocation: '',
+					remark: '',
 					counterparty: '',
 					time: '',
-					goodsId: 1
+					createTime: '',
+					completeTime: '',
+					cancelTime: '',
+					cancelReason: ''
 				}
 			}
 		},
 		computed: {
 			statusIcon() {
-				if (this.order.status === '已完成') return '✅'
-				if (this.order.status === '待发货') return '📦'
-				return '🚚'
+				if (this.order.status === 'COMPLETED') return '✅'
+				if (this.order.status === 'CANCELLED') return '❌'
+				return '📦'
+			},
+			statusLabel() {
+				const map = { PENDING: '待交易', COMPLETED: '已完成', CANCELLED: '已取消' }
+				return map[this.order.status] || this.order.status
+			},
+			statusBgClass() {
+				if (this.order.status === 'COMPLETED') return 'status-done'
+				if (this.order.status === 'CANCELLED') return 'status-cancel'
+				return ''
+			},
+			statusTextClass() {
+				if (this.order.status === 'COMPLETED') return 'text-done'
+				if (this.order.status === 'CANCELLED') return 'text-cancel'
+				return 'text-pending'
 			}
 		},
 		onLoad(options) {
 			this.orderType = options.type || 'sold'
-			const id = options.id || ''
 			uni.setNavigationBarTitle({ title: '订单详情' })
-			this.loadOrder(id)
+			const stored = uni.getStorageSync('currentOrder')
+			if (stored) {
+				this.order = {
+					id: stored.id || '',
+					orderNo: stored.orderNo || '',
+					itemId: stored.itemId || null,
+					buyerId: stored.buyerId || null,
+					sellerId: stored.sellerId || null,
+					image: stored.image || '',
+					title: stored.title || '商品 #' + (stored.itemId || ''),
+					price: stored.price || '',
+					status: stored.status || '',
+					tradeLocation: stored.tradeLocation || '',
+					remark: stored.remark || '',
+					counterparty: stored.counterparty || '',
+					time: stored.time || '',
+					createTime: stored.createTime || stored.time || '',
+					completeTime: stored.completeTime || '',
+					cancelTime: stored.cancelTime || '',
+					cancelReason: stored.cancelReason || ''
+				}
+				uni.removeStorageSync('currentOrder')
+			}
 		},
 		methods: {
-			loadOrder(id) {
-				const mockOrders = {
-					'S001': { id: 'S001', image: 'https://images.unsplash.com/photo-1485965120184-e220f721d03e?q=80&w=400&auto=format&fit=crop', title: '九成新公路自行车', price: '268.00', status: '已完成', counterparty: '李四', time: '2026-05-08 14:30', goodsId: 1 },
-					'S002': { id: 'S002', image: 'https://images.unsplash.com/photo-1585435557343-3b092031a831?q=80&w=400&auto=format&fit=crop', title: 'LED护眼台灯', price: '35.00', status: '已完成', counterparty: '王五', time: '2026-05-03 10:15', goodsId: 2 },
-					'S003': { id: 'S003', image: 'https://images.unsplash.com/photo-1495446815901-a7297e633e8d?q=80&w=400&auto=format&fit=crop', title: '二手教材《高等数学》', price: '8.00', status: '待发货', counterparty: '赵六', time: '2026-05-09 09:00', goodsId: 4 },
-					'P001': { id: 'P001', image: 'https://images.unsplash.com/photo-1544816155-12df9643f363?q=80&w=400&auto=format&fit=crop', title: '四六级真题全套', price: '12.00', status: '已完成', counterparty: '张三', time: '2026-04-28 16:20', goodsId: 3 },
-					'P002': { id: 'P002', image: 'https://images.unsplash.com/photo-1586953208448-b95a79798f07?q=80&w=400&auto=format&fit=crop', title: '蓝牙耳机', price: '45.00', status: '待收货', counterparty: '张三', time: '2026-05-07 11:45', goodsId: 5 }
-				}
-				if (mockOrders[id]) {
-					this.order = mockOrders[id]
-				}
-			},
 			goGoods() {
-				uni.navigateTo({ url: '/pages/goods-detail/goods-detail?id=' + this.order.goodsId })
+				if (this.order.itemId) {
+					uni.navigateTo({ url: '/pages/goods-detail/goods-detail?id=' + this.order.itemId })
+				}
 			},
-			onContact() {
-				uni.showToast({ title: '聊天功能即将上线', icon: 'none' })
+			onCancel() {
+				const user = uni.getStorageSync('user')
+				if (!user || !user.id) {
+					uni.showToast({ title: '请先登录', icon: 'none' })
+					return
+				}
+				uni.showModal({
+					title: '取消订单',
+					content: '确认取消该订单？',
+					success: async (res) => {
+						if (res.confirm) {
+							try {
+								await cancelOrder(this.order.id, user.id, { cancelReason: '用户主动取消' })
+								this.order.status = 'CANCELLED'
+								this.order.cancelTime = new Date().toISOString()
+								uni.showToast({ title: '已取消', icon: 'success' })
+							} catch (e) {}
+						}
+					}
+				})
 			},
-			onConfirm() {
-				const action = this.orderType === 'sold' ? '发货' : '收货'
-				uni.showToast({ title: action + '成功', icon: 'none' })
-				this.order.status = '已完成'
+			onComplete() {
+				const user = uni.getStorageSync('user')
+				if (!user || !user.id) {
+					uni.showToast({ title: '请先登录', icon: 'none' })
+					return
+				}
+				uni.showModal({
+					title: '确认完成',
+					content: '确认交易完成？请在当面验货确认无误后再操作。',
+					success: async (res) => {
+						if (res.confirm) {
+							try {
+								await completeOrder(this.order.id, user.id)
+								this.order.status = 'COMPLETED'
+								this.order.completeTime = new Date().toISOString()
+								uni.showToast({ title: '交易完成', icon: 'success' })
+							} catch (e) {}
+						}
+					}
+				})
+			},
+			goReview() {
+				uni.navigateTo({
+					url: '/pages/my-review/my-review?orderId=' + this.order.id + '&sellerId=' + (this.order.sellerId || '')
+				})
 			}
 		}
 	}
@@ -114,19 +241,26 @@
 		background: #f5f5f5;
 		padding: 20rpx;
 		box-sizing: border-box;
-		padding-bottom: 140rpx;
+		padding-bottom: 160rpx;
 	}
 
 	/* 状态卡片 */
 	.od-status-card {
-		background: linear-gradient(135deg, #00613C, #00804B);
+		background: linear-gradient(135deg, #3A6341, #4E7D56);
 		border-radius: 20rpx;
-		padding: 40rpx;
+		padding: 48rpx 40rpx;
 		display: flex; flex-direction: column; align-items: center;
 		margin-bottom: 20rpx;
 	}
+	.od-status-card.status-done {
+		background: linear-gradient(135deg, #3A6341, #4E7D56);
+	}
+	.od-status-card.status-cancel {
+		background: linear-gradient(135deg, #999, #b0b0b0);
+	}
 	.od-status-icon { font-size: 64rpx; margin-bottom: 16rpx; }
-	.od-status-text { font-size: 32rpx; color: #ffffff; font-weight: bold; }
+	.od-status-text { font-size: 36rpx; color: #ffffff; font-weight: bold; }
+	.od-status-hint { font-size: 24rpx; color: rgba(255,255,255,0.8); margin-top: 8rpx; }
 
 	/* 信息卡片 */
 	.section-card {
@@ -161,14 +295,31 @@
 
 	/* 信息行 */
 	.info-row {
-		display: flex; justify-content: space-between; align-items: center;
+		display: flex; justify-content: space-between; align-items: flex-start;
 		padding: 18rpx 0;
 		border-bottom: 1rpx solid #f5f5f5;
 	}
 	.info-row:last-child { border-bottom: none; }
-	.info-label { font-size: 26rpx; color: #999; }
-	.info-value { font-size: 26rpx; color: #333; }
-	.info-price { color: #e74c3c; font-weight: bold; }
+	.info-label { font-size: 26rpx; color: #999; flex-shrink: 0; margin-right: 20rpx; }
+	.info-value { font-size: 26rpx; color: #333; text-align: right; word-break: break-all; flex: 1; }
+	.info-price { color: #e74c3c; font-weight: bold; font-size: 30rpx; }
+	.selectable { user-select: text; }
+	.text-done { color: #2E7D32; }
+	.text-cancel { color: #999; }
+	.text-pending { color: #f0ad4e; }
+
+	/* 双方信息 */
+	.party-row {
+		display: flex; align-items: center; justify-content: space-between;
+		padding: 8rpx 0;
+	}
+	.party-item {
+		display: flex; flex-direction: column; align-items: center;
+		flex: 1;
+	}
+	.party-label { font-size: 24rpx; color: #999; margin-bottom: 8rpx; }
+	.party-name { font-size: 28rpx; color: #333; font-weight: 500; }
+	.party-arrow { font-size: 32rpx; color: #ccc; margin: 0 20rpx; }
 
 	/* 底部操作 */
 	.od-bottom {
@@ -180,7 +331,10 @@
 		box-sizing: border-box;
 		padding-bottom: calc(16rpx + env(safe-area-inset-bottom));
 	}
-	.od-btn { flex: 1; height: 80rpx; line-height: 80rpx; text-align: center; border-radius: 40rpx; font-size: 28rpx; }
+	.od-btn { flex: 1; height: 80rpx; line-height: 80rpx; text-align: center; border-radius: 40rpx; font-size: 28rpx; border: none; margin: 0; }
 	.od-btn-outline { background: #f5f5f5; color: #333; }
-	.od-btn-primary { background: linear-gradient(135deg, #00613C, #00804B); color: #ffffff; }
+	.od-btn-primary { background: linear-gradient(135deg, #3A6341, #4E7D56); color: #ffffff; }
+	.od-btn-review { background: linear-gradient(135deg, #f0ad4e, #f5c26b); color: #ffffff; flex: 1; }
+	.od-btn::after { border: none; }
+	.od-done-text { flex: 1; text-align: center; font-size: 28rpx; color: #999; padding: 24rpx 0; }
 </style>

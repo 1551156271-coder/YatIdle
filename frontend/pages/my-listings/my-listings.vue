@@ -7,35 +7,64 @@
 					<text class="g-title">{{ g.title }}</text>
 					<view class="g-bottom">
 						<text class="g-price">¥{{ g.price }}</text>
-						<text class="g-status" :class="g.status === '在售' ? 'status-on' : 'status-off'">{{ g.status }}</text>
+						<text class="g-status" :class="g.status === 'ON_SALE' ? 'status-on' : 'status-off'">{{ g.statusLabel }}</text>
 					</view>
 				</view>
 			</view>
 		</view>
-		<view v-else class="empty-wrap">
+		<view v-else-if="!loading" class="empty-wrap">
 			<text class="empty-icon">📦</text>
 			<text class="empty-text">暂无发布的商品</text>
 			<view class="empty-btn" @click="goPublish">去发布</view>
 		</view>
+		<view v-if="loading" class="loading-tip">加载中...</view>
 	</view>
 </template>
 
 <script>
+	import { getUserItems } from '@/api/item.js'
+
 	export default {
 		data() {
 			return {
-				goodsList: [
-					{ id: 1, image: 'https://images.unsplash.com/photo-1485965120184-e220f721d03e?q=80&w=400&auto=format&fit=crop', title: '九成新公路自行车', price: '268.00', status: '在售' },
-					{ id: 2, image: 'https://images.unsplash.com/photo-1585435557343-3b092031a831?q=80&w=400&auto=format&fit=crop', title: 'LED护眼台灯', price: '35.00', status: '在售' },
-					{ id: 3, image: 'https://images.unsplash.com/photo-1544816155-12df9643f363?q=80&w=400&auto=format&fit=crop', title: '四六级真题全套', price: '12.00', status: '已售' },
-					{ id: 4, image: 'https://images.unsplash.com/photo-1495446815901-a7297e633e8d?q=80&w=400&auto=format&fit=crop', title: '二手教材《高等数学》', price: '8.00', status: '在售' },
-					{ id: 5, image: 'https://images.unsplash.com/photo-1586953208448-b95a79798f07?q=80&w=400&auto=format&fit=crop', title: '蓝牙耳机', price: '45.00', status: '已下架' }
-				]
+				goodsList: [],
+				loading: false
 			}
 		},
+		onShow() {
+			this.loadListings()
+		},
 		methods: {
+			async loadListings() {
+				const user = uni.getStorageSync('user')
+				if (!user || !user.id) return
+				this.loading = true
+				try {
+					const result = await getUserItems(user.id)
+					const list = result.records || result || []
+					this.goodsList = list.map(item => ({
+						id: item.id,
+						image: item.imageUrl || '',
+						title: item.title,
+						price: item.price,
+						status: item.status,
+						statusLabel: this.mapStatus(item.status)
+					}))
+				} catch (e) {
+					this.goodsList = []
+				} finally {
+					this.loading = false
+				}
+			},
+			mapStatus(status) {
+				const map = { ON_SALE: '在售', SOLD: '已售', REMOVED: '已下架' }
+				return map[status] || status
+			},
 			goDetail(g) {
-				uni.navigateTo({ url: '/pages/goods-detail/goods-detail?id=' + g.id })
+				const statusMap = { ON_SALE: '在售', SOLD: '已售', REMOVED: '已下架' }
+				uni.navigateTo({
+					url: '/pages/goods-detail/goods-detail?id=' + g.id + '&mode=seller&status=' + (statusMap[g.status] || '在售')
+				})
 			},
 			goPublish() {
 				uni.switchTab({ url: '/pages/publish/publish' })
@@ -51,6 +80,7 @@
 		padding: 20rpx;
 		box-sizing: border-box;
 	}
+
 	.goods-list { display: flex; flex-direction: column; gap: 16rpx; }
 	.g-card {
 		background: #ffffff; border-radius: 16rpx;
@@ -71,7 +101,7 @@
 	.g-bottom { display: flex; justify-content: space-between; align-items: center; }
 	.g-price { font-size: 32rpx; color: #e74c3c; font-weight: bold; }
 	.g-status { font-size: 22rpx; padding: 4rpx 16rpx; border-radius: 6rpx; }
-	.status-on { color: #00613C; background: #e8f5ee; }
+	.status-on { color: #3A6341; background: #e8f5ee; }
 	.status-off { color: #999; background: #f0f0f0; }
 
 	/* 空态 */
@@ -83,7 +113,9 @@
 	.empty-text { font-size: 28rpx; color: #999; margin-bottom: 40rpx; }
 	.empty-btn {
 		font-size: 28rpx; color: #ffffff;
-		background: linear-gradient(135deg, #00613C, #00804B);
+		background: linear-gradient(135deg, #3A6341, #4E7D56);
 		padding: 16rpx 60rpx; border-radius: 44rpx;
 	}
+
+	.loading-tip { text-align: center; padding: 60rpx; font-size: 24rpx; color: #ccc; }
 </style>

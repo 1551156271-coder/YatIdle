@@ -2,6 +2,7 @@
 	export default {
 		onLaunch: function() {
 			console.log('App Launch')
+			uni.hideTabBar()
 		},
 		onShow: function() {
 			console.log('App Show')
@@ -14,4 +15,5 @@
 
 <style>
 	/*每个页面公共css */
+	@import './static/iconfont/iconfont.css';
 </style>

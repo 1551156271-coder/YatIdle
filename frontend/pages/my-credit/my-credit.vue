@@ -4,7 +4,7 @@
 		<view class="score-card">
 			<view class="score-circle" :class="creditLevel">
 				<text class="score-num">{{ credit.creditScore }}</text>
-				<text class="score-unit">分</text>
+				<!--<text class="score-unit">分</text>-->
 			</view>
 			<text class="score-desc" :class="creditLevel">{{ creditDesc }}</text>
 		</view>
@@ -21,10 +21,6 @@
 					<text class="stat-label">在售</text>
 				</view>
 				<view class="stat-item">
-					<text class="stat-num">{{ credit.fansCount }}</text>
-					<text class="stat-label">粉丝</text>
-				</view>
-				<view class="stat-item">
 					<text class="stat-num">{{ credit.reviewCount }}</text>
 					<text class="stat-label">评价</text>
 				</view>
@@ -34,13 +30,19 @@
 		<!-- 收到的评价 -->
 		<view class="section-card">
 			<view class="section-head">
-				<text class="section-title">收到的评价</text>
+				<text class="section-title">收到的评价（{{ reviews.length }}条）</text>
 			</view>
-			<view v-if="reviews.length > 0" class="review-list">
+			<view v-if="loading" class="empty-inline">
+				<text class="empty-txt">加载中...</text>
+			</view>
+			<view v-else-if="reviews.length > 0" class="review-list">
 				<view v-for="r in reviews" :key="r.id" class="review-item">
 					<view class="rv-top">
 						<view class="rv-user">
-							<text class="rv-avatar">{{ r.avatar }}</text>
+							<view class="rv-avatar">
+							<image v-if="r.avatar" class="rv-avatar-img" :src="r.avatar" mode="aspectFill"></image>
+							<text v-else class="rv-avatar-emoji">{{ r.defaultAvatar }}</text>
+						</view>
 							<text class="rv-name">{{ r.name }}</text>
 						</view>
 						<view class="rv-stars">
@@ -59,23 +61,19 @@
 </template>
 
 <script>
+	import { getMyReviews, getMyCredit } from '@/api/review.js'
+
 	export default {
 		data() {
 			return {
 				credit: {
-					creditScore: 92,
-					dealCount: 23,
-					goodsCount: 3,
-					fansCount: 56,
-					reviewCount: 8
+					creditScore: 0,
+					dealCount: 0,
+					goodsCount: 0,
+					reviewCount: 0
 				},
-				reviews: [
-					{ id: 1, avatar: '📚', name: '李四', rating: 5, content: '卖家很爽快，车况和描述完全一致，还送了挡泥板！', time: '3天前' },
-					{ id: 2, avatar: '🎧', name: '王五', rating: 5, content: '交易顺利，当面验货很放心', time: '1周前' },
-					{ id: 3, avatar: '📱', name: '赵六', rating: 4, content: '台灯好用，就是有点小划痕，整体不错', time: '2周前' },
-					{ id: 4, avatar: '💻', name: '孙七', rating: 5, content: '非常好的卖家，书保护得很好', time: '3周前' },
-					{ id: 5, avatar: '🎮', name: '周八', rating: 4, content: '交易顺利', time: '1个月前' }
-				]
+				reviews: [],
+				loading: true
 			}
 		},
 		computed: {
@@ -91,6 +89,56 @@
 				if (s >= 70) return '信用良好'
 				return '信用较差'
 			}
+		},
+		onLoad() {
+			this.loadData()
+		},
+		methods: {
+			async loadData() {
+				const user = uni.getStorageSync('user')
+				const userId = user ? user.id : 1
+				this.loading = true
+				try {
+					const [creditData, reviewList] = await Promise.all([
+						getMyCredit(userId).catch(() => null),
+						getMyReviews(userId).catch(() => [])
+					])
+					if (creditData) {
+						this.credit = {
+							creditScore: creditData.creditScore || 0,
+							dealCount: creditData.dealCount || 0,
+							goodsCount: creditData.goodsCount || 0,
+							reviewCount: creditData.reviewCount || 0
+						}
+					}
+					this.reviews = (reviewList || []).map(r => ({
+						id: r.id,
+						avatar: r.reviewerAvatar || '',
+						defaultAvatar: r.reviewerName ? r.reviewerName.charAt(0) : '?',
+						name: r.reviewerName || '匿名用户',
+						rating: r.rating || 5,
+						content: r.content || '',
+						time: this.formatTime(r.createTime)
+					}))
+				} catch (e) {
+					// ignore
+				} finally {
+					this.loading = false
+				}
+			},
+			formatTime(dateStr) {
+				if (!dateStr) return ''
+				const now = Date.now()
+				const t = new Date(dateStr).getTime()
+				const diff = now - t
+				const day = 86400000
+				if (diff < day) return '今天'
+				if (diff < 2 * day) return '昨天'
+				if (diff < 7 * day) return Math.floor(diff / day) + '天前'
+				if (diff < 30 * day) return Math.floor(diff / (7 * day)) + '周前'
+				if (diff < 365 * day) return Math.floor(diff / (30 * day)) + '个月前'
+				return Math.floor(diff / (365 * day)) + '年前'
+			}
 		}
 	}
 </script>
@@ -105,7 +153,7 @@
 
 	/* 信用分大卡 */
 	.score-card {
-		background: linear-gradient(135deg, #00613C, #00804B);
+		background: linear-gradient(135deg, #3A6341, #4E7D56);
 		border-radius: 20rpx;
 		padding: 50rpx 30rpx;
 		display: flex; flex-direction: column; align-items: center;
@@ -120,7 +168,7 @@
 		margin-bottom: 20rpx;
 	}
 	.score-num { font-size: 72rpx; color: #ffffff; font-weight: bold; line-height: 1; }
-	.score-unit { font-size: 24rpx; color: rgba(255,255,255,0.6); margin-top: 4rpx; }
+	/*.score-unit { font-size: 24rpx; color: rgba(255,255,255,0.6); margin-top: 4rpx; }*/
 	.score-desc { font-size: 30rpx; color: #ffffff; font-weight: bold; }
 
 	.score-circle.credit-high { border-color: #4cd964; }
@@ -150,9 +198,11 @@
 	.rv-top { display: flex; align-items: center; gap: 12rpx; margin-bottom: 10rpx; }
 	.rv-user { display: flex; align-items: center; gap: 8rpx; }
 	.rv-avatar {
-		width: 48rpx; height: 48rpx; background: #f0f0f0; border-radius: 50%;
-		display: flex; align-items: center; justify-content: center; font-size: 24rpx;
-	}
+	width: 48rpx; height: 48rpx; background: #f0f0f0; border-radius: 50%;
+	display: flex; align-items: center; justify-content: center; font-size: 24rpx; flex-shrink: 0; overflow: hidden;
+}
+.rv-avatar-img { width: 100%; height: 100%; border-radius: 50%; }
+.rv-avatar-emoji { font-size: 24rpx; }
 	.rv-name { font-size: 26rpx; color: #333; }
 	.rv-stars { display: flex; gap: 2rpx; }
 	.star { font-size: 26rpx; color: #eee; }
