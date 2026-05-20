@@ -2,7 +2,7 @@ const BASE_URL = 'http://localhost:8080'
 const TIMEOUT = 10000
 
 // ========== Mock 开关：true=用假数据，false=调真实接口 ==========
-export const MOCK = true
+export const MOCK = false
 // ================================================================
 
 // Mock 模式下自动写入登录态

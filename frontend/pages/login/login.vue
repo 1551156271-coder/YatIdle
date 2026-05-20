@@ -108,6 +108,16 @@ export default {
 		switchTab(tab) {
 			this.activeTab = tab
 		},
+		redirectAfterAuth() {
+			const pages = getCurrentPages()
+			if (pages.length > 1) {
+				uni.navigateBack()
+			} else {
+				uni.switchTab({
+					url: '/pages/my/my'
+				})
+			}
+		},
 		onLogin() {
 			const { username, password } = this.loginForm
 			if (!username.trim()) {
@@ -121,11 +131,12 @@ export default {
 
 			this.submitting = true
 			login(username.trim(), password)
-				.then((user) => {
-					uni.setStorageSync('user', user)
+				.then((res) => {
+					uni.setStorageSync('token', res.token)
+					uni.setStorageSync('user', res.user)
 					uni.showToast({ title: '登录成功', icon: 'none' })
 					setTimeout(() => {
-						uni.navigateBack()
+						this.redirectAfterAuth()
 					}, 800)
 				})
 				.catch(() => {})
@@ -150,11 +161,12 @@ export default {
 
 			this.submitting = true
 			register(username.trim(), password)
-				.then((user) => {
-					uni.setStorageSync('user', user)
+				.then((res) => {
+					uni.setStorageSync('token', res.token)
+					uni.setStorageSync('user', res.user)
 					uni.showToast({ title: '注册成功', icon: 'none' })
 					setTimeout(() => {
-						uni.navigateBack()
+						this.redirectAfterAuth()
 					}, 800)
 				})
 				.catch(() => {})
