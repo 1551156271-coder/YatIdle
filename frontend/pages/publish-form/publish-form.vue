@@ -120,6 +120,7 @@
 
 <script>
 	import { publishItem, getCategories, uploadImage } from '@/api/item.js'
+	import { publishWanted } from '@/api/wanted.js'
 
 	export default {
 		data() {
@@ -313,18 +314,53 @@
 				this.buyForm.images.splice(idx, 1)
 			},
 
-			onBuySubmit() {
-				if (!this.buyForm.title) {
-					uni.showToast({ title: '请输入求购物品', icon: 'none' })
-					return
-				}
-				if (this.budgetError) {
-					uni.showToast({ title: '请检查预算范围', icon: 'none' })
-					return
-				}
-				// 求购功能后端暂未实现，仅本地提示
-				uni.showToast({ title: '求购发布功能需后端支持', icon: 'none' })
+		async onBuySubmit() {
+			if (!this.buyForm.title) {
+				uni.showToast({ title: '请输入求购物品', icon: 'none' })
+				return
 			}
+			if (this.budgetError) {
+				uni.showToast({ title: '请检查预算范围', icon: 'none' })
+				return
+			}
+			const user = uni.getStorageSync('user')
+			if (!user || !user.id) {
+				uni.showToast({ title: '请先登录', icon: 'none' })
+				return
+			}
+			this.submitting = true
+			try {
+				uni.showLoading({ title: '发布中...' })
+				const imageUrls = []
+				for (const img of this.buyForm.images) {
+					if (img.startsWith('http') || img.startsWith('/uploads')) {
+						imageUrls.push(img)
+					} else {
+						const url = await uploadImage(img)
+						imageUrls.push(url)
+					}
+				}
+				uni.hideLoading()
+				const payload = {
+					userId: user.id,
+					title: this.buyForm.title,
+					budgetMin: Number(this.buyForm.budgetMin) || 0,
+					budgetMax: Number(this.buyForm.budgetMax) || 0,
+					categoryId: this.buyForm.categoryId || undefined,
+					campus: this.buyForm.campus || undefined,
+					conditionLevel: this.buyForm.condition || undefined,
+					description: this.buyForm.desc || undefined,
+					imageUrls
+				}
+				const data = await publishWanted(payload)
+				uni.showToast({ title: '发布成功！', icon: 'success' })
+				setTimeout(() => {
+					uni.navigateTo({ url: '/pages/wanted-detail/wanted-detail?id=' + data.id })
+				}, 1200)
+			} catch (e) {
+				this.submitting = false
+			}
+		}
 		}
 	}
 </script>

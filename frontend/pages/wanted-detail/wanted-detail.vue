@@ -89,34 +89,91 @@
 </template>
 
 <script>
+	import { getWantedDetail } from '@/api/wanted.js'
+	import { getCategories } from '@/api/item.js'
+	import { createSession } from '@/api/chat.js'
+
 	export default {
 		data() {
 			return {
 				detail: {},
+				categories: [],
 				isCollected: false,
-				isOwner: false,
-				mockData: [
-					{ id: 101, title: 'MacBook Pro 14寸', budgetMin: '5000', budgetMax: '7000', campus: '东校园', condition: '90新以上', categoryLabel: '数码电子', status: '求购中', desc: '主要用来写代码和做设计，14寸最好，16寸也可以接受。最好是M系列芯片，16G内存以上，成色不要太差。', username: '测试用户', time: '2天前', images: ['https://images.unsplash.com/photo-1517336714731-489689fd1ca8?q=80&w=400&auto=format&fit=crop'] },
-					{ id: 102, title: 'iPad + 苹果笔', budgetMin: '2000', budgetMax: '3500', campus: '南校园', condition: '85新以上', categoryLabel: '数码电子', status: '求购中', desc: '主要用于记笔记和看网课，iPad Air或Pro都可以，带笔优先。屏幕不要有划痕，电池续航正常就行。', username: '测试用户', time: '3天前', images: ['https://images.unsplash.com/photo-1546868871-af0de0ae72be?q=80&w=400&auto=format&fit=crop'] },
-					{ id: 103, title: '数位板', budgetMin: '200', budgetMax: '500', campus: '东校园', condition: '不限', categoryLabel: '数码电子', status: '已找到', desc: '入门级数位板就行，Wacom或国产都可以，主要用来画一些简单的插画。', username: '测试用户', time: '1周前' },
-					{ id: 104, title: '收一双42码跑鞋', budgetMin: '100', budgetMax: '250', campus: '北校园', condition: '95新以上', categoryLabel: '运动户外', status: '求购中', desc: '体育课需要，穿不了几次所以不想买全新的。耐克或者阿迪的都可以，42码，颜色不限，只要没有明显磨损就行。', username: '运动达人', time: '昨天' }
-				]
+				isOwner: false
 			}
 		},
-		onLoad(options) {
+		async onLoad(options) {
 			const id = parseInt(options.id)
-			this.detail = this.mockData.find(item => item.id === id) || this.mockData[0]
 			if (options.mode === 'self') {
 				this.isOwner = true
 			}
+			await this.loadCategories()
+			if (id) {
+				await this.loadDetail(id)
+			}
 		},
 		methods: {
+			async loadCategories() {
+				try {
+					this.categories = await getCategories()
+				} catch (e) {
+					this.categories = []
+				}
+			},
+			async loadDetail(id) {
+				try {
+					const data = await getWantedDetail(id)
+					const user = uni.getStorageSync('user') || {}
+					this.detail = {
+						id: data.id,
+						title: data.title,
+						budgetMin: data.budgetMin,
+						budgetMax: data.budgetMax,
+						campus: data.campus || '',
+						condition: data.conditionLevel || '不限',
+						categoryLabel: this.getCategoryLabel(data.categoryId),
+						status: data.status,
+						desc: data.description || '',
+						images: data.images || [],
+						username: data.username || '',
+						time: this.formatTime(data.createTime),
+						userId: data.userId,
+						isOwner: data.userId === user.id
+					}
+				} catch (e) {
+					uni.showToast({ title: '加载求购详情失败', icon: 'none' })
+				}
+			},
+			getCategoryLabel(categoryId) {
+				const cat = this.categories.find(c => c.id === categoryId)
+				return cat ? cat.name : ''
+			},
+			formatTime(time) {
+				if (!time) return ''
+				const now = Date.now()
+				const diff = now - new Date(time).getTime()
+				const min = Math.floor(diff / 60000)
+				if (min < 60) return min + '分钟前'
+				const hour = Math.floor(min / 60)
+				if (hour < 24) return hour + '小时前'
+				return Math.floor(hour / 24) + '天前'
+			},
 			toggleCollect() {
 				this.isCollected = !this.isCollected
 				uni.showToast({ title: this.isCollected ? '已收藏' : '取消收藏', icon: 'none' })
 			},
-			contactSeller() {
-				uni.navigateTo({ url: '/pages/chat/chat?id=2' })
+			async contactSeller() {
+				const user = uni.getStorageSync('user')
+				if (!user || !user.id) {
+					uni.showToast({ title: '请先登录', icon: 'none' })
+					return
+				}
+				try {
+					const session = await createSession(user.id, { wantedId: this.detail.id })
+					uni.navigateTo({ url: '/pages/chat/chat?id=' + session.id + '&name=' + encodeURIComponent(this.detail.username) })
+				} catch (e) {
+					uni.showToast({ title: '创建会话失败', icon: 'none' })
+				}
 			},
 			previewImage(idx) {
 				uni.previewImage({
@@ -139,7 +196,7 @@
 						}
 					}
 				})
-			},
+			}
 		}
 	}
 </script>

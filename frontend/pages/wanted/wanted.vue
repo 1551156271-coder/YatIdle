@@ -43,26 +43,70 @@
 
 <script>
 	import TabBar from '@/components/tab-bar.vue'
+	import { getWantedList } from '@/api/wanted.js'
+	import { getCategories } from '@/api/item.js'
+
 	export default {
 		components: { TabBar },
 		data() {
 			return {
-				wantedList: [
-					{ id: 101, title: '求购一台二手笔记本电脑', budgetMin: '2000', budgetMax: '3500', campus: '东校园', condition: '85新以上', categoryLabel: '数码电子', desc: '女生自用，主要用于写论文和看视频，电池续航好一些的', username: '小橙子', time: '10分钟前' },
-					{ id: 102, title: '收高数下册+习题集', budgetMin: '15', budgetMax: '30', campus: '南校园', condition: '不限', categoryLabel: '书籍教材', desc: '下学期要用，有笔记也可以，价格好商量', username: '数学苦手', time: '1小时前' },
-					{ id: 103, title: '二手电动车代步用', budgetMin: '600', budgetMax: '1200', campus: '珠海校区', condition: '90新以上', categoryLabel: '生活用品', desc: '校区太大走路太累，求购一辆二手电动车，续航好一点的', username: '骑车上学', time: '3小时前' },
-					{ id: 104, title: '收一双42码跑鞋', budgetMin: '100', budgetMax: '250', campus: '北校园', condition: '95新以上', categoryLabel: '运动户外', desc: '体育课需要，穿不了几次所以不想买全新的', username: '运动达人', time: '昨天' }
-				]
+				wantedList: [],
+				categories: []
 			}
+		},
+		onLoad() {
+			this.loadCategories()
 		},
 		onShow() {
 			uni.hideTabBar()
+			this.loadWantedList()
 		},
 		methods: {
+			async loadCategories() {
+				try {
+					this.categories = await getCategories()
+				} catch (e) {
+					this.categories = []
+				}
+			},
+			async loadWantedList() {
+				try {
+					const list = await getWantedList()
+					this.wantedList = list.map(item => ({
+						id: item.id,
+						title: item.title,
+						budgetMin: item.budgetMin,
+						budgetMax: item.budgetMax,
+						campus: item.campus || '',
+						condition: item.conditionLevel || '不限',
+						categoryLabel: this.getCategoryLabel(item.categoryId),
+						desc: '',
+						username: item.username || '',
+						time: this.formatTime(item.createTime)
+					}))
+				} catch (e) {
+					console.error('加载求购列表失败', e)
+				}
+			},
+			getCategoryLabel(categoryId) {
+				if (!this.categories.length) return ''
+				const cat = this.categories.find(c => c.id === categoryId)
+				return cat ? cat.name : ''
+			},
+			formatTime(time) {
+				if (!time) return ''
+				const now = Date.now()
+				const diff = now - new Date(time).getTime()
+				const min = Math.floor(diff / 60000)
+				if (min < 60) return min + '分钟前'
+				const hour = Math.floor(min / 60)
+				if (hour < 24) return hour + '小时前'
+				return Math.floor(hour / 24) + '天前'
+			},
 			goToDetail(item) {
 				uni.navigateTo({
-						url: '/pages/wanted-detail/wanted-detail?id=' + item.id
-					})
+					url: '/pages/wanted-detail/wanted-detail?id=' + item.id
+				})
 			}
 		}
 	}

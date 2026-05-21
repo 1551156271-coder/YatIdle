@@ -130,6 +130,8 @@
 	import { getMySellOrders, getMyBuyOrders } from '@/api/order.js'
 	import { getMyFavorites } from '@/api/favorite.js'
 	import { getWallet } from '@/api/wallet.js'
+	import { getUserItems } from '@/api/item.js'
+	import { getMyWanted } from '@/api/wanted.js'
 	export default {
 		components: { TabBar },
 		data() {
@@ -192,13 +194,17 @@
 				const user = uni.getStorageSync('user')
 				if (!user || !user.id) return
 				try {
-					const [sellOrders, buyOrders, favorites, walletData] = await Promise.all([
+					const [sellOrders, buyOrders, favorites, walletData, items, wantedList] = await Promise.all([
 						getMySellOrders(user.id).catch(() => []),
 						getMyBuyOrders(user.id).catch(() => []),
 						getMyFavorites(user.id).catch(() => []),
-						getWallet(user.id).catch(() => null)
+						getWallet(user.id).catch(() => null),
+						getUserItems(user.id).catch(() => []),
+						getMyWanted(user.id).catch(() => [])
 					])
-					this.stats.sellCount = sellOrders.length
+					const itemCount = (items.records || items || []).length
+					const wantedCount = (wantedList || []).length
+					this.stats.sellCount = itemCount + wantedCount
 					this.stats.soldCount = sellOrders.filter(o => o.status === 'COMPLETED').length
 					this.stats.buyCount = buyOrders.length
 					this.stats.wishCount = favorites.length

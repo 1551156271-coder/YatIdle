@@ -121,8 +121,9 @@ export default {
 
 			this.submitting = true
 			login(username.trim(), password)
-				.then((user) => {
-					uni.setStorageSync('user', user)
+				.then((data) => {
+					uni.setStorageSync('token', data.token)
+					uni.setStorageSync('user', data.user)
 					uni.showToast({ title: '登录成功', icon: 'none' })
 					setTimeout(() => {
 						uni.navigateBack()
@@ -150,8 +151,9 @@ export default {
 
 			this.submitting = true
 			register(username.trim(), password)
-				.then((user) => {
-					uni.setStorageSync('user', user)
+				.then((data) => {
+					uni.setStorageSync('token', data.token)
+					uni.setStorageSync('user', data.user)
 					uni.showToast({ title: '注册成功', icon: 'none' })
 					setTimeout(() => {
 						uni.navigateBack()

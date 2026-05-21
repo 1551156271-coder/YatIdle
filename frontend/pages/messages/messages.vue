@@ -74,7 +74,7 @@
 							id: s.id,
 							avatar: '',
 							defaultAvatar: isBuyer ? '🤝' : '🛒',
-							name: s.itemTitle || otherName,
+							name: s.wantedTitle || s.itemTitle || otherName,
 							lastMsg: s.lastMessage || '暂无消息',
 							time: this.formatTime(s.lastMessageTime),
 							unread: s.unreadCount || 0
@@ -98,7 +98,7 @@
 			},
 			openChat(item) {
 				uni.navigateTo({
-					url: '/pages/chat/chat?id=' + item.id
+					url: '/pages/chat/chat?id=' + item.id + '&name=' + encodeURIComponent(item.name)
 				})
 			},
 			goNotifications() {

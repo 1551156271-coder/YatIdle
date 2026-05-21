@@ -182,6 +182,9 @@ export default {
 		if (user && user.id) {
 			this.userId = user.id
 		}
+		if (options.name) {
+			this.contactInfo.name = decodeURIComponent(options.name)
+		}
 		if (options.id) {
 			this.sessionId = options.id
 			this.loadMessages()

@@ -2,12 +2,20 @@ const BASE_URL = 'http://localhost:8080'
 const TIMEOUT = 10000
 
 // ========== Mock 开关：true=用假数据，false=调真实接口 ==========
-export const MOCK = true
+export const MOCK = false
 // ================================================================
 
 // Mock 模式下自动写入登录态
 if (MOCK && !uni.getStorageSync('user')) {
 	uni.setStorageSync('user', { id: 1, username: 'testuser', avatar: '', campus: '东校园' })
+}
+
+// 非 Mock 模式下，清除旧的 Mock 假登录态（没有 token 的就是假的）
+if (!MOCK) {
+	const token = uni.getStorageSync('token')
+	if (!token) {
+		uni.removeStorageSync('user')
+	}
 }
 
 // ========== Mock 数据 ==========
@@ -395,7 +403,8 @@ function request(method, url, data) {
 			data,
 			timeout: TIMEOUT,
 			header: {
-				'Content-Type': 'application/json'
+				'Content-Type': 'application/json',
+				'Authorization': 'Bearer ' + (uni.getStorageSync('token') || '')
 			},
 			success(res) {
 				if (res.statusCode === 200) {
