@@ -50,14 +50,31 @@
 		data() {
 			return {
 				loading: false,
-				chatList: []
+				chatList: [],
+				pollTimer: null
 			}
 		},
 		onShow() {
 			uni.hideTabBar()
 			this.loadSessions()
+			this.startPolling()
+		},
+		onHide() {
+			this.stopPolling()
 		},
 		methods: {
+			startPolling() {
+				this.stopPolling()
+				this.pollTimer = setInterval(() => {
+					this.loadSessions()
+				}, 5000)
+			},
+			stopPolling() {
+				if (this.pollTimer) {
+					clearInterval(this.pollTimer)
+					this.pollTimer = null
+				}
+			},
 			async loadSessions() {
 				const user = uni.getStorageSync('user')
 				if (!user || !user.id) {

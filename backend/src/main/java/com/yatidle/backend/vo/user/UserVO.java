@@ -33,7 +33,7 @@ public class UserVO {
         vo.setId(user.getId());
         vo.setUsername(user.getUsername());
         vo.setPhone(user.getPhone());
-        vo.setAvatar(user.getAvatar());
+        vo.setAvatar(resolveUrl(user.getAvatar()));
         vo.setNickname(user.getNickname());
         vo.setBio(user.getBio());
         vo.setCampus(user.getCampus());
@@ -42,5 +42,11 @@ public class UserVO {
         vo.setStatus(user.getStatus());
         vo.setCreateTime(user.getCreateTime());
         return vo;
+    }
+
+    private static String resolveUrl(String url) {
+        if (url == null || url.isEmpty()) return url;
+        if (url.startsWith("http://") || url.startsWith("https://")) return url;
+        return "http://localhost:8080" + url;
     }
 }

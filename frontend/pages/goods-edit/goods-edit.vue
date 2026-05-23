@@ -195,7 +195,7 @@
 					uni.showLoading({ title: '上传图片中...' })
 					const imageUrls = []
 					for (const img of this.form.images) {
-						if (img.startsWith('http') || img.startsWith('/uploads')) {
+						if (img.includes('/uploads/')) {
 							imageUrls.push(img)
 						} else {
 							const url = await uploadImage(img)

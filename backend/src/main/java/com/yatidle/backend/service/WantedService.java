@@ -10,6 +10,7 @@ import com.yatidle.backend.mapper.WantedImageMapper;
 import com.yatidle.backend.mapper.WantedMapper;
 import com.yatidle.backend.vo.wanted.WantedDetailVO;
 import com.yatidle.backend.vo.wanted.WantedVO;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
@@ -22,6 +23,9 @@ public class WantedService {
     private final WantedMapper wantedMapper;
     private final WantedImageMapper wantedImageMapper;
     private final UserMapper userMapper;
+
+    @Value("${app.base-url}")
+    private String baseUrl;
 
     public WantedService(WantedMapper wantedMapper, WantedImageMapper wantedImageMapper, UserMapper userMapper) {
         this.wantedMapper = wantedMapper;
@@ -89,7 +93,7 @@ public class WantedService {
         wanted.setViewCount(wanted.getViewCount() + 1);
         wantedMapper.updateById(wanted);
         List<WantedImage> images = wantedImageMapper.selectByWantedId(id);
-        List<String> imageUrls = images.stream().map(WantedImage::getImageUrl).collect(Collectors.toList());
+        List<String> imageUrls = images.stream().map(WantedImage::getImageUrl).map(this::resolveUrl).collect(Collectors.toList());
         WantedDetailVO vo = WantedDetailVO.from(wanted, imageUrls);
         vo.setUsername(getUsername(wanted.getUserId()));
         return vo;
@@ -148,5 +152,11 @@ public class WantedService {
         if (userId == null) return null;
         User user = userMapper.selectById(userId);
         return user != null ? user.getUsername() : null;
+    }
+
+    private String resolveUrl(String url) {
+        if (url == null || url.isEmpty()) return url;
+        if (url.startsWith("http://") || url.startsWith("https://")) return url;
+        return baseUrl + url;
     }
 }

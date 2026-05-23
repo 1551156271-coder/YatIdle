@@ -258,7 +258,7 @@
 					uni.showLoading({ title: '上传图片中...' })
 					const imageUrls = []
 					for (const img of this.sellForm.images) {
-						if (img.startsWith('http') || img.startsWith('/uploads')) {
+						if (img.includes('/uploads/')) {
 							imageUrls.push(img)
 						} else {
 							const url = await uploadImage(img)
@@ -333,7 +333,7 @@
 				uni.showLoading({ title: '发布中...' })
 				const imageUrls = []
 				for (const img of this.buyForm.images) {
-					if (img.startsWith('http') || img.startsWith('/uploads')) {
+					if (img.includes('/uploads/')) {
 						imageUrls.push(img)
 					} else {
 						const url = await uploadImage(img)

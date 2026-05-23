@@ -10,6 +10,7 @@ import com.yatidle.backend.vo.item.ItemCardVO;
 import com.yatidle.backend.vo.item.ItemDetailVO;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -28,6 +29,9 @@ import java.util.UUID;
 public class ItemController {
 
     private final ItemService itemService;
+
+    @Value("${app.base-url}")
+    private String baseUrl;
 
     @PostMapping("/publish")
     public Result<ItemDetailVO> publish(@Valid @RequestBody ItemPublishDTO dto) {
@@ -77,7 +81,7 @@ public class ItemController {
         Path target = uploadDir.resolve(filename);
         file.transferTo(target);
 
-        return Result.success(Map.of("url", "/uploads/items/" + filename));
+        return Result.success(Map.of("url", baseUrl + "/uploads/items/" + filename));
     }
 
     @PutMapping("/{id}")

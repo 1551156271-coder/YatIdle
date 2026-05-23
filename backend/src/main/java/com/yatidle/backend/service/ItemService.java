@@ -14,6 +14,7 @@ import com.yatidle.backend.mapper.ItemMapper;
 import com.yatidle.backend.vo.item.ItemCardVO;
 import com.yatidle.backend.vo.item.ItemDetailVO;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,6 +32,9 @@ public class ItemService {
     private final ItemMapper itemMapper;
     private final ItemImageMapper itemImageMapper;
     private final CategoryMapper categoryMapper;
+
+    @Value("${app.base-url}")
+    private String baseUrl;
 
     // ======================= 1. 发布商品 =======================
     @Transactional(rollbackFor = Exception.class)
@@ -221,7 +225,7 @@ public class ItemService {
         List<ItemImage> images = itemImageMapper.selectByItemId(itemId);
         List<String> urls = new ArrayList<>();
         for (ItemImage img : images) {
-            urls.add(img.getImageUrl());
+            urls.add(resolveUrl(img.getImageUrl()));
         }
         return urls;
     }
@@ -261,6 +265,12 @@ public class ItemService {
             vo.setImageUrl(urls.get(0));
         }
         return vo;
+    }
+
+    private String resolveUrl(String url) {
+        if (url == null || url.isEmpty()) return url;
+        if (url.startsWith("http://") || url.startsWith("https://")) return url;
+        return baseUrl + url;
     }
 
     private void validateCategory(Long categoryId) {

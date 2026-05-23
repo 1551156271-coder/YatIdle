@@ -188,13 +188,14 @@ export default {
 		if (options.id) {
 			this.sessionId = options.id
 			this.loadMessages()
+			this.startPolling()
 		}
 		this.$nextTick(() => this.scrollToBottom())
 		setTimeout(() => { this.scrollAnimated = true }, 500)
 	},
 	onUnload() {
 		clearInterval(this.recordTimer)
-		clearInterval(this.pollTimer)
+		this.stopPolling()
 	},
 	methods: {
 		goBack() { uni.navigateBack() },
@@ -202,7 +203,6 @@ export default {
 		async loadMessages() {
 			if (!this.sessionId || !this.userId) return
 			try {
-				// 标记已读
 				await markRead(this.sessionId, this.userId).catch(() => {})
 				const result = await getMessages(this.sessionId, this.userId); const list = (result && result.records) || result || []
 				this.msgs = list.map(m => ({
@@ -231,6 +231,62 @@ export default {
 			}
 		},
 
+		startPolling() {
+			this.stopPolling()
+			this.pollTimer = setInterval(() => {
+				this.pollMessages()
+			}, 3000)
+		},
+
+		stopPolling() {
+			if (this.pollTimer) {
+				clearInterval(this.pollTimer)
+				this.pollTimer = null
+			}
+		},
+
+		async pollMessages() {
+			if (!this.sessionId || !this.userId) return
+			try {
+				const result = await getMessages(this.sessionId, this.userId)
+				const list = (result && result.records) || result || []
+				if (!list.length) return
+
+				// 检查是否有新消息（比当前列表多，或最后一条 ID 不同）
+				const isNew = list.length !== this.msgs.length ||
+					(list.length > 0 && this.msgs.length > 0 && list[list.length - 1].id !== this.msgs[this.msgs.length - 1].id)
+
+				if (!isNew) return
+
+				const wasAtBottom = this.isScrolledToBottom()
+
+				this.msgs = list.map(m => ({
+					id: m.id,
+					fromMe: m.senderId === this.userId,
+					type: m.messageType === 'IMAGE' ? 'image' : 'text',
+					content: m.content,
+					time: new Date(m.createTime).getTime(),
+					showTime: false
+				}))
+				this.addTimeDividers()
+
+				// 有新消息时标记已读
+				markRead(this.sessionId, this.userId).catch(() => {})
+
+				if (wasAtBottom) {
+					this.$nextTick(() => this.scrollToBottom())
+				}
+			} catch (e) {
+				// 轮询静默失败
+			}
+		},
+
+		isScrolledToBottom() {
+			// uni-app 中 scroll-view 无法直接获取 scrollTop，默认认为在底部
+			// 如果用户手动上滑查看历史消息，不自动滚到底部
+			return true
+		},
+
 		async sendText() {
 			const t = this.inputText.trim()
 			if (!t) return
@@ -242,7 +298,6 @@ export default {
 			this.toolbarOpen = false
 			try {
 				await sendMessage(this.userId, { sessionId: Number(this.sessionId), content: t })
-				// 重新加载消息以获取服务端数据
 				await this.loadMessages()
 			} catch (e) {
 				uni.showToast({ title: '发送失败', icon: 'none' })
