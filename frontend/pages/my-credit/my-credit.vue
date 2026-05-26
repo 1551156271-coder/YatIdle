@@ -61,7 +61,8 @@
 </template>
 
 <script>
-	import { getMyReviews, getMyCredit } from '@/api/review.js'
+	import { getUserReviews } from '@/api/review.js'
+	import { getUserInfo } from '@/api/user.js'
 
 	export default {
 		data() {
@@ -99,27 +100,32 @@
 				const userId = user ? user.id : 1
 				this.loading = true
 				try {
-					const [creditData, reviewList] = await Promise.all([
-						getMyCredit(userId).catch(() => null),
-						getMyReviews(userId).catch(() => [])
+					const [userData, reviewData] = await Promise.all([
+						getUserInfo(userId).catch(() => null),
+						getUserReviews(userId).catch(() => null)
 					])
-					if (creditData) {
-						this.credit = {
-							creditScore: creditData.creditScore || 0,
-							dealCount: creditData.dealCount || 0,
-							goodsCount: creditData.goodsCount || 0,
-							reviewCount: creditData.reviewCount || 0
-						}
+
+					if (userData) {
+						const u = userData.data || userData
+						this.credit.creditScore = u.creditScore || 0
+						this.credit.dealCount = u.dealCount || 0
+						this.credit.goodsCount = u.goodsCount || 0
 					}
-					this.reviews = (reviewList || []).map(r => ({
-						id: r.id,
-						avatar: r.reviewerAvatar || '',
-						defaultAvatar: r.reviewerName ? r.reviewerName.charAt(0) : '?',
-						name: r.reviewerName || '匿名用户',
-						rating: r.rating || 5,
-						content: r.content || '',
-						time: this.formatTime(r.createTime)
-					}))
+
+					if (reviewData) {
+						const r = reviewData.data || reviewData
+						const reviewList = r.reviews || r || []
+						this.credit.reviewCount = r.totalCount || reviewList.length
+						this.reviews = reviewList.map(rv => ({
+							id: rv.id,
+							avatar: rv.reviewerAvatar || '',
+							defaultAvatar: rv.reviewerName ? rv.reviewerName.charAt(0) : '?',
+							name: rv.reviewerName || '匿名用户',
+							rating: rv.rating || 5,
+							content: rv.content || '',
+							time: this.formatTime(rv.createTime)
+						}))
+					}
 				} catch (e) {
 					// ignore
 				} finally {

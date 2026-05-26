@@ -41,7 +41,7 @@ class ItemServiceTest {
 
     @Test
     void publishCreatesOnSaleItemAndImageRowsAfterValidCategory() {
-        ItemService service = new ItemService(itemMapper, itemImageMapper, categoryMapper);
+        ItemService service = new ItemService(itemMapper, itemImageMapper, categoryMapper, "http://127.0.0.1:8080");
         when(categoryMapper.selectById(1L)).thenReturn(activeCategory());
         when(itemMapper.insert(any(Item.class))).thenAnswer(invocation -> {
             Item item = invocation.getArgument(0);
@@ -73,7 +73,7 @@ class ItemServiceTest {
 
     @Test
     void updateRejectsNonOwner() {
-        ItemService service = new ItemService(itemMapper, itemImageMapper, categoryMapper);
+        ItemService service = new ItemService(itemMapper, itemImageMapper, categoryMapper, "http://127.0.0.1:8080");
         Item item = new Item();
         item.setId(11L);
         item.setUserId(1L);
@@ -87,7 +87,7 @@ class ItemServiceTest {
 
     @Test
     void offlineAndOnlineRequireOwnerAndSwitchStatus() {
-        ItemService service = new ItemService(itemMapper, itemImageMapper, categoryMapper);
+        ItemService service = new ItemService(itemMapper, itemImageMapper, categoryMapper, "http://127.0.0.1:8080");
         Item item = new Item();
         item.setId(11L);
         item.setUserId(1L);
@@ -104,7 +104,7 @@ class ItemServiceTest {
 
     @Test
     void listByUserReturnsStatusInCards() {
-        ItemService service = new ItemService(itemMapper, itemImageMapper, categoryMapper);
+        ItemService service = new ItemService(itemMapper, itemImageMapper, categoryMapper, "http://127.0.0.1:8080");
         Item item = new Item();
         item.setId(11L);
         item.setUserId(1L);
@@ -126,7 +126,7 @@ class ItemServiceTest {
 
     @Test
     void searchAcceptsConditionAndPriceSort() {
-        ItemService service = new ItemService(itemMapper, itemImageMapper, categoryMapper);
+        ItemService service = new ItemService(itemMapper, itemImageMapper, categoryMapper, "http://127.0.0.1:8080");
         Page<Item> emptyPage = new Page<>(1, 20, 0);
         when(itemMapper.selectPage(any(Page.class), any())).thenReturn(emptyPage);
 

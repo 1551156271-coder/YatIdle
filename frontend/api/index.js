@@ -1,5 +1,12 @@
-const BASE_URL = 'http://localhost:8080'
+const BASE_URL = 'http://127.0.0.1:8080'
 const TIMEOUT = 10000
+
+export function resolveImageUrl(url) {
+  if (!url) return ''
+  if (url.startsWith('http://') || url.startsWith('https://')) return url
+  if (url.startsWith('/')) return BASE_URL + url
+  return BASE_URL + '/' + url
+}
 
 // ========== Mock 开关：true=用假数据，false=调真实接口 ==========
 export const MOCK = false

@@ -62,8 +62,8 @@
 						itemId: o.itemId,
 						buyerId: o.buyerId,
 						sellerId: o.sellerId,
-						image: '',
-						title: '商品 #' + o.itemId,
+						image: o.itemImageUrl || '',
+						title: o.itemTitle || ('商品 #' + o.itemId),
 						price: o.price,
 						status: o.status,
 						statusLabel: this.mapStatus(o.status),
@@ -74,6 +74,7 @@
 						completeTime: o.completeTime,
 						cancelTime: o.cancelTime,
 						cancelReason: o.cancelReason,
+						hasReviewed: o.hasReviewed || false,
 						time: o.createTime ? o.createTime.slice(0, 10) : ''
 					}))
 				} catch (e) {

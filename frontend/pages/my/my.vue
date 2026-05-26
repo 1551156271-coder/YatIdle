@@ -132,6 +132,7 @@
 	import { getWallet } from '@/api/wallet.js'
 	import { getUserItems } from '@/api/item.js'
 	import { getMyWanted } from '@/api/wanted.js'
+	import { getUserInfo } from '@/api/user.js'
 	export default {
 		components: { TabBar },
 		data() {
@@ -157,7 +158,7 @@
 					walletBalance: 0.00
 				},
 				credit: {
-					score: 92
+					score: 0
 				}
 			}
 		},
@@ -194,13 +195,14 @@
 				const user = uni.getStorageSync('user')
 				if (!user || !user.id) return
 				try {
-					const [sellOrders, buyOrders, favorites, walletData, items, wantedList] = await Promise.all([
+					const [sellOrders, buyOrders, favorites, walletData, items, wantedList, userData] = await Promise.all([
 						getMySellOrders(user.id).catch(() => []),
 						getMyBuyOrders(user.id).catch(() => []),
 						getMyFavorites(user.id).catch(() => []),
 						getWallet(user.id).catch(() => null),
 						getUserItems(user.id).catch(() => []),
-						getMyWanted(user.id).catch(() => [])
+						getMyWanted(user.id).catch(() => []),
+						getUserInfo(user.id).catch(() => null)
 					])
 					const itemCount = (items.records || items || []).length
 					const wantedCount = (wantedList || []).length
@@ -209,6 +211,10 @@
 					this.stats.buyCount = buyOrders.length
 					this.stats.wishCount = favorites.length
 					if (walletData) this.stats.walletBalance = walletData.balance || 0
+					if (userData) {
+						const u = userData.data || userData
+						this.credit.score = u.creditScore || 0
+					}
 				} catch (e) {}
 			},
 			openSidebar() {

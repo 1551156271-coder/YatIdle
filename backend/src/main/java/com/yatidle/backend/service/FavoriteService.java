@@ -4,21 +4,33 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.yatidle.backend.entity.Favorite;
 import com.yatidle.backend.entity.Item;
+import com.yatidle.backend.entity.ItemImage;
 import com.yatidle.backend.mapper.FavoriteMapper;
+import com.yatidle.backend.mapper.ItemImageMapper;
 import com.yatidle.backend.mapper.ItemMapper;
 import com.yatidle.backend.vo.favorite.FavoriteVO;
-import jakarta.servlet.http.PushBuilder;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Service
-@RequiredArgsConstructor
 public class FavoriteService {
     private final FavoriteMapper favoriteMapper;
     private final ItemMapper itemMapper;
+    private final ItemImageMapper itemImageMapper;
+    private final String baseUrl;
+
+    public FavoriteService(FavoriteMapper favoriteMapper,
+                           ItemMapper itemMapper,
+                           ItemImageMapper itemImageMapper,
+                           @Value("${app.base-url}") String baseUrl) {
+        this.favoriteMapper = favoriteMapper;
+        this.itemMapper = itemMapper;
+        this.itemImageMapper = itemImageMapper;
+        this.baseUrl = baseUrl;
+    }
 
     public void addFavorite(Long itemId, Long currentUserId){
         if(itemId == null){
@@ -83,8 +95,19 @@ public class FavoriteService {
             vo.setItemStatus(item.getStatus());
             vo.setCreateTime(favorite.getCreateTime());
 
+            List<ItemImage> images = itemImageMapper.selectByItemId(item.getId());
+            if (images != null && !images.isEmpty()) {
+                vo.setCoverImage(resolveUrl(images.get(0).getImageUrl()));
+            }
+
             result.add(vo);
         }
         return result;
+    }
+
+    private String resolveUrl(String url) {
+        if (url == null || url.isEmpty()) return url;
+        if (url.startsWith("http://") || url.startsWith("https://")) return url;
+        return baseUrl + url;
     }
 }

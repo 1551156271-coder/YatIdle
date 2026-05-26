@@ -43,7 +43,7 @@
 					const result = await getMyFavorites(user.id); const list = (result && result.records) || result || []
 					this.wishList = list.map(f => ({
 						id: f.itemId,
-						image: '',
+						image: f.coverImage || '',
 						title: f.itemTitle || '商品 #' + f.itemId,
 						price: f.price
 					}))

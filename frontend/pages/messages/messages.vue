@@ -86,11 +86,12 @@
 					const result = await getMySessions(user.id); const list = (result && result.records) || result || []
 					this.chatList = list.map(s => {
 						const isBuyer = s.buyerId === user.id
+						const isWanted = s.wantedId != null
 						const otherName = isBuyer ? '卖家' : '买家'
 						return {
 							id: s.id,
 							avatar: '',
-							defaultAvatar: isBuyer ? '🤝' : '🛒',
+							defaultAvatar: isWanted ? '🤝' : '🛒',
 							name: s.wantedTitle || s.itemTitle || otherName,
 							lastMsg: s.lastMessage || '暂无消息',
 							time: this.formatTime(s.lastMessageTime),

@@ -223,3 +223,18 @@ CREATE TABLE IF NOT EXISTS favorite (
   INDEX idx_favorite_item_id (item_id),
   INDEX idx_favorite_create_time (create_time)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='商品收藏表';
+
+CREATE TABLE IF NOT EXISTS review (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  order_id BIGINT NOT NULL,
+  reviewer_id BIGINT NOT NULL COMMENT '评价人(买家)',
+  reviewee_id BIGINT NOT NULL COMMENT '被评价人(卖家)',
+  rating TINYINT NOT NULL,
+  content VARCHAR(500),
+  create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  update_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  is_deleted TINYINT NOT NULL DEFAULT 0,
+  UNIQUE KEY uk_order_reviewer (order_id, reviewer_id),
+  INDEX idx_reviewee (reviewee_id),
+  INDEX idx_reviewer (reviewer_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='评价表';

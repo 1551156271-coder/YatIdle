@@ -57,7 +57,7 @@
 </template>
 
 <script>
-	import { updateProfile } from '@/api/user.js'
+	import { updateProfile, uploadAvatar } from '@/api/user.js'
 	export default {
 		data() {
 			const user = uni.getStorageSync('user') || {}
@@ -77,8 +77,16 @@
 					count: 1,
 					sizeType: ['compressed'],
 					sourceType: ['album', 'camera'],
-					success: (res) => {
-						this.form.avatar = res.tempFilePaths[0]
+					success: async (res) => {
+						try {
+							uni.showLoading({ title: '上传中...' })
+							const url = await uploadAvatar(res.tempFilePaths[0])
+							this.form.avatar = url
+							uni.hideLoading()
+						} catch (e) {
+							uni.hideLoading()
+							uni.showToast({ title: '上传失败', icon: 'none' })
+						}
 					}
 				})
 			},
@@ -101,10 +109,14 @@
 					return
 				}
 				try {
+					uni.showLoading({ title: '保存中...' })
 					await updateProfile({
 						userId: user.id,
-						avatar: this.form.avatar || undefined
+						nickname: nickname,
+						avatar: this.form.avatar || undefined,
+						campus: this.form.campus || undefined
 					})
+					uni.hideLoading()
 					// 更新本地存储
 					user.username = nickname
 					user.avatar = this.form.avatar
@@ -112,7 +124,9 @@
 					uni.setStorageSync('user', user)
 					uni.showToast({ title: '保存成功', icon: 'none' })
 					setTimeout(() => uni.navigateBack(), 800)
-				} catch (e) {}
+				} catch (e) {
+					uni.hideLoading()
+				}
 			}
 		}
 	}

@@ -32,4 +32,10 @@ public class TradeOrderVO {
     private LocalDateTime cancelTime;
 
     private LocalDateTime completeTime;
+
+    private Boolean hasReviewed;
+
+    private String itemTitle;
+
+    private String itemImageUrl;
 }

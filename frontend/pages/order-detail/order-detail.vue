@@ -86,8 +86,13 @@
 		</view>
 
 		<!-- 底部操作：已完成 + 已购订单可评价 -->
-		<view class="od-bottom" v-if="order.status === 'COMPLETED' && orderType === 'purchased'">
+		<view class="od-bottom" v-if="order.status === 'COMPLETED' && orderType === 'purchased' && !order.hasReviewed">
 			<button class="od-btn od-btn-review" @click="goReview">去评价</button>
+		</view>
+
+		<!-- 底部操作：已完成 + 已购订单已评价 -->
+		<view class="od-bottom" v-if="order.status === 'COMPLETED' && orderType === 'purchased' && order.hasReviewed">
+			<button class="od-btn od-btn-done">已评价</button>
 		</view>
 
 		<!-- 底部操作：已完成 + 已售订单 -->
@@ -126,7 +131,8 @@
 					createTime: '',
 					completeTime: '',
 					cancelTime: '',
-					cancelReason: ''
+					cancelReason: '',
+					hasReviewed: false
 				}
 			}
 		},
@@ -173,7 +179,8 @@
 					createTime: stored.createTime || stored.time || '',
 					completeTime: stored.completeTime || '',
 					cancelTime: stored.cancelTime || '',
-					cancelReason: stored.cancelReason || ''
+					cancelReason: stored.cancelReason || '',
+					hasReviewed: stored.hasReviewed || false
 				}
 				uni.removeStorageSync('currentOrder')
 			}
@@ -220,6 +227,7 @@
 								await completeOrder(this.order.id, user.id)
 								this.order.status = 'COMPLETED'
 								this.order.completeTime = new Date().toISOString()
+								this.order.hasReviewed = false
 								uni.showToast({ title: '交易完成', icon: 'success' })
 							} catch (e) {}
 						}
@@ -335,6 +343,7 @@
 	.od-btn-outline { background: #f5f5f5; color: #333; }
 	.od-btn-primary { background: linear-gradient(135deg, #3A6341, #4E7D56); color: #ffffff; }
 	.od-btn-review { background: linear-gradient(135deg, #f0ad4e, #f5c26b); color: #ffffff; flex: 1; }
+	.od-btn-done { background: #e0e0e0; color: #999; flex: 1; }
 	.od-btn::after { border: none; }
 	.od-done-text { flex: 1; text-align: center; font-size: 28rpx; color: #999; padding: 24rpx 0; }
 </style>

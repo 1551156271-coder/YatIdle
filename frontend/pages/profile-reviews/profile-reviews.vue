@@ -11,15 +11,15 @@
 
 		<!-- 评分概览 -->
 		<view class="rating-summary">
-			<view class="rating-score">
-				<text class="score-num">{{ avgRating }}</text>
-				<text class="score-unit">分</text>
+				<view class="rating-score">
+					<text class="score-num">{{ avgRating.toFixed(1) }}</text>
+					<text class="score-unit">分</text>
+				</view>
+				<view class="rating-stars">
+					<text v-for="s in 5" :key="s" class="big-star" :class="{ 'star-on': s <= Math.round(avgRating) }">★</text>
+				</view>
+				<text class="rating-count">共 {{ totalCount }} 条评价</text>
 			</view>
-			<view class="rating-stars">
-				<text v-for="s in 5" :key="s" class="big-star" :class="{ 'star-on': s <= avgRating }">★</text>
-			</view>
-			<text class="rating-count">共 {{ reviews.length }} 条评价</text>
-		</view>
 
 		<!-- 评价列表 -->
 		<view v-if="reviews.length > 0" class="review-list">
@@ -52,19 +52,17 @@
 </template>
 
 <script>
+	import { getUserReviews } from '@/api/review.js'
+	import { getUserInfo } from '@/api/user.js'
+
 	export default {
 		data() {
 			return {
 				statusBarHeight: 44,
 				user: { nickname: '用户' },
-				reviews: []
-			}
-		},
-		computed: {
-			avgRating() {
-				if (this.reviews.length === 0) return 0
-				const sum = this.reviews.reduce((s, r) => s + r.rating, 0)
-				return (sum / this.reviews.length).toFixed(1)
+				reviews: [],
+				avgRating: 0,
+				totalCount: 0
 			}
 		},
 		onLoad(options) {
@@ -79,26 +77,50 @@
 			}
 		},
 		methods: {
-			loadReviews(userId) {
-				// TODO: 从API获取，此处模拟数据
-				const mockData = {
-					'2': {
-						nickname: '张三（卖家）',
-						reviews: [
-							{ id: 1, avatar: '', defaultAvatar: '📚', name: '李四', rating: 5, content: '卖家很爽快，车况和描述完全一致，还送了挡泥板！', tags: ['响应迅速', '诚实描述'], time: '3天前' },
-							{ id: 2, avatar: '', defaultAvatar: '🎧', name: '王五', rating: 5, content: '交易顺利，当面验货很放心', tags: ['诚信交易'], time: '1周前' },
-							{ id: 3, avatar: '', defaultAvatar: '📱', name: '赵六', rating: 4, content: '台灯好用，就是有点小划痕，整体不错', tags: ['物有所值'], time: '2周前' },
-							{ id: 4, avatar: '', defaultAvatar: '💻', name: '孙七', rating: 5, content: '很nice的卖家，沟通顺畅，还帮我送到楼下', tags: ['服务好', '送货快'], time: '3周前' },
-							{ id: 5, avatar: '', defaultAvatar: '🎮', name: '周八', rating: 5, content: '第二次交易了，一如既往靠谱', tags: ['回头客'], time: '1月前' },
-							{ id: 6, avatar: '', defaultAvatar: '📖', name: '吴九', rating: 4, content: '物品不错，价格合理，就是约的时间改了一次', tags: ['物有所值'], time: '1月前' }
-						]
+			async loadReviews(userId) {
+				try {
+					const [userData, reviewData] = await Promise.all([
+						getUserInfo(userId).catch(() => null),
+						getUserReviews(userId).catch(() => null)
+					])
+
+					if (userData) {
+						const u = userData.data || userData
+						this.user.nickname = u.nickname || u.username || '用户'
 					}
+
+					if (reviewData) {
+						const r = reviewData.data || reviewData
+						const list = r.reviews || r || []
+						this.avgRating = r.avgRating || 0
+						this.totalCount = r.totalCount || list.length
+						this.reviews = list.map(rv => ({
+							id: rv.id,
+							avatar: rv.reviewerAvatar || '',
+							defaultAvatar: rv.reviewerName ? rv.reviewerName.charAt(0) : '?',
+							name: rv.reviewerName || '匿名用户',
+							rating: rv.rating || 5,
+							content: rv.content || '',
+							tags: rv.tags || [],
+							time: this.formatTime(rv.createTime)
+						}))
+					}
+				} catch (e) {
+					// ignore
 				}
-				const data = mockData[userId]
-				if (data) {
-					this.user.nickname = data.nickname
-					this.reviews = data.reviews
-				}
+			},
+			formatTime(dateStr) {
+				if (!dateStr) return ''
+				const now = Date.now()
+				const t = new Date(dateStr).getTime()
+				const diff = now - t
+				const day = 86400000
+				if (diff < day) return '今天'
+				if (diff < 2 * day) return '昨天'
+				if (diff < 7 * day) return Math.floor(diff / day) + '天前'
+				if (diff < 30 * day) return Math.floor(diff / (7 * day)) + '周前'
+				if (diff < 365 * day) return Math.floor(diff / (30 * day)) + '个月前'
+				return Math.floor(diff / (365 * day)) + '年前'
 			},
 			goBack() {
 				uni.navigateBack()

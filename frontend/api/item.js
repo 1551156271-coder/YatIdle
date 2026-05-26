@@ -1,4 +1,6 @@
-import { get, post, put, MOCK } from './index'
+import { get, post, put, MOCK, resolveImageUrl } from './index'
+
+const BASE_URL = 'http://127.0.0.1:8080'
 
 export function getCategories() {
   return get('/api/categories')
@@ -34,18 +36,18 @@ export function onlineItem(id, userId) {
 
 export function uploadImage(filePath) {
   if (MOCK) {
-    return Promise.resolve('/uploads/items/mock_' + Date.now() + '.jpg')
+    return Promise.resolve(resolveImageUrl('/uploads/items/mock_' + Date.now() + '.jpg'))
   }
   return new Promise((resolve, reject) => {
     uni.uploadFile({
-      url: 'http://localhost:8080/api/items/images/upload',
+      url: BASE_URL + '/api/items/images/upload',
       filePath,
       name: 'file',
       success(res) {
         try {
           const body = JSON.parse(res.data)
           if (body.code === 200) {
-            resolve(body.data.url)
+            resolve(resolveImageUrl(body.data.url))
           } else {
             reject(body)
           }

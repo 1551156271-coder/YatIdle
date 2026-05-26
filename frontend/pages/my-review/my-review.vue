@@ -44,12 +44,15 @@
 </template>
 
 <script>
+	import { submitReview, updateReview } from '@/api/review.js'
+
 	export default {
 		data() {
 			return {
 				sellerName: '',
 				sellerId: '',
 				orderId: '',
+				reviewId: '',
 				rating: 0,
 				reviewText: ''
 			}
@@ -64,18 +67,39 @@
 			this.sellerName = options.seller || '卖家'
 			this.sellerId = options.sellerId || ''
 			this.orderId = options.orderId || ''
+			this.reviewId = options.reviewId || ''
 		},
 		methods: {
 			setRating(i) {
 				this.rating = i
 			},
-			onSubmit() {
+			async onSubmit() {
 				if (this.rating === 0) {
 					uni.showToast({ title: '请先给卖家评分', icon: 'none' })
 					return
 				}
-				uni.showToast({ title: '评价成功！', icon: 'success' })
-				setTimeout(() => { uni.navigateBack() }, 1200)
+				const user = uni.getStorageSync('user')
+				if (!user || !user.id) {
+					uni.showToast({ title: '请先登录', icon: 'none' })
+					return
+				}
+				const data = {
+					orderId: parseInt(this.orderId),
+					revieweeId: parseInt(this.sellerId),
+					rating: this.rating,
+					content: this.reviewText || ''
+				}
+				try {
+					if (this.reviewId) {
+						await updateReview(this.reviewId, user.id, data)
+					} else {
+						await submitReview(user.id, data)
+					}
+					uni.showToast({ title: '评价成功！', icon: 'success' })
+					setTimeout(() => { uni.navigateBack() }, 1200)
+				} catch (e) {
+					// error handled by api layer
+				}
 			}
 		}
 	}

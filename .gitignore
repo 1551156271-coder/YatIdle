@@ -1,0 +1,16 @@
+# 上传文件（调试用图片）
+backend/uploads/items/*
+backend/uploads/avatar/*
+!backend/uploads/items/.gitkeep
+!backend/uploads/avatar/.gitkeep
+
+# Maven 构建产物
+backend/target/
+
+# IDE
+.idea/
+backend/.idea/
+*.iml
+
+# macOS
+.DS_Store

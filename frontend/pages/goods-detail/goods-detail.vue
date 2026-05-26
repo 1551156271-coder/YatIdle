@@ -1,7 +1,15 @@
 <template>
 	<view class="container">
+		<!-- 图片轮播 -->
 		<view class="image-box">
-			<image class="main-image" :src="mainImage" mode="aspectFill"></image>
+			<swiper class="image-swiper" indicator-dots="false" autoplay="false" :current="currentIndex" @change="onSwiperChange">
+				<swiper-item v-for="(img, idx) in item.imageUrls" :key="idx" @click="previewImage(idx)">
+					<image class="swiper-image" :src="img" mode="aspectFill"></image>
+				</swiper-item>
+			</swiper>
+			<!-- 计数器 -->
+			<view v-if="item.imageUrls.length > 1" class="image-counter">{{ currentIndex + 1 }} / {{ item.imageUrls.length }}</view>
+			<!-- 状态徽章 -->
 			<view v-if="isSeller" class="status-badge" :class="statusClass">{{ statusText }}</view>
 		</view>
 
@@ -75,6 +83,7 @@
 		data() {
 			return {
 				goodsId: null,
+				currentIndex: 0,
 				item: {
 					title: '',
 					price: 0,
@@ -93,9 +102,6 @@
 			}
 		},
 		computed: {
-			mainImage() {
-				return (this.item.imageUrls && this.item.imageUrls[0]) || ''
-			},
 			statusText() {
 				const map = { ON_SALE: '在售', SOLD: '已售', REMOVED: '已下架' }
 				return map[this.itemStatus] || this.itemStatus
@@ -141,6 +147,15 @@
 				if (this.item.userId) {
 					uni.navigateTo({ url: '/pages/profile/profile?id=' + this.item.userId })
 				}
+			},
+			onSwiperChange(e) {
+				this.currentIndex = e.detail.current
+			},
+			previewImage(idx) {
+				uni.previewImage({
+					urls: this.item.imageUrls,
+					current: idx
+				})
 			},
 			async toggleCollect() {
 				const user = uni.getStorageSync('user')
@@ -219,8 +234,21 @@
 		width: 100%;
 		height: 750rpx;
 		position: relative;
+		background: #000;
 	}
-	.main-image { width: 100%; height: 100%; }
+	.image-swiper { width: 100%; height: 100%; }
+	.swiper-image { width: 100%; height: 100%; }
+
+	.image-counter {
+		position: absolute;
+		bottom: 24rpx;
+		right: 24rpx;
+		background: rgba(0,0,0,0.45);
+		color: #fff;
+		font-size: 22rpx;
+		padding: 4rpx 16rpx;
+		border-radius: 20rpx;
+	}
 
 	.status-badge {
 		position: absolute;

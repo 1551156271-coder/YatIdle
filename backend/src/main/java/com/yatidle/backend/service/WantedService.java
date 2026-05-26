@@ -23,14 +23,16 @@ public class WantedService {
     private final WantedMapper wantedMapper;
     private final WantedImageMapper wantedImageMapper;
     private final UserMapper userMapper;
+    private final String baseUrl;
 
-    @Value("${app.base-url}")
-    private String baseUrl;
-
-    public WantedService(WantedMapper wantedMapper, WantedImageMapper wantedImageMapper, UserMapper userMapper) {
+    public WantedService(WantedMapper wantedMapper,
+                         WantedImageMapper wantedImageMapper,
+                         UserMapper userMapper,
+                         @Value("${app.base-url}") String baseUrl) {
         this.wantedMapper = wantedMapper;
         this.wantedImageMapper = wantedImageMapper;
         this.userMapper = userMapper;
+        this.baseUrl = baseUrl;
     }
 
     public WantedDetailVO create(CreateWantedDTO dto) {

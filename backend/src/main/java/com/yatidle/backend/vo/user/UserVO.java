@@ -28,12 +28,16 @@ public class UserVO {
     private int wishCount;
 
     public static UserVO from(User user) {
+        return from(user, "http://127.0.0.1:8080");
+    }
+
+    public static UserVO from(User user, String baseUrl) {
         if (user == null) return null;
         UserVO vo = new UserVO();
         vo.setId(user.getId());
         vo.setUsername(user.getUsername());
         vo.setPhone(user.getPhone());
-        vo.setAvatar(resolveUrl(user.getAvatar()));
+        vo.setAvatar(resolveUrl(user.getAvatar(), baseUrl));
         vo.setNickname(user.getNickname());
         vo.setBio(user.getBio());
         vo.setCampus(user.getCampus());
@@ -45,8 +49,12 @@ public class UserVO {
     }
 
     private static String resolveUrl(String url) {
+        return resolveUrl(url, "http://127.0.0.1:8080");
+    }
+
+    private static String resolveUrl(String url, String baseUrl) {
         if (url == null || url.isEmpty()) return url;
         if (url.startsWith("http://") || url.startsWith("https://")) return url;
-        return "http://localhost:8080" + url;
+        return baseUrl + url;
     }
 }

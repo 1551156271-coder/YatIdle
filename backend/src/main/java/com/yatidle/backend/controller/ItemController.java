@@ -9,7 +9,6 @@ import com.yatidle.backend.service.ItemService;
 import com.yatidle.backend.vo.item.ItemCardVO;
 import com.yatidle.backend.vo.item.ItemDetailVO;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
@@ -25,13 +24,16 @@ import java.util.UUID;
 @CrossOrigin(origins = "*")
 @RestController
 @RequestMapping("/api/items")
-@RequiredArgsConstructor
 public class ItemController {
 
     private final ItemService itemService;
+    private final String baseUrl;
 
-    @Value("${app.base-url}")
-    private String baseUrl;
+    public ItemController(ItemService itemService,
+                          @Value("${app.base-url}") String baseUrl) {
+        this.itemService = itemService;
+        this.baseUrl = baseUrl;
+    }
 
     @PostMapping("/publish")
     public Result<ItemDetailVO> publish(@Valid @RequestBody ItemPublishDTO dto) {
@@ -81,7 +83,7 @@ public class ItemController {
         Path target = uploadDir.resolve(filename);
         file.transferTo(target);
 
-        return Result.success(Map.of("url", baseUrl + "/uploads/items/" + filename));
+        return Result.success(Map.of("url", "/uploads/items/" + filename));
     }
 
     @PutMapping("/{id}")

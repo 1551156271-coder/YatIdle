@@ -93,30 +93,29 @@
 </template>
 
 <script>
+	import { getUserInfo } from '@/api/user.js'
+	import { getUserReviews } from '@/api/review.js'
+	import { getUserItems } from '@/api/item.js'
+	import { resolveImageUrl } from '@/api/index.js'
+
 	export default {
 		data() {
 			return {
+				userId: '',
 				user: {
 					nickname: '中大在校生',
 					defaultAvatar: '🎓',
 					avatar: '',
 					bio: '爱生活爱二手，诚信交易',
 					campus: '东校园',
-					verified: true,
-					creditScore: 92,
-					dealCount: 23,
-					goodsCount: 3,
-					goods: [
-						{ id: 1, image: 'https://images.unsplash.com/photo-1485965120184-e220f721d03e?q=80&w=400&auto=format&fit=crop', title: '九成新公路自行车', price: '268.00' },
-						{ id: 2, image: 'https://images.unsplash.com/photo-1585435557343-3b092031a831?q=80&w=400&auto=format&fit=crop', title: 'LED护眼台灯', price: '35.00' },
-						{ id: 3, image: 'https://images.unsplash.com/photo-1544816155-12df9643f363?q=80&w=400&auto=format&fit=crop', title: '四六级真题全套', price: '12.00' }
-					],
-					reviews: [
-						{ id: 1, avatar: '', defaultAvatar: '📚', name: '李四', rating: 5, content: '卖家很爽快，车况和描述完全一致，还送了挡泥板！', time: '3天前' },
-						{ id: 2, avatar: '', defaultAvatar: '🎧', name: '王五', rating: 5, content: '交易顺利，当面验货很放心', time: '1周前' },
-						{ id: 3, avatar: '', defaultAvatar: '📱', name: '赵六', rating: 4, content: '台灯好用，就是有点小划痕，整体不错', time: '2周前' }
-					]
-				}
+					verified: false,
+					creditScore: 0,
+					dealCount: 0,
+					goodsCount: 0,
+					goods: [],
+					reviews: []
+				},
+				loading: true
 			}
 		},
 		computed: {
@@ -135,28 +134,82 @@
 		},
 		onLoad(options) {
 			if (options.id) {
+				this.userId = options.id
 				this.loadUser(options.id)
 			}
 		},
 		methods: {
-			loadUser(id) {
-				const users = {
-					'2': { nickname: '张三（卖家）', defaultAvatar: '🤝', bio: '爱生活爱二手，诚信交易', campus: '东校园', verified: true, creditScore: 92, dealCount: 23, goodsCount: 3,  },
-					'3': { nickname: '李四（买家）', defaultAvatar: '📚', bio: '', campus: '南校园', verified: false, creditScore: 75, dealCount: 8, goodsCount: 0, }
+			async loadUser(id) {
+				this.loading = true
+				try {
+					const [userData, reviewData, itemsData] = await Promise.all([
+						getUserInfo(id).catch(() => null),
+						getUserReviews(id).catch(() => null),
+						getUserItems(id, { status: 'ON_SALE' }).catch(() => null)
+					])
+
+					if (userData) {
+						const u = userData.data || userData
+						this.user.nickname = u.nickname || u.username || '用户'
+						this.user.defaultAvatar = u.nickname ? u.nickname.charAt(0) : '🎓'
+						this.user.avatar = resolveImageUrl(u.avatar || '')
+						this.user.bio = u.bio || ''
+						this.user.campus = u.campus || ''
+						this.user.creditScore = u.creditScore || 0
+						this.user.dealCount = u.dealCount || 0
+						this.user.goodsCount = u.goodsCount || 0
+					}
+
+					if (reviewData) {
+						const r = reviewData.data || reviewData
+						const reviews = r.reviews || r || []
+						this.user.reviews = (reviews || []).slice(0, 3).map(rv => ({
+							id: rv.id,
+							avatar: rv.reviewerAvatar || '',
+							defaultAvatar: rv.reviewerName ? rv.reviewerName.charAt(0) : '?',
+							name: rv.reviewerName || '匿名用户',
+							rating: rv.rating || 5,
+							content: rv.content || '',
+							time: this.formatTime(rv.createTime)
+						}))
+					}
+
+					if (itemsData) {
+						const list = itemsData.records || itemsData || []
+						this.user.goods = list.map(g => ({
+							id: g.id,
+							image: g.imageUrl || g.coverImage || '',
+							title: g.title || '',
+							price: g.price || '0.00'
+						}))
+					}
+				} catch (e) {
+					// ignore
+				} finally {
+					this.loading = false
 				}
-				if (users[id]) {
-					Object.assign(this.user, users[id])
-				this.user._id = id
-				}
+			},
+			formatTime(dateStr) {
+				if (!dateStr) return ''
+				const now = Date.now()
+				const t = new Date(dateStr).getTime()
+				const diff = now - t
+				const day = 86400000
+				if (diff < day) return '今天'
+				if (diff < 2 * day) return '昨天'
+				if (diff < 7 * day) return Math.floor(diff / day) + '天前'
+				if (diff < 30 * day) return Math.floor(diff / (7 * day)) + '周前'
+				if (diff < 365 * day) return Math.floor(diff / (30 * day)) + '个月前'
+				return Math.floor(diff / (365 * day)) + '年前'
 			},
 			goGoodsDetail(g) {
 				uni.navigateTo({ url: '/pages/goods-detail/goods-detail?id=' + g.id })
 			},
 			viewAllGoods() {
-				uni.navigateTo({ url: '/pages/profile-goods/profile-goods?id=' + (this.user._id || '2') })
+				uni.navigateTo({ url: '/pages/profile-goods/profile-goods?id=' + (this.userId || '2') })
 			},
 			viewAllReviews() {
-				uni.navigateTo({ url: '/pages/profile-reviews/profile-reviews?id=' + (this.user._id || '2') })
+				uni.navigateTo({ url: '/pages/profile-reviews/profile-reviews?id=' + (this.userId || '2') })
 			},
 			showMoreActions() {
 				uni.showActionSheet({

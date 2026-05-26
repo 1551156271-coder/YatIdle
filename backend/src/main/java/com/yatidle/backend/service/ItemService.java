@@ -13,7 +13,6 @@ import com.yatidle.backend.mapper.ItemImageMapper;
 import com.yatidle.backend.mapper.ItemMapper;
 import com.yatidle.backend.vo.item.ItemCardVO;
 import com.yatidle.backend.vo.item.ItemDetailVO;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,7 +21,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Service
-@RequiredArgsConstructor
 public class ItemService {
 
     public static final String STATUS_ON_SALE = "ON_SALE";
@@ -32,9 +30,17 @@ public class ItemService {
     private final ItemMapper itemMapper;
     private final ItemImageMapper itemImageMapper;
     private final CategoryMapper categoryMapper;
+    private final String baseUrl;
 
-    @Value("${app.base-url}")
-    private String baseUrl;
+    public ItemService(ItemMapper itemMapper,
+                       ItemImageMapper itemImageMapper,
+                       CategoryMapper categoryMapper,
+                       @Value("${app.base-url}") String baseUrl) {
+        this.itemMapper = itemMapper;
+        this.itemImageMapper = itemImageMapper;
+        this.categoryMapper = categoryMapper;
+        this.baseUrl = baseUrl;
+    }
 
     // ======================= 1. 发布商品 =======================
     @Transactional(rollbackFor = Exception.class)

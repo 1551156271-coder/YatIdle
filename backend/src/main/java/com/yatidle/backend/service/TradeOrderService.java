@@ -5,33 +5,49 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.yatidle.backend.dto.order.CancelOrderDTO;
 import com.yatidle.backend.dto.order.CreateOrderDTO;
 import com.yatidle.backend.entity.Item;
+import com.yatidle.backend.entity.ItemImage;
 import com.yatidle.backend.entity.TradeOrder;
 import com.yatidle.backend.entity.TradeOrderLog;
 import com.yatidle.backend.enums.OrderLogActionEnum;
 import com.yatidle.backend.enums.OrderStatusEnum;
+import com.yatidle.backend.mapper.ItemImageMapper;
 import com.yatidle.backend.mapper.ItemMapper;
+import com.yatidle.backend.mapper.ReviewMapper;
 import com.yatidle.backend.mapper.TradeOrderLogMapper;
 import com.yatidle.backend.mapper.TradeOrderMapper;
 import com.yatidle.backend.vo.order.TradeOrderVO;
-import jakarta.annotation.Resource;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Currency;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
 public class TradeOrderService extends ServiceImpl<TradeOrderMapper, TradeOrder> {
 
     private final TradeOrderMapper tradeOrderMapper;
     private final TradeOrderLogMapper tradeOrderLogMapper;
     private final ItemMapper itemMapper;
+    private final ReviewMapper reviewMapper;
+    private final ItemImageMapper itemImageMapper;
+    private final String baseUrl;
+
+    public TradeOrderService(TradeOrderMapper tradeOrderMapper,
+                             TradeOrderLogMapper tradeOrderLogMapper,
+                             ItemMapper itemMapper,
+                             ReviewMapper reviewMapper,
+                             ItemImageMapper itemImageMapper,
+                             @Value("${app.base-url}") String baseUrl) {
+        this.tradeOrderMapper = tradeOrderMapper;
+        this.tradeOrderLogMapper = tradeOrderLogMapper;
+        this.itemMapper = itemMapper;
+        this.reviewMapper = reviewMapper;
+        this.itemImageMapper = itemImageMapper;
+        this.baseUrl = baseUrl;
+    }
 
     @Transactional
     public TradeOrderVO createOrder(CreateOrderDTO dto, Long currentUserId){
@@ -96,7 +112,7 @@ public class TradeOrderService extends ServiceImpl<TradeOrderMapper, TradeOrder>
         List<TradeOrder> list = tradeOrderMapper.selectList(wrapper);
 
         return list.stream()
-                .map(this::toVO)
+                .map(order -> toVO(order, currentUserId))
                 .collect(Collectors.toList());
     }
 
@@ -109,7 +125,7 @@ public class TradeOrderService extends ServiceImpl<TradeOrderMapper, TradeOrder>
         List<TradeOrder> list = tradeOrderMapper.selectList(wrapper);
 
         return list.stream()
-                .map(this::toVO)
+                .map(order -> toVO(order, order.getBuyerId()))
                 .collect(Collectors.toList());
     }
 
@@ -213,6 +229,10 @@ public class TradeOrderService extends ServiceImpl<TradeOrderMapper, TradeOrder>
     }
 
     private TradeOrderVO toVO(TradeOrder order){
+        return toVO(order, null);
+    }
+
+    private TradeOrderVO toVO(TradeOrder order, Long reviewerId){
         TradeOrderVO vo = new TradeOrderVO();
         vo.setId(order.getId());
         vo.setItemId(order.getItemId());
@@ -227,7 +247,26 @@ public class TradeOrderService extends ServiceImpl<TradeOrderMapper, TradeOrder>
         vo.setCreateTime(order.getCreateTime());
         vo.setCancelTime(order.getCancelTime());
         vo.setCompleteTime(order.getCompleteTime());
+
+        Item item = itemMapper.selectById(order.getItemId());
+        if (item != null) {
+            vo.setItemTitle(item.getTitle());
+        }
+
+        List<ItemImage> images = itemImageMapper.selectByItemId(order.getItemId());
+        if (images != null && !images.isEmpty()) {
+            vo.setItemImageUrl(resolveUrl(images.get(0).getImageUrl()));
+        }
+
+        vo.setHasReviewed(reviewMapper.hasReviewed(order.getId(), reviewerId));
+
         return vo;
+    }
+
+    private String resolveUrl(String url) {
+        if (url == null || url.isEmpty()) return url;
+        if (url.startsWith("http://") || url.startsWith("https://")) return url;
+        return baseUrl + url;
     }
     private String generateOrderNo() {
         String time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
