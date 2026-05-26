@@ -12,5 +12,11 @@ backend/target/
 backend/.idea/
 *.iml
 
+# Claude Code 配置
+.claude/
+
+# 上传文件（根目录）
+uploads/
+
 # macOS
 .DS_Store
