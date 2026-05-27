@@ -170,7 +170,7 @@
 				}
 				try {
 					const session = await createSession(user.id, { wantedId: this.detail.id })
-					uni.navigateTo({ url: '/pages/chat/chat?id=' + session.id + '&name=' + encodeURIComponent(this.detail.username) })
+					uni.navigateTo({ url: '/pages/chat/chat?id=' + session.id + '&name=' + encodeURIComponent(this.detail.username) + '&avatar=' + encodeURIComponent(session.partnerAvatar || '') })
 				} catch (e) {
 					uni.showToast({ title: '创建会话失败', icon: 'none' })
 				}

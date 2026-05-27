@@ -38,4 +38,10 @@ public class TradeOrderVO {
     private String itemTitle;
 
     private String itemImageUrl;
+
+    private String buyerName;
+
+    private String sellerName;
+
+    private String sellerAvatar;
 }

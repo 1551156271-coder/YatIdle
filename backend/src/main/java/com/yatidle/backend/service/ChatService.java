@@ -6,15 +6,18 @@ import com.yatidle.backend.dto.chat.SendMessageDTO;
 import com.yatidle.backend.entity.ChatMessage;
 import com.yatidle.backend.entity.ChatSession;
 import com.yatidle.backend.entity.Item;
+import com.yatidle.backend.entity.User;
 import com.yatidle.backend.entity.Wanted;
 import com.yatidle.backend.enums.MessageTypeEnum;
 import com.yatidle.backend.mapper.ChatMessageMapper;
 import com.yatidle.backend.mapper.ChatSessionMapper;
 import com.yatidle.backend.mapper.ItemMapper;
+import com.yatidle.backend.mapper.UserMapper;
 import com.yatidle.backend.mapper.WantedMapper;
 import com.yatidle.backend.vo.chat.ChatMessageVO;
 import com.yatidle.backend.vo.chat.ChatSessionVO;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,6 +33,10 @@ public class ChatService {
     private final ChatMessageMapper chatMessageMapper;
     private final ItemMapper itemMapper;
     private final WantedMapper wantedMapper;
+    private final UserMapper userMapper;
+
+    @Value("${app.base-url}")
+    private String baseUrl;
 
     @Transactional
     public ChatSessionVO createChatSession(CreateChatSessionDTO dto, Long currentUserId) {
@@ -250,6 +257,15 @@ public class ChatService {
         } else {
             vo.setUnreadCount(session.getSellerUnreadCount());
         }
+
+        Long partnerId = session.getBuyerId().equals(currentUserId)
+                ? session.getSellerId() : session.getBuyerId();
+        User partner = userMapper.selectById(partnerId);
+        if (partner != null) {
+            vo.setPartnerName(partner.getUsername());
+            vo.setPartnerAvatar(resolveUrl(partner.getAvatar()));
+        }
+
         return vo;
     }
 
@@ -264,5 +280,11 @@ public class ChatService {
         vo.setReadFlag(message.getReadFlag());
         vo.setCreateTime(message.getCreateTime());
         return vo;
+    }
+
+    private String resolveUrl(String url) {
+        if (url == null || url.isEmpty()) return url;
+        if (url.startsWith("http://") || url.startsWith("https://")) return url;
+        return baseUrl + url;
     }
 }

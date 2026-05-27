@@ -29,4 +29,8 @@ public class ChatSessionVO {
     private LocalDateTime lastMessageTime;
 
     private Integer unreadCount;
+
+    private String partnerName;
+
+    private String partnerAvatar;
 }

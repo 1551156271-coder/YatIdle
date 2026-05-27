@@ -1,19 +1,5 @@
 <template>
-	<view class="chat-page" :style="{ paddingTop: statusBarHeight + 'px' }">
-		<!-- 顶部联系人栏 -->
-		<view class="chat-header" :style="{ top: statusBarHeight + 'px', paddingRight: headerRightPad + 'px' }">
-			<view class="header-back" @click="goBack">
-				<text class="back-icon">‹</text>
-			</view>
-			<view class="header-info">
-				<view class="header-avatar">
-					<text class="header-avatar-emoji">{{ contactInfo.defaultAvatar }}</text>
-				</view>
-				<view class="header-text">
-					<text class="header-name">{{ contactInfo.name }}</text>
-				</view>
-			</view>
-		</view>
+	<view class="chat-page">
 
 		<!-- 消息区域 -->
 		<scroll-view
@@ -38,7 +24,8 @@
 
 					<view v-else class="msg-row" :class="{ 'msg-self': msg.fromMe }">
 						<view v-if="!msg.fromMe" class="msg-avatar">
-							<text class="msg-avatar-emoji">{{ contactInfo.defaultAvatar }}</text>
+							<image v-if="contactInfo.avatar" class="msg-avatar-img" :src="contactInfo.avatar" mode="aspectFill"></image>
+							<text v-else class="msg-avatar-emoji">{{ contactInfo.defaultAvatar }}</text>
 						</view>
 
 						<view class="msg-bubble-wrap">
@@ -71,7 +58,8 @@
 						</view>
 
 						<view v-if="msg.fromMe" class="msg-avatar msg-avatar-self">
-							<text class="msg-avatar-emoji">🎓</text>
+							<image v-if="myAvatar" class="msg-avatar-img" :src="myAvatar" mode="aspectFill"></image>
+							<text v-else class="msg-avatar-emoji">{{ myDefaultAvatar }}</text>
 						</view>
 					</view>
 				</view>
@@ -155,10 +143,10 @@ import { getMessages, sendMessage, markRead } from '@/api/chat.js'
 export default {
 	data() {
 		return {
-			statusBarHeight: 0,
-			headerRightPad: 20,
 			scrollAnimated: false,
-			contactInfo: { id: null, avatar: '', defaultAvatar: '🤝', name: '聊天' },
+			contactInfo: { id: null, avatar: '', defaultAvatar: '?', name: '聊天' },
+				myAvatar: '',
+				myDefaultAvatar: '?',
 			msgs: [],
 			inputText: '',
 			inputMode: 'text',
@@ -173,18 +161,23 @@ export default {
 		}
 	},
 	onLoad(options) {
-		const sysInfo = uni.getSystemInfoSync()
-		this.statusBarHeight = sysInfo.statusBarHeight || 20
-		const menuButton = uni.getMenuButtonBoundingClientRect()
-		this.headerRightPad = sysInfo.windowWidth - menuButton.left + 12
 
 		const user = uni.getStorageSync('user')
 		if (user && user.id) {
 			this.userId = user.id
 		}
+		if (user) {
+			this.myAvatar = user.avatar || ''
+			this.myDefaultAvatar = (user.username || '?').charAt(0)
+		}
 		if (options.name) {
 			this.contactInfo.name = decodeURIComponent(options.name)
 		}
+		if (options.avatar) {
+			this.contactInfo.avatar = decodeURIComponent(options.avatar)
+		}
+		this.contactInfo.defaultAvatar = this.contactInfo.name.charAt(0)
+		uni.setNavigationBarTitle({ title: this.contactInfo.name })
 		if (options.id) {
 			this.sessionId = options.id
 			this.loadMessages()
@@ -198,7 +191,6 @@ export default {
 		this.stopPolling()
 	},
 	methods: {
-		goBack() { uni.navigateBack() },
 
 		async loadMessages() {
 			if (!this.sessionId || !this.userId) return
@@ -400,31 +392,6 @@ export default {
 	overflow: hidden;
 }
 
-/* ===== 顶部栏 ===== */
-.chat-header {
-	height: 88rpx;
-	background: #ffffff;
-	display: flex;
-	align-items: center;
-	padding: 0 24rpx;
-	border-bottom: 1rpx solid #eee;
-	position: fixed;
-	left: 0;
-	right: 0;
-	z-index: 10;
-	box-sizing: border-box;
-}
-.header-back { width: 60rpx; display: flex; align-items: center; justify-content: center; margin-left: 8rpx; }
-.back-icon { font-size: 80rpx; color: #000; font-weight: 300; line-height: 0.9; }
-.header-info { flex: 1; display: flex; align-items: center; gap: 16rpx; overflow: hidden; }
-.header-avatar {
-	width: 80rpx; height: 80rpx; background: #e8f5ee; border-radius: 50%;
-	display: flex; align-items: center; justify-content: center; font-size: 36rpx; flex-shrink: 0; overflow: hidden;
-}
-.header-avatar-img { width: 100%; height: 100%; border-radius: 50%; }
-.header-avatar-emoji { font-size: 36rpx; }
-.header-text { display: flex; flex-direction: column; overflow: hidden; }
-.header-name { font-size: 34rpx; color: #333; font-weight: bold; }
 
 /* ===== 消息区 ===== */
 .msg-scroll { flex: 1; padding: 20rpx 20rpx 0; overflow-y: auto; box-sizing: border-box; }

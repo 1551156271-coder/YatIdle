@@ -86,13 +86,12 @@
 					const result = await getMySessions(user.id); const list = (result && result.records) || result || []
 					this.chatList = list.map(s => {
 						const isBuyer = s.buyerId === user.id
-						const isWanted = s.wantedId != null
 						const otherName = isBuyer ? '卖家' : '买家'
 						return {
 							id: s.id,
-							avatar: '',
-							defaultAvatar: isWanted ? '🤝' : '🛒',
-							name: s.wantedTitle || s.itemTitle || otherName,
+							avatar: s.partnerAvatar || '',
+							defaultAvatar: (s.partnerName || otherName).charAt(0),
+							name: s.wantedTitle || s.itemTitle || s.partnerName || otherName,
 							lastMsg: s.lastMessage || '暂无消息',
 							time: this.formatTime(s.lastMessageTime),
 							unread: s.unreadCount || 0
@@ -116,7 +115,7 @@
 			},
 			openChat(item) {
 				uni.navigateTo({
-					url: '/pages/chat/chat?id=' + item.id + '&name=' + encodeURIComponent(item.name)
+					url: '/pages/chat/chat?id=' + item.id + '&name=' + encodeURIComponent(item.name) + '&avatar=' + encodeURIComponent(item.avatar || '')
 				})
 			},
 			goNotifications() {

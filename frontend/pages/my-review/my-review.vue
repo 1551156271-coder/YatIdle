@@ -3,7 +3,8 @@
 		<!-- 卖家信息 -->
 		<view class="seller-card">
 			<view class="seller-avatar">
-				<text class="seller-avatar-text">{{ sellerName.charAt(0) }}</text>
+				<image v-if="sellerAvatar" class="seller-avatar-img" :src="sellerAvatar" mode="aspectFill"></image>
+				<text v-else class="seller-avatar-text">{{ sellerName.charAt(0) }}</text>
 			</view>
 			<view class="seller-info">
 				<text class="seller-name">{{ sellerName }}</text>
@@ -50,6 +51,7 @@
 		data() {
 			return {
 				sellerName: '',
+				sellerAvatar: '',
 				sellerId: '',
 				orderId: '',
 				reviewId: '',
@@ -65,6 +67,7 @@
 		},
 		onLoad(options) {
 			this.sellerName = options.seller || '卖家'
+			this.sellerAvatar = options.sellerAvatar || ''
 			this.sellerId = options.sellerId || ''
 			this.orderId = options.orderId || ''
 			this.reviewId = options.reviewId || ''
@@ -128,8 +131,9 @@
 		border-radius: 50%;
 		background: linear-gradient(135deg, #3A6341, #4E7D56);
 		display: flex; align-items: center; justify-content: center;
-		flex-shrink: 0;
+		flex-shrink: 0; overflow: hidden;
 	}
+t	.seller-avatar-img { width: 100%; height: 100%; border-radius: 50%; }
 	.seller-avatar-text {
 		font-size: 40rpx; color: #ffffff; font-weight: bold;
 	}

@@ -69,20 +69,24 @@
 			<view class="party-row">
 				<view class="party-item">
 					<text class="party-label">买家</text>
-					<text class="party-name">用户 #{{ order.buyerId }}</text>
+					<text class="party-name">{{ order.buyerName || '用户 #' + order.buyerId }}</text>
 				</view>
 				<view class="party-arrow">⇄</view>
 				<view class="party-item">
 					<text class="party-label">卖家</text>
-					<text class="party-name">用户 #{{ order.sellerId }}</text>
+					<text class="party-name">{{ order.sellerName || '用户 #' + order.sellerId }}</text>
 				</view>
 			</view>
 		</view>
 
-		<!-- 底部操作：待交易状态 -->
-		<view class="od-bottom" v-if="order.status === 'PENDING'">
+		<!-- 底部操作：待交易状态 - 买家可见确认完成 -->
+		<view class="od-bottom" v-if="order.status === 'PENDING' && orderType === 'purchased'">
 			<button class="od-btn od-btn-outline" @click="onCancel">取消订单</button>
 			<button class="od-btn od-btn-primary" @click="onComplete">确认完成</button>
+		</view>
+		<!-- 底部操作：待交易状态 - 卖家只能取消 -->
+		<view class="od-bottom" v-if="order.status === 'PENDING' && orderType === 'sold'">
+			<button class="od-btn od-btn-outline" style="flex: 1;" @click="onCancel">取消订单</button>
 		</view>
 
 		<!-- 底部操作：已完成 + 已购订单可评价 -->
@@ -120,6 +124,9 @@
 					itemId: null,
 					buyerId: null,
 					sellerId: null,
+					buyerName: '',
+					sellerName: '',
+					sellerAvatar: '',
 					image: '',
 					title: '加载中...',
 					price: '',
@@ -168,6 +175,9 @@
 					itemId: stored.itemId || null,
 					buyerId: stored.buyerId || null,
 					sellerId: stored.sellerId || null,
+					buyerName: stored.buyerName || '',
+					sellerName: stored.sellerName || '',
+					sellerAvatar: stored.sellerAvatar || '',
 					image: stored.image || '',
 					title: stored.title || '商品 #' + (stored.itemId || ''),
 					price: stored.price || '',
@@ -236,7 +246,7 @@
 			},
 			goReview() {
 				uni.navigateTo({
-					url: '/pages/my-review/my-review?orderId=' + this.order.id + '&sellerId=' + (this.order.sellerId || '')
+					url: '/pages/my-review/my-review?orderId=' + this.order.id + '&sellerId=' + (this.order.sellerId || '') + '&seller=' + encodeURIComponent(this.order.sellerName || '') + '&sellerAvatar=' + encodeURIComponent(this.order.sellerAvatar || '')
 				})
 			}
 		}

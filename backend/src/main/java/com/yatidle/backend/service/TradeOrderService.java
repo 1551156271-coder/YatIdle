@@ -15,6 +15,8 @@ import com.yatidle.backend.mapper.ItemMapper;
 import com.yatidle.backend.mapper.ReviewMapper;
 import com.yatidle.backend.mapper.TradeOrderLogMapper;
 import com.yatidle.backend.mapper.TradeOrderMapper;
+import com.yatidle.backend.mapper.UserMapper;
+import com.yatidle.backend.entity.User;
 import com.yatidle.backend.vo.order.TradeOrderVO;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -33,6 +35,7 @@ public class TradeOrderService extends ServiceImpl<TradeOrderMapper, TradeOrder>
     private final ItemMapper itemMapper;
     private final ReviewMapper reviewMapper;
     private final ItemImageMapper itemImageMapper;
+    private final UserMapper userMapper;
     private final String baseUrl;
 
     public TradeOrderService(TradeOrderMapper tradeOrderMapper,
@@ -40,12 +43,14 @@ public class TradeOrderService extends ServiceImpl<TradeOrderMapper, TradeOrder>
                              ItemMapper itemMapper,
                              ReviewMapper reviewMapper,
                              ItemImageMapper itemImageMapper,
+                             UserMapper userMapper,
                              @Value("${app.base-url}") String baseUrl) {
         this.tradeOrderMapper = tradeOrderMapper;
         this.tradeOrderLogMapper = tradeOrderLogMapper;
         this.itemMapper = itemMapper;
         this.reviewMapper = reviewMapper;
         this.itemImageMapper = itemImageMapper;
+        this.userMapper = userMapper;
         this.baseUrl = baseUrl;
     }
 
@@ -187,11 +192,8 @@ public class TradeOrderService extends ServiceImpl<TradeOrderMapper, TradeOrder>
             throw new RuntimeException("当前订单状态不能完成");
         }
 
-        boolean isBuyer = order.getBuyerId().equals(currentUserId);
-        boolean isSeller = order.getSellerId().equals(currentUserId);
-
-        if (!isBuyer && !isSeller) {
-            throw new RuntimeException("无权完成该订单");
+        if (!order.getBuyerId().equals(currentUserId)) {
+            throw new RuntimeException("仅买家可确认订单完成");
         }
 
         Item item = itemMapper.selectById(order.getItemId());
@@ -259,6 +261,16 @@ public class TradeOrderService extends ServiceImpl<TradeOrderMapper, TradeOrder>
         }
 
         vo.setHasReviewed(reviewMapper.hasReviewed(order.getId(), reviewerId));
+
+        User buyer = userMapper.selectById(order.getBuyerId());
+        if (buyer != null) {
+            vo.setBuyerName(buyer.getUsername());
+        }
+        User seller = userMapper.selectById(order.getSellerId());
+        if (seller != null) {
+            vo.setSellerName(seller.getUsername());
+            vo.setSellerAvatar(resolveUrl(seller.getAvatar()));
+        }
 
         return vo;
     }
