@@ -1,0 +1,15 @@
+{
+  "name": "YatIdle Admin",
+  "appid": "__UNI__YATIDLE_ADMIN",
+  "description": "YatIdle H5 后台管理端",
+  "versionName": "1.0.0",
+  "versionCode": "100",
+  "transformPx": false,
+  "h5": {
+    "router": {
+      "base": "/admin/",
+      "mode": "hash"
+    },
+    "title": "YatIdle 后台管理"
+  }
+}

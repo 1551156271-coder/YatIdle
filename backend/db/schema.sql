@@ -239,3 +239,42 @@ CREATE TABLE IF NOT EXISTS review (
   INDEX idx_reviewee (reviewee_id),
   INDEX idx_reviewer (reviewer_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='评价表';
+
+CREATE TABLE IF NOT EXISTS report (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  reporter_id BIGINT NOT NULL COMMENT '举报人ID',
+  target_user_id BIGINT DEFAULT NULL COMMENT '被举报用户ID',
+  item_id BIGINT DEFAULT NULL COMMENT '关联商品ID',
+  wanted_id BIGINT DEFAULT NULL COMMENT '关联求购ID',
+  order_id BIGINT DEFAULT NULL COMMENT '关联订单ID',
+  chat_session_id BIGINT DEFAULT NULL COMMENT '关联聊天会话ID',
+  reason VARCHAR(50) NOT NULL COMMENT '举报原因',
+  description VARCHAR(500) DEFAULT NULL COMMENT '详细描述',
+  image_urls TEXT DEFAULT NULL COMMENT '截图URL，JSON数组字符串',
+  status VARCHAR(20) NOT NULL DEFAULT 'PENDING' COMMENT 'PENDING/HANDLED/REJECTED',
+  handle_result VARCHAR(500) DEFAULT NULL COMMENT '处理结果',
+  handler_id BIGINT DEFAULT NULL COMMENT '处理管理员ID',
+  handle_time DATETIME DEFAULT NULL COMMENT '处理时间',
+  create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  update_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  is_deleted TINYINT NOT NULL DEFAULT 0,
+  INDEX idx_report_status (status),
+  INDEX idx_report_reporter_id (reporter_id),
+  INDEX idx_report_target_user_id (target_user_id),
+  INDEX idx_report_create_time (create_time)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='举报表';
+
+CREATE TABLE IF NOT EXISTS admin_action_log (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  admin_id BIGINT NOT NULL COMMENT '管理员ID',
+  action VARCHAR(50) NOT NULL COMMENT '操作类型',
+  target_type VARCHAR(50) NOT NULL COMMENT '目标类型',
+  target_id BIGINT NOT NULL COMMENT '目标ID',
+  before_status VARCHAR(50) DEFAULT NULL COMMENT '操作前状态',
+  after_status VARCHAR(50) DEFAULT NULL COMMENT '操作后状态',
+  remark VARCHAR(500) DEFAULT NULL COMMENT '备注',
+  create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_admin_log_admin_id (admin_id),
+  INDEX idx_admin_log_target (target_type, target_id),
+  INDEX idx_admin_log_create_time (create_time)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='管理员操作日志表';
