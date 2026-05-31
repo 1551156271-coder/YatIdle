@@ -136,8 +136,28 @@ public class ChatService {
         if(dto == null || dto.getSessionId() == null){
             throw new RuntimeException("会话ID不能为空");
         }
-        if(dto.getContent() == null || dto.getContent().trim().isEmpty()){
+
+        String content = dto.getContent() == null ? "" : dto.getContent().trim();
+        if(content.isEmpty()){
             throw new RuntimeException("消息内容不能为空");
+        }
+
+        String messageType = dto.getMessageType();
+        if(messageType == null || messageType.trim().isEmpty()) {
+            messageType = MessageTypeEnum.TEXT.name();
+        }
+        else {
+            messageType = messageType.trim().toUpperCase();
+        }
+
+        if(!MessageTypeEnum.TEXT.name().equals(messageType)
+                && !MessageTypeEnum.IMAGE.name().equals(messageType)){
+            throw new RuntimeException("不支持的消息类型");
+        }
+
+        if(MessageTypeEnum.IMAGE.name().equals(messageType)
+                && !content.startsWith("/uploads/chat/")){
+            throw new RuntimeException("图片地址不合法");
         }
 
         ChatSession session = chatSessionMapper.selectById(dto.getSessionId());
@@ -157,14 +177,20 @@ public class ChatService {
         message.setSessionId(session.getId());
         message.setSenderId(currentUserId);
         message.setReceiverId(receiverId);
-        message.setMessageType(MessageTypeEnum.TEXT.name());
-        message.setContent(dto.getContent().trim());
+        message.setMessageType(messageType);
+        message.setContent(content);
         message.setReadFlag(0);
         message.setIsDeleted(0);
 
         chatMessageMapper.insert(message);
 
-        session.setLastMessage(message.getContent());
+        if(MessageTypeEnum.IMAGE.name().equals(messageType)) {
+            session.setLastMessage("[图片]");
+        }
+        else {
+            session.setLastMessage(message.getContent());
+        }
+
         session.setLastSenderId(message.getSenderId());
         session.setLastMessageTime(LocalDateTime.now());
 
