@@ -2,6 +2,7 @@ package com.yatidle.backend.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.yatidle.backend.common.exception.BusinessException;
 import com.yatidle.backend.entity.Favorite;
 import com.yatidle.backend.entity.Item;
 import com.yatidle.backend.entity.ItemImage;
@@ -34,12 +35,12 @@ public class FavoriteService {
 
     public void addFavorite(Long itemId, Long currentUserId){
         if(itemId == null){
-            throw new RuntimeException("商品ID不能为空");
+            throw new BusinessException("商品ID不能为空");
         }
         Item item = itemMapper.selectById(itemId);
 
         if (item == null || (item.getIsDeleted() != null && item.getIsDeleted() == 1)) {
-            throw new RuntimeException("商品不存在");
+            throw new BusinessException("商品不存在");
         }
 
         Favorite exist = favoriteMapper.selectOne(
@@ -49,7 +50,7 @@ public class FavoriteService {
         );
 
         if (exist != null) {
-            throw new RuntimeException("已收藏该商品");
+            throw new BusinessException("已收藏该商品");
         }
 
         Favorite favorite = new Favorite();
@@ -61,7 +62,7 @@ public class FavoriteService {
 
     public void cancelFavorite(Long itemId, Long currentUserId){
         if(itemId == null){
-            throw new RuntimeException("商品ID不能为空");
+            throw new BusinessException("商品ID不能为空");
         }
 
         favoriteMapper.delete(

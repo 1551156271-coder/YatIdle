@@ -1,6 +1,7 @@
 package com.yatidle.backend.controller;
 
 import com.yatidle.backend.common.Result;
+import com.yatidle.backend.common.exception.BusinessException;
 import com.yatidle.backend.dto.chat.CreateChatSessionDTO;
 import com.yatidle.backend.dto.chat.SendMessageDTO;
 import com.yatidle.backend.service.ChatService;
@@ -70,12 +71,12 @@ public class ChatController {
     @PostMapping("/images/upload")
     public Result<Map<String, String>> uploadChatImage(@RequestParam("file") MultipartFile file) throws IOException {
         if(file == null || file.isEmpty()){
-            throw new RuntimeException("图片文件不能为空");
+            throw new BusinessException("图片文件不能为空");
         }
 
         String contentType = file.getContentType();
         if(contentType == null || !contentType.startsWith("image/")) {
-            throw new RuntimeException("只能上传图片文件");
+            throw new BusinessException("只能上传图片文件");
         }
 
         String originalFilename = StringUtils.cleanPath(

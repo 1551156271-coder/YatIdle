@@ -1,6 +1,7 @@
 package com.yatidle.backend.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.yatidle.backend.common.exception.BusinessException;
 import com.yatidle.backend.dto.wanted.CreateWantedDTO;
 import com.yatidle.backend.entity.User;
 import com.yatidle.backend.entity.Wanted;
@@ -90,7 +91,7 @@ public class WantedService {
     public WantedDetailVO getById(Long id) {
         Wanted wanted = wantedMapper.selectById(id);
         if (wanted == null) {
-            throw new RuntimeException("求购信息不存在");
+            throw new BusinessException("求购信息不存在");
         }
         wanted.setViewCount(wanted.getViewCount() + 1);
         wantedMapper.updateById(wanted);
@@ -104,7 +105,7 @@ public class WantedService {
     public int update(Long id, CreateWantedDTO dto) {
         Wanted wanted = wantedMapper.selectById(id);
         if (wanted == null) {
-            throw new RuntimeException("求购信息不存在");
+            throw new BusinessException("求购信息不存在");
         }
         if (dto.getTitle() != null) wanted.setTitle(dto.getTitle());
         if (dto.getBudgetMin() != null) wanted.setBudgetMin(dto.getBudgetMin());
@@ -129,6 +130,18 @@ public class WantedService {
     public int deleteById(Long id) {
         wantedImageMapper.deleteByWantedId(id);
         return wantedMapper.deleteById(id);
+    }
+
+    public void closeWanted(Long id, Long userId) {
+        Wanted wanted = wantedMapper.selectById(id);
+        if (wanted == null) {
+            throw new BusinessException("求购信息不存在");
+        }
+        if (!wanted.getUserId().equals(userId)) {
+            throw new BusinessException("无权操作该求购");
+        }
+        wanted.setStatus("closed");
+        wantedMapper.updateById(wanted);
     }
 
     public int deleteAllByUserId(Long userId) {

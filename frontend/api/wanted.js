@@ -27,3 +27,7 @@ export function deleteAllMyWanted(userId) {
 export function getMyWanted(userId) {
   return get('/api/wanted/my', { userId })
 }
+
+export function closeWanted(id, userId) {
+  return put('/api/wanted/' + id + '/close?userId=' + userId)
+}

@@ -82,15 +82,15 @@
 				<view class="trade-row">
 					<view class="trade-item" @click="goToListings">
 						<text class="trade-num">{{ stats.sellCount }}</text>
-						<text class="trade-label">发布</text>
+						<text class="trade-label">我的发布</text>
 					</view>
 					<view class="trade-item" @click="goToOrders('sold')">
 						<text class="trade-num">{{ stats.soldCount }}</text>
-						<text class="trade-label">已售</text>
+						<text class="trade-label">我卖出的</text>
 					</view>
 					<view class="trade-item" @click="goToOrders('purchased')">
 						<text class="trade-num">{{ stats.buyCount }}</text>
-						<text class="trade-label">订单</text>
+						<text class="trade-label">我买到的</text>
 					</view>
 				</view>
 			</view>

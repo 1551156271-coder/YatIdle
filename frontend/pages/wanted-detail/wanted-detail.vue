@@ -49,7 +49,7 @@
 			<view class="wd-pub-left">
 				<view class="wd-pub-avatar">
 					<image v-if="detail.avatar" class="wd-pub-avatar-img" :src="detail.avatar" mode="aspectFill"></image>
-					<text v-else class="wd-pub-avatar-emoji">{{ detail.username.charAt(0) }}</text>
+					<text v-else class="wd-pub-avatar-emoji">{{ (detail.username || '?').charAt(0) }}</text>
 				</view>
 				<view class="wd-pub-info">
 					<text class="wd-pub-name">{{ detail.username }}</text>
@@ -67,15 +67,15 @@
 			<text class="wd-tips-text">如果你有符合要求的物品，可以直接联系TA哦</text>
 		</view>
 
-		<!-- 本人求购中 - 状态标签 -->
-		<view v-if="isOwner" class="wd-status-tag" :class="detail.status === '求购中' ? 'status-seeking' : 'status-done'">
+		<!-- 本人进行中 - 状态标签 -->
+		<view v-if="isOwner" class="wd-status-tag" :class="detail.status === 'active' ? 'status-seeking' : 'status-done'">
 			<text>{{ detail.status }}</text>
 		</view>
 
-		<!-- 底部操作栏：本人求购中 - 编辑/撤销 -->
-		<view v-if="isOwner && detail.status === '求购中'" class="wd-bottom-bar wd-owner-bar">
+		<!-- 底部操作栏：本人进行中 - 编辑/撤销 -->
+		<view v-if="isOwner && detail.status === 'active'" class="wd-bottom-bar wd-owner-bar">
 			<button class="wd-edit-btn" @click="editWanted">编辑信息</button>
-			<button class="wd-cancel-btn" @click="cancelWanted">撤销求购</button>
+			<button class="wd-cancel-btn" @click="handleCloseWanted">结束求购</button>
 		</view>
 
 		<!-- 底部操作栏：非本人 - 收藏/联系 -->
@@ -89,7 +89,7 @@
 </template>
 
 <script>
-	import { getWantedDetail } from '@/api/wanted.js'
+	import { getWantedDetail, closeWanted } from '@/api/wanted.js'
 	import { getCategories } from '@/api/item.js'
 	import { createSession } from '@/api/chat.js'
 
@@ -124,6 +124,7 @@
 				try {
 					const data = await getWantedDetail(id)
 					const user = uni.getStorageSync('user') || {}
+					this.isOwner = data.userId === user.id
 					this.detail = {
 						id: data.id,
 						title: data.title,
@@ -170,7 +171,8 @@
 				}
 				try {
 					const session = await createSession(user.id, { wantedId: this.detail.id })
-					uni.navigateTo({ url: '/pages/chat/chat?id=' + session.id + '&name=' + encodeURIComponent(this.detail.username) + '&avatar=' + encodeURIComponent(session.partnerAvatar || '') })
+					const pid = session.buyerId === user.id ? session.sellerId : session.buyerId
+						uni.navigateTo({ url: '/pages/chat/chat?id=' + session.id + '&partnerId=' + (pid || 0) + '&name=' + encodeURIComponent(this.detail.username) + '&avatar=' + encodeURIComponent(session.partnerAvatar || '') })
 				} catch (e) {
 					uni.showToast({ title: '创建会话失败', icon: 'none' })
 				}
@@ -185,19 +187,25 @@
 				uni.setStorageSync('editWantedData', this.detail)
 				uni.navigateTo({ url: '/pages/publish-form/publish-form?type=buy&edit=1&id=' + this.detail.id })
 			},
-			cancelWanted() {
+			handleCloseWanted() {
+				const user = uni.getStorageSync('user')
+				if (!user || !user.id) return
 				uni.showModal({
-					title: '撤销求购',
-					content: '确认撤销该求购？撤销后其他用户将无法看到该求购信息。',
-					success: (res) => {
+					title: '结束求购',
+					content: '确认结束该求购？结束后其他用户将无法看到该求购信息。',
+					success: async (res) => {
 						if (res.confirm) {
-							this.detail.status = '已找到'
-							uni.showToast({ title: '已撤销', icon: 'success' })
+							try {
+								await closeWanted(this.detail.id, user.id)
+								this.detail.status = 'closed'
+								uni.showToast({ title: '已结束', icon: 'success' })
+							} catch (e) {
+								uni.showToast({ title: '操作失败', icon: 'none' })
+							}
 						}
 					}
 				})
-			}
-		}
+			},	}
 	}
 </script>
 

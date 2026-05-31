@@ -39,20 +39,12 @@
 								<image class="msg-image" :src="msg.content" mode="aspectFill" :style="msg.imgStyle"></image>
 							</view>
 
-							<!-- 语音 -->
-							<view v-else-if="msg.type === 'voice'" class="bubble bubble-voice" :class="{ 'bubble-self': msg.fromMe }" @click="playVoice(msg)">
-								<text class="voice-icon iconfont icon-yuyin" :class="{ 'voice-playing': msg.playing }"></text>
-								<text class="voice-dur">{{ msg.duration }}"</text>
-							</view>
-
-							<!-- 位置 -->
-							<view v-else-if="msg.type === 'location'" class="bubble bubble-card" @click="openLocation(msg)">
-								<view class="loc-card">
-									<text class="loc-icon">&#x1F4CD;</text>
-									<view class="loc-info">
-										<text class="loc-name">{{ msg.locationData.name }}</text>
-										<text class="loc-addr">{{ msg.locationData.address }}</text>
-									</view>
+							<!-- 商品卡片 -->
+							<view v-else-if="msg.type === 'product'" class="bubble bubble-card" @click="openProductDetail(msg)">
+								<image v-if="msg.product.image" class="card-img" :src="msg.product.image" mode="aspectFill"></image>
+								<view class="card-info">
+									<text class="card-title">{{ msg.product.title }}</text>
+									<text class="card-price">¥{{ msg.product.price }}</text>
 								</view>
 							</view>
 						</view>
@@ -68,41 +60,39 @@
 			<view class="scroll-anchor" id="msg-bottom"></view>
 		</scroll-view>
 
-		<!-- 录音浮层 -->
-		<view v-if="recording" class="record-overlay" @touchmove.prevent @touchend="stopRecord">
-			<view class="record-box">
-				<view class="record-wave">
-					<view class="wave-bar" v-for="i in 7" :key="i" :style="{ animationDelay: i * 0.12 + 's' }"></view>
+		<!-- 商品选择弹窗 -->
+		<view v-if="pickerVisible" class="picker-overlay" @click="closeProductPicker">
+			<view class="picker-panel" @click.stop>
+				<view class="picker-header">
+					<text class="picker-title">选择要发送的商品</text>
+					<text class="picker-close" @click="closeProductPicker">✕</text>
 				</view>
-				<text class="record-hint">↑ 上滑取消</text>
-				<text class="record-time">{{ recordTime }}"</text>
+				<scroll-view class="picker-body" scroll-y>
+					<view v-if="pickerLoading" class="picker-loading">加载中...</view>
+					<view v-else-if="pickerItems.length === 0" class="picker-empty">暂无在售商品</view>
+					<view v-for="item in pickerItems" :key="item.id" class="picker-card" @click="sendProduct(item)">
+						<image v-if="item.imageUrl" class="picker-img" :src="item.imageUrl" mode="aspectFill"></image>
+						<view class="picker-placeholder-img" v-else></view>
+						<view class="picker-info">
+							<text class="picker-name">{{ item.title }}</text>
+							<text class="picker-price">¥{{ item.price }}</text>
+						</view>
+					</view>
+				</scroll-view>
 			</view>
 		</view>
 
 		<!-- 底部输入区 -->
 		<view class="input-area">
 			<view class="input-row">
-				<view class="mode-switch" @click="switchInputMode">
-					<text v-if="inputMode === 'text'" class="mode-icon iconfont icon-huatong"></text>
-					<text v-else class="mode-icon iconfont icon-jianpan"></text>
-				</view>
-
 				<view class="input-box">
 					<input
-						v-if="inputMode === 'text'"
 						class="text-input"
 						v-model="inputText"
 						placeholder="说点什么..."
 						confirm-type="send"
 						@confirm="sendText"
 					/>
-					<view
-						v-else
-						class="voice-btn"
-						@touchstart="startRecord"
-						@touchmove.prevent
-						@touchend="stopRecord"
-					>按住 说话</view>
 				</view>
 
 				<view class="plus-btn" :class="{ 'plus-active': toolbarOpen }" @click="toggleToolbar">
@@ -120,15 +110,7 @@
 					<view class="tb-icon" style="background:#e8f5e9;"><text class="tb-emoji">📷</text></view>
 					<text class="tb-label">拍摄</text>
 				</view>
-				<view class="tb-item" @click="sendLocation">
-					<view class="tb-icon" style="background:#e0f2f1;"><text class="tb-emoji">📍</text></view>
-					<text class="tb-label">位置</text>
-				</view>
-				<view class="tb-item" @click="featurePending('发送订单')">
-					<view class="tb-icon" style="background:#fff3e0;"><text class="tb-emoji">📋</text></view>
-					<text class="tb-label">订单</text>
-				</view>
-				<view class="tb-item" @click="featurePending('发送商品')">
+				<view class="tb-item" @click="openProductPicker">
 					<view class="tb-icon" style="background:#fce4ec;"><text class="tb-emoji">📦</text></view>
 					<text class="tb-label">商品</text>
 				</view>
@@ -138,7 +120,46 @@
 </template>
 
 <script>
-import { getMessages, sendMessage, markRead } from '@/api/chat.js'
+import { getMessages, sendMessage, markRead, uploadChatImage } from '@/api/chat.js'
+import { resolveImageUrl } from '@/api/index.js'
+import { getUserItems } from '@/api/item.js'
+
+function parseMessage(m, currentUserId) {
+	const isImage = m.messageType === 'IMAGE'
+	if (isImage) {
+		return {
+			id: m.id,
+			fromMe: m.senderId === currentUserId,
+			type: 'image',
+			content: resolveImageUrl(m.content),
+			time: new Date(m.createTime).getTime(),
+			showTime: false
+		}
+	}
+	// try parse product JSON
+	try {
+		const obj = JSON.parse(m.content)
+		if (obj && obj.type === 'product') {
+			return {
+				id: m.id,
+				fromMe: m.senderId === currentUserId,
+				type: 'product',
+				content: m.content,
+				product: obj,
+				time: new Date(m.createTime).getTime(),
+				showTime: false
+			}
+		}
+	} catch (e) {}
+	return {
+		id: m.id,
+		fromMe: m.senderId === currentUserId,
+		type: 'text',
+		content: m.content,
+		time: new Date(m.createTime).getTime(),
+		showTime: false
+	}
+}
 
 export default {
 	data() {
@@ -149,15 +170,16 @@ export default {
 				myDefaultAvatar: '?',
 			msgs: [],
 			inputText: '',
-			inputMode: 'text',
 			toolbarOpen: false,
-			recording: false,
-			recordTime: 0,
-			recordTimer: null,
 			scrollToId: '',
 			sessionId: null,
 			userId: null,
-			pollTimer: null
+			partnerId: 0,
+			pollTimer: null,
+			// 商品选择器
+			pickerVisible: false,
+			pickerLoading: false,
+			pickerItems: []
 		}
 	},
 	onLoad(options) {
@@ -173,11 +195,14 @@ export default {
 		if (options.name) {
 			this.contactInfo.name = decodeURIComponent(options.name)
 		}
-		if (options.avatar) {
-			this.contactInfo.avatar = decodeURIComponent(options.avatar)
-		}
-		this.contactInfo.defaultAvatar = this.contactInfo.name.charAt(0)
-		uni.setNavigationBarTitle({ title: this.contactInfo.name })
+			if (options.avatar) {
+				this.contactInfo.avatar = decodeURIComponent(options.avatar)
+			}
+			if (options.partnerId) {
+				this.partnerId = parseInt(options.partnerId) || 0
+			}
+			this.contactInfo.defaultAvatar = this.contactInfo.name.charAt(0)
+			uni.setNavigationBarTitle({ title: this.contactInfo.name })
 		if (options.id) {
 			this.sessionId = options.id
 			this.loadMessages()
@@ -187,7 +212,6 @@ export default {
 		setTimeout(() => { this.scrollAnimated = true }, 500)
 	},
 	onUnload() {
-		clearInterval(this.recordTimer)
 		this.stopPolling()
 	},
 	methods: {
@@ -197,14 +221,7 @@ export default {
 			try {
 				await markRead(this.sessionId, this.userId).catch(() => {})
 				const result = await getMessages(this.sessionId, this.userId); const list = (result && result.records) || result || []
-				this.msgs = list.map(m => ({
-					id: m.id,
-					fromMe: m.senderId === this.userId,
-					type: m.messageType === 'IMAGE' ? 'image' : 'text',
-					content: m.content,
-					time: new Date(m.createTime).getTime(),
-					showTime: false
-				}))
+				this.msgs = list.map(m => parseMessage(m, this.userId))
 				this.addTimeDividers()
 				this.$nextTick(() => this.scrollToBottom())
 			} catch (e) {
@@ -244,7 +261,6 @@ export default {
 				const list = (result && result.records) || result || []
 				if (!list.length) return
 
-				// 检查是否有新消息（比当前列表多，或最后一条 ID 不同）
 				const isNew = list.length !== this.msgs.length ||
 					(list.length > 0 && this.msgs.length > 0 && list[list.length - 1].id !== this.msgs[this.msgs.length - 1].id)
 
@@ -252,17 +268,9 @@ export default {
 
 				const wasAtBottom = this.isScrolledToBottom()
 
-				this.msgs = list.map(m => ({
-					id: m.id,
-					fromMe: m.senderId === this.userId,
-					type: m.messageType === 'IMAGE' ? 'image' : 'text',
-					content: m.content,
-					time: new Date(m.createTime).getTime(),
-					showTime: false
-				}))
+				this.msgs = list.map(m => parseMessage(m, this.userId))
 				this.addTimeDividers()
 
-				// 有新消息时标记已读
 				markRead(this.sessionId, this.userId).catch(() => {})
 
 				if (wasAtBottom) {
@@ -274,8 +282,6 @@ export default {
 		},
 
 		isScrolledToBottom() {
-			// uni-app 中 scroll-view 无法直接获取 scrollTop，默认认为在底部
-			// 如果用户手动上滑查看历史消息，不自动滚到底部
 			return true
 		},
 
@@ -298,58 +304,79 @@ export default {
 
 		pickImage() {
 			uni.chooseImage({ count: 9, sizeType: ['compressed'], sourceType: ['album'], success: (res) => {
-				uni.showToast({ title: '图片消息后端暂未支持', icon: 'none' })
 				this.toolbarOpen = false
+				res.tempFilePaths.forEach(filePath => this.sendImage(filePath))
 			}})
 		},
 		takePhoto() {
 			uni.chooseImage({ count: 1, sourceType: ['camera'], success: (res) => {
-				uni.showToast({ title: '图片消息后端暂未支持', icon: 'none' })
 				this.toolbarOpen = false
+				res.tempFilePaths.forEach(filePath => this.sendImage(filePath))
 			}})
 		},
-
-		switchInputMode() {
-			this.inputMode = this.inputMode === 'text' ? 'voice' : 'text'
-			this.toolbarOpen = false
+		async sendImage(filePath) {
+			if (!this.userId || !this.sessionId) {
+				uni.showToast({ title: '请先登录', icon: 'none' })
+				return
+			}
+			try {
+				const url = await uploadChatImage(filePath)
+				await sendMessage(this.userId, {
+					sessionId: Number(this.sessionId),
+					messageType: 'IMAGE',
+					content: url
+				})
+				await this.loadMessages()
+			} catch (e) {
+				// 错误提示已在 api 层处理
+			}
 		},
-		startRecord() {
-			this.recording = true
-			this.recordTime = 0
-			this.recordTimer = setInterval(() => { this.recordTime++; if (this.recordTime >= 60) this.stopRecord() }, 1000)
-			const rm = uni.getRecorderManager()
-			rm.start({ format: 'mp3' })
-			this._recorder = rm
-			this._recorder.onStop((res) => {
-				if (this.recordTime >= 1) {
-					uni.showToast({ title: '语音消息后端暂未支持', icon: 'none' })
-				}
+
+		async openProductPicker() {
+			this.toolbarOpen = false
+			if (!this.userId) {
+				uni.showToast({ title: '请先登录', icon: 'none' })
+				return
+			}
+			this.pickerVisible = true
+			this.pickerLoading = true
+			this.pickerItems = []
+			try {
+				const result = await getUserItems(this.partnerId || this.userId, { status: 'ON_SALE' })
+				const list = (result && result.records) || result || []
+				this.pickerItems = list
+			} catch (e) {
+				this.pickerItems = []
+			} finally {
+				this.pickerLoading = false
+			}
+		},
+		closeProductPicker() {
+			this.pickerVisible = false
+		},
+		async sendProduct(item) {
+			this.pickerVisible = false
+			const payload = JSON.stringify({
+				type: 'product',
+				id: item.id,
+				title: item.title,
+				price: item.price,
+				image: item.imageUrl || ''
 			})
-		},
-		stopRecord() {
-			if (!this.recording) return
-			this.recording = false
-			clearInterval(this.recordTimer)
-			if (this._recorder) this._recorder.stop()
-			if (this.recordTime < 1) uni.showToast({ title: '说话时间太短', icon: 'none' })
-		},
-		playVoice() {
-			uni.showToast({ title: '语音播放', icon: 'none' })
+			try {
+				await sendMessage(this.userId, {
+					sessionId: Number(this.sessionId),
+					content: payload
+				})
+				await this.loadMessages()
+			} catch (e) {
+				// 错误提示已在 api 层处理
+			}
 		},
 
-		sendLocation() {
-			uni.chooseLocation({ success: (res) => {
-				uni.showToast({ title: '位置消息后端暂未支持', icon: 'none' })
-				this.toolbarOpen = false
-			}})
-		},
-		featurePending(name) {
-			uni.showToast({ title: name + '功能后端暂未支持', icon: 'none' })
-			this.toolbarOpen = false
-		},
-		openLocation(msg) {
-			if (msg.locationData) {
-				uni.openLocation({ latitude: msg.locationData.lat, longitude: msg.locationData.lng, name: msg.locationData.name, address: msg.locationData.address })
+		openProductDetail(msg) {
+			if (msg.product && msg.product.id) {
+				uni.navigateTo({ url: '/pages/goods-detail/goods-detail?id=' + msg.product.id })
 			}
 		},
 
@@ -358,7 +385,6 @@ export default {
 		},
 
 		toggleToolbar() {
-			if (this.inputMode === 'voice') this.inputMode = 'text'
 			this.toolbarOpen = !this.toolbarOpen
 			if (this.toolbarOpen) this.$nextTick(() => this.scrollToBottom())
 		},
@@ -426,62 +452,59 @@ export default {
 .bubble-media { padding: 0; overflow: hidden; position: relative; border-radius: 16rpx; line-height: 0; }
 .msg-image { display: block; border-radius: 16rpx; max-width: 100%; }
 
-/* 语音 */
-.bubble-voice { display: flex; align-items: center; gap: 10rpx; min-width: 120rpx; }
-.voice-icon { font-size: 34rpx; }
-.voice-playing { animation: vB 0.6s infinite alternate; }
-@keyframes vB { from { opacity: 0.3; } to { opacity: 1; } }
-.voice-dur { font-size: 26rpx; color: #666; }
-
-/* ===== 位置 ===== */
+/* 商品卡片 */
 .bubble-card {
 	padding: 0; border-radius: 16rpx; overflow: hidden; width: 420rpx;
 	max-width: 100%; background: #ffffff; box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.05); box-sizing: border-box;
 }
-.loc-card { padding: 24rpx; display: flex; align-items: flex-start; gap: 16rpx; }
-.loc-icon { font-size: 40rpx; flex-shrink: 0; margin-top: 4rpx; }
-.loc-info { flex: 1; overflow: hidden; }
-.loc-name { font-size: 28rpx; color: #333; font-weight: bold; display: block; margin-bottom: 6rpx; }
-.loc-addr { font-size: 24rpx; color: #999; line-height: 1.4; }
+.card-img { width: 100%; height: 240rpx; display: block; background: #f0f0f0; }
+.card-info { padding: 16rpx 20rpx; }
+.card-title { font-size: 26rpx; color: #333; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.card-price { font-size: 30rpx; color: #e74c3c; font-weight: bold; margin-top: 4rpx; display: block; }
+
+/* ===== 商品选择弹窗 ===== */
+.picker-overlay {
+	position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+	background: rgba(0,0,0,0.5); z-index: 200;
+	display: flex; align-items: flex-end;
+}
+.picker-panel {
+	width: 100%; max-height: 70vh; background: #fff;
+	border-radius: 24rpx 24rpx 0 0; display: flex; flex-direction: column;
+}
+.picker-header {
+	display: flex; align-items: center; justify-content: space-between;
+	padding: 30rpx; border-bottom: 1rpx solid #f0f0f0;
+}
+.picker-title { font-size: 30rpx; font-weight: bold; color: #333; }
+.picker-close { font-size: 36rpx; color: #999; padding: 10rpx; }
+.picker-body { flex: 1; padding: 20rpx; }
+.picker-loading, .picker-empty { text-align: center; padding: 80rpx 0; font-size: 26rpx; color: #999; }
+.picker-card {
+	display: flex; align-items: center; gap: 20rpx;
+	padding: 20rpx; margin-bottom: 16rpx; background: #fafafa; border-radius: 12rpx;
+}
+.picker-img { width: 120rpx; height: 120rpx; border-radius: 8rpx; flex-shrink: 0; background: #eee; }
+.picker-placeholder-img {
+	width: 120rpx; height: 120rpx; border-radius: 8rpx; flex-shrink: 0;
+	background: #eee;
+}
+.picker-info { flex: 1; overflow: hidden; }
+.picker-name { font-size: 28rpx; color: #333; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.picker-price { font-size: 28rpx; color: #e74c3c; font-weight: bold; margin-top: 6rpx; display: block; }
 
 /* ===== 空状态 ===== */
 .empty-chat { display: flex; align-items: center; justify-content: center; padding-top: 300rpx; }
 .empty-text { font-size: 28rpx; color: #ccc; }
 
-/* ===== 录音浮层 ===== */
-.record-overlay {
-	position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-	background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 100;
-}
-.record-box {
-	width: 320rpx; height: 320rpx; background: rgba(0,0,0,0.85); border-radius: 24rpx;
-	display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20rpx;
-}
-.record-wave { display: flex; align-items: center; gap: 8rpx; height: 80rpx; }
-.wave-bar {
-	width: 8rpx; background: #4cd964; border-radius: 4rpx;
-	animation: wA 1.2s infinite ease-in-out;
-}
-@keyframes wA { 0%,100% { height: 20rpx; } 50% { height: 80rpx; } }
-.record-hint { font-size: 22rpx; color: rgba(255,255,255,0.6); }
-.record-time { font-size: 40rpx; color: #fff; font-weight: bold; }
-
 /* ===== 底部输入区 ===== */
 .input-area { background: #ffffff; border-top: 1rpx solid #eee; box-sizing: border-box; }
 .input-row { display: flex; align-items: center; padding: 16rpx 16rpx; gap: 12rpx; box-sizing: border-box; }
-
-.mode-switch { width: 56rpx; height: 56rpx; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-.mode-icon { font-size: 44rpx; color: #999; line-height: 1; }
 
 .input-box { flex: 1; }
 .text-input {
 	width: 100%; height: 72rpx; background: #f5f5f5; border-radius: 8rpx;
 	padding: 0 24rpx; font-size: 28rpx; box-sizing: border-box;
-}
-.voice-btn {
-	width: 100%; height: 72rpx; line-height: 72rpx; text-align: center;
-	background: #f5f5f5; border-radius: 8rpx; font-size: 28rpx; color: #666;
-	box-sizing: border-box;
 }
 
 .plus-btn {
