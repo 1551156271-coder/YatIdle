@@ -289,7 +289,7 @@ public class ChatService {
                 ? session.getSellerId() : session.getBuyerId();
         User partner = userMapper.selectById(partnerId);
         if (partner != null) {
-            vo.setPartnerName(partner.getUsername());
+            vo.setPartnerName(partner.getNickname() != null ? partner.getNickname() : partner.getUsername());
             vo.setPartnerAvatar(resolveUrl(partner.getAvatar()));
         }
 

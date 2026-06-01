@@ -213,17 +213,15 @@ CREATE TABLE IF NOT EXISTS chat_message (
 
 CREATE TABLE IF NOT EXISTS favorite (
   id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '收藏ID',
-  
   user_id BIGINT NOT NULL COMMENT '用户ID',
-  item_id BIGINT NOT NULL COMMENT '商品ID',
-  
+  item_id BIGINT COMMENT '商品ID（收藏普通商品时使用）',
+  wanted_id BIGINT COMMENT '求购ID（收藏求购时使用）',
   create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '收藏时间',
-  
-  UNIQUE KEY uk_user_item (user_id, item_id),
   INDEX idx_favorite_user_id (user_id),
   INDEX idx_favorite_item_id (item_id),
+  INDEX idx_favorite_wanted_id (wanted_id),
   INDEX idx_favorite_create_time (create_time)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='商品收藏表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='收藏表';
 
 CREATE TABLE IF NOT EXISTS review (
   id BIGINT PRIMARY KEY AUTO_INCREMENT,

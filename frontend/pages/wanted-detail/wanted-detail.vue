@@ -92,6 +92,7 @@
 	import { getWantedDetail, closeWanted } from '@/api/wanted.js'
 	import { getCategories } from '@/api/item.js'
 	import { createSession } from '@/api/chat.js'
+	import { addWantedFavorite, removeWantedFavorite, getMyFavorites } from '@/api/favorite.js'
 
 	export default {
 		data() {
@@ -141,9 +142,19 @@
 						userId: data.userId,
 						isOwner: data.userId === user.id
 					}
+					if (user && user.id) {
+						this.checkIfCollected(user.id)
+					}
 				} catch (e) {
 					uni.showToast({ title: '加载求购详情失败', icon: 'none' })
 				}
+			},
+			async checkIfCollected(userId) {
+				try {
+					const favList = await getMyFavorites(userId)
+					const list = (favList && favList.records) || favList || []
+					this.isCollected = list.some(f => f.wantedId === this.detail.id)
+				} catch (e) {}
 			},
 			getCategoryLabel(categoryId) {
 				const cat = this.categories.find(c => c.id === categoryId)
@@ -159,9 +170,23 @@
 				if (hour < 24) return hour + '小时前'
 				return Math.floor(hour / 24) + '天前'
 			},
-			toggleCollect() {
-				this.isCollected = !this.isCollected
-				uni.showToast({ title: this.isCollected ? '已收藏' : '取消收藏', icon: 'none' })
+			async toggleCollect() {
+				const user = uni.getStorageSync('user')
+				if (!user || !user.id) {
+					uni.showToast({ title: '请先登录', icon: 'none' })
+					return
+				}
+				try {
+					if (this.isCollected) {
+						await removeWantedFavorite(this.detail.id, user.id)
+						this.isCollected = false
+						uni.showToast({ title: '已取消收藏', icon: 'none' })
+					} else {
+						await addWantedFavorite(this.detail.id, user.id)
+						this.isCollected = true
+						uni.showToast({ title: '已收藏', icon: 'none' })
+					}
+				} catch (e) {}
 			},
 			async contactSeller() {
 				const user = uni.getStorageSync('user')

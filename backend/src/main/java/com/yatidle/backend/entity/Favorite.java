@@ -20,6 +20,9 @@ public class Favorite {
     @TableField("item_id")
     private Long itemId;
 
+    @TableField("wanted_id")
+    private Long wantedId;
+
     @TableField("create_time")
     private LocalDateTime createTime;
 }

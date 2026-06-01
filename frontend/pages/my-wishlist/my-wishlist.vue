@@ -1,12 +1,17 @@
 <template>
 	<view class="wishlist-page">
 		<view v-if="wishList.length > 0" class="goods-grid">
-			<view v-for="g in wishList" :key="g.id" class="g-card" @click="goDetail(g)">
-				<image class="g-img" :src="g.image" mode="aspectFill"></image>
+			<view v-for="g in wishList" :key="g.uid" class="g-card" @click="goDetail(g)">
+				<view class="g-img-wrap">
+					<image v-if="g.image" class="g-img" :src="g.image" mode="aspectFill"></image>
+					<text v-else class="g-placeholder">{{ g.type === 'wanted' ? '📋' : '🛒' }}</text>
+					<text v-if="g.type === 'wanted'" class="g-badge-wanted">求购</text>
+				</view>
 				<view class="g-info">
 					<text class="g-title">{{ g.title }}</text>
 					<view class="g-bottom">
-						<text class="g-price">¥{{ g.price }}</text>
+						<text v-if="g.type === 'wanted'" class="g-budget">¥{{ g.budgetMin }}—¥{{ g.budgetMax }}</text>
+						<text v-else class="g-price">¥{{ g.price }}</text>
 						<text class="g-heart iconfont icon-xz"></text>
 					</view>
 				</view>
@@ -42,10 +47,14 @@
 				try {
 					const result = await getMyFavorites(user.id); const list = (result && result.records) || result || []
 					this.wishList = list.map(f => ({
-						id: f.itemId,
+						uid: (f.type || 'item') + '_' + (f.wantedId || f.itemId),
+						type: f.type || 'item',
+						id: f.wantedId || f.itemId,
 						image: f.coverImage || '',
-						title: f.itemTitle || '商品 #' + f.itemId,
-						price: f.price
+						title: f.wantedTitle || f.itemTitle || '商品',
+						price: f.price,
+						budgetMin: f.budgetMin,
+						budgetMax: f.budgetMax
 					}))
 				} catch (e) {
 					this.wishList = []
@@ -54,7 +63,11 @@
 				}
 			},
 			goDetail(g) {
-				uni.navigateTo({ url: '/pages/goods-detail/goods-detail?id=' + g.id })
+				if (g.type === 'wanted') {
+					uni.navigateTo({ url: '/pages/wanted-detail/wanted-detail?id=' + g.id })
+				} else {
+					uni.navigateTo({ url: '/pages/goods-detail/goods-detail?id=' + g.id })
+				}
 			}
 		}
 	}
@@ -78,9 +91,19 @@
 		overflow: hidden;
 		box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.03);
 	}
-	.g-img {
+	.g-img-wrap {
 		width: 100%; height: 320rpx;
-		background: #eee;
+		position: relative;
+		background: #f0f0f0;
+		display: flex; align-items: center; justify-content: center;
+	}
+	.g-img { width: 100%; height: 100%; }
+	.g-placeholder { font-size: 64rpx; }
+	.g-badge-wanted {
+		position: absolute; top: 12rpx; left: 12rpx;
+		background: #5A7D9E; color: #fff;
+		font-size: 20rpx; padding: 4rpx 14rpx;
+		border-radius: 6rpx;
 	}
 	.g-info { padding: 16rpx 18rpx 20rpx; }
 	.g-title {
@@ -90,6 +113,7 @@
 	}
 	.g-bottom { display: flex; justify-content: space-between; align-items: center; }
 	.g-price { font-size: 30rpx; color: #e74c3c; font-weight: bold; }
+	.g-budget { font-size: 24rpx; color: #5A7D9E; font-weight: bold; }
 	.g-heart { font-size: 32rpx; color: #E85A4F; }
 
 	/* 空态 */

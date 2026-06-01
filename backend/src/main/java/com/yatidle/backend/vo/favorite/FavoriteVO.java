@@ -19,5 +19,15 @@ public class FavoriteVO {
 
     private String itemStatus;
 
+    private Long wantedId;
+
+    private String wantedTitle;
+
+    private BigDecimal budgetMin;
+
+    private BigDecimal budgetMax;
+
+    private String type;
+
     private LocalDateTime createTime;
 }

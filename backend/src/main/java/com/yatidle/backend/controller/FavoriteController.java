@@ -32,6 +32,22 @@ public class FavoriteController {
         return Result.success();
     }
 
+    @PostMapping("/wanted/{wantedId}")
+    public Result<Void> addWantedFavorite(
+            @PathVariable Long wantedId,
+            @RequestParam Long userId) {
+        favoriteService.addWantedFavorite(wantedId, userId);
+        return Result.success();
+    }
+
+    @DeleteMapping("/wanted/{wantedId}")
+    public Result<Void> cancelWantedFavorite(
+            @PathVariable Long wantedId,
+            @RequestParam Long userId) {
+        favoriteService.cancelWantedFavorite(wantedId, userId);
+        return Result.success();
+    }
+
     @GetMapping
     public Result<List<FavoriteVO>> listMyFavorites(@RequestParam Long userId) {
         List<FavoriteVO> list = favoriteService.listMyFavorites(userId);

@@ -120,7 +120,7 @@
 
 <script>
 	import { publishItem, getCategories, uploadImage } from '@/api/item.js'
-	import { publishWanted } from '@/api/wanted.js'
+	import { publishWanted, updateWanted } from '@/api/wanted.js'
 
 	export default {
 		data() {
@@ -360,18 +360,26 @@
 					description: this.buyForm.desc || undefined,
 					imageUrls
 				}
-				const data = await publishWanted(payload)
-				uni.showToast({ title: '发布成功！', icon: 'success' })
-				setTimeout(() => {
-					uni.switchTab({
-						url: '/pages/index/index',
-						success: () => {
-							setTimeout(() => {
-								uni.navigateTo({ url: '/pages/wanted-detail/wanted-detail?id=' + data.id })
-							}, 150)
-						}
-					})
-				}, 1200)
+				if (this.isEdit) {
+					await updateWanted(this.editId, payload)
+					uni.showToast({ title: '修改成功！', icon: 'success' })
+					setTimeout(() => {
+						uni.navigateBack()
+					}, 1200)
+				} else {
+					const data = await publishWanted(payload)
+					uni.showToast({ title: '发布成功！', icon: 'success' })
+					setTimeout(() => {
+						uni.switchTab({
+							url: '/pages/index/index',
+							success: () => {
+								setTimeout(() => {
+									uni.navigateTo({ url: '/pages/wanted-detail/wanted-detail?id=' + data.id })
+								}, 150)
+							}
+						})
+					}, 1200)
+				}
 				this.submitting = false
 			} catch (e) {
 				this.submitting = false
