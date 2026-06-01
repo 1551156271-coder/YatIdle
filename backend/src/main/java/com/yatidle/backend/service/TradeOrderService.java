@@ -97,6 +97,9 @@ public class TradeOrderService extends ServiceImpl<TradeOrderMapper, TradeOrder>
 
         tradeOrderMapper.insert(order);
 
+        item.setStatus("SOLD");
+        itemMapper.updateById(item);
+
         TradeOrderLog log = new TradeOrderLog();
         log.setOrderId(order.getId());
         log.setAction(OrderLogActionEnum.CREATE.name());
@@ -219,9 +222,6 @@ public class TradeOrderService extends ServiceImpl<TradeOrderMapper, TradeOrder>
         order.setCompleteTime(LocalDateTime.now());
 
         tradeOrderMapper.updateById(order);
-
-        item.setStatus("SOLD");
-        itemMapper.updateById(item);
 
         TradeOrderLog log = new TradeOrderLog();
         log.setOrderId(order.getId());

@@ -279,8 +279,16 @@
 					const data = await publishItem(payload)
 					uni.showToast({ title: '发布成功！', icon: 'success' })
 					setTimeout(() => {
-						uni.navigateTo({ url: '/pages/goods-detail/goods-detail?id=' + data.id })
+						uni.switchTab({
+							url: '/pages/index/index',
+							success: () => {
+								setTimeout(() => {
+									uni.navigateTo({ url: '/pages/goods-detail/goods-detail?id=' + data.id })
+								}, 150)
+							}
+						})
 					}, 1200)
+					this.submitting = false
 				} catch (e) {
 					this.submitting = false
 				}
@@ -355,8 +363,16 @@
 				const data = await publishWanted(payload)
 				uni.showToast({ title: '发布成功！', icon: 'success' })
 				setTimeout(() => {
-					uni.navigateTo({ url: '/pages/wanted-detail/wanted-detail?id=' + data.id })
+					uni.switchTab({
+						url: '/pages/index/index',
+						success: () => {
+							setTimeout(() => {
+								uni.navigateTo({ url: '/pages/wanted-detail/wanted-detail?id=' + data.id })
+							}, 150)
+						}
+					})
 				}, 1200)
+				this.submitting = false
 			} catch (e) {
 				this.submitting = false
 			}
