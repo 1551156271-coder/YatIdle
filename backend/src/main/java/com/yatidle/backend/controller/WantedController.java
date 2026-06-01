@@ -59,4 +59,10 @@ public class WantedController {
     public Result<List<WantedVO>> myWanted(@RequestParam Long userId) {
         return Result.success(wantedService.myWanted(userId));
     }
+
+    @PutMapping("/{id}/close")
+    public Result<Void> closeWanted(@PathVariable Long id, @RequestParam Long userId) {
+        wantedService.closeWanted(id, userId);
+        return Result.success(null);
+    }
 }

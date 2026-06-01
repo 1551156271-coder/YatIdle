@@ -2,6 +2,7 @@ package com.yatidle.backend.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.yatidle.backend.common.exception.BusinessException;
 import com.yatidle.backend.dto.order.CancelOrderDTO;
 import com.yatidle.backend.dto.order.CreateOrderDTO;
 import com.yatidle.backend.entity.Item;
@@ -57,15 +58,15 @@ public class TradeOrderService extends ServiceImpl<TradeOrderMapper, TradeOrder>
     @Transactional
     public TradeOrderVO createOrder(CreateOrderDTO dto, Long currentUserId){
         if(dto ==  null || dto.getItemId() == null){
-            throw new RuntimeException("商品ID不能为空");
+            throw new BusinessException("商品ID不能为空");
         }
 
         Item item = itemMapper.selectById(dto.getItemId());
         if(item == null || item.getIsDeleted() != null && item.getIsDeleted() == 1){
-            throw new RuntimeException("商品不存在");
+            throw new BusinessException("商品不存在");
         }
         if(!"ON_SALE".equals(item.getStatus())){
-            throw new RuntimeException("商品当前不可交易");
+            throw new BusinessException("商品当前不可交易");
         }
 
         Long pendingCount = tradeOrderMapper.selectCount(
@@ -76,11 +77,11 @@ public class TradeOrderService extends ServiceImpl<TradeOrderMapper, TradeOrder>
         );
 
         if (pendingCount > 0) {
-            throw new RuntimeException("该商品已有待交易订单");
+            throw new BusinessException("该商品已有待交易订单");
         }
 
         if(item.getUserId().equals(currentUserId)){
-            throw new RuntimeException("不能购买自己发布的商品");
+            throw new BusinessException("不能购买自己发布的商品");
         }
 
         TradeOrder order = new TradeOrder();
@@ -95,6 +96,9 @@ public class TradeOrderService extends ServiceImpl<TradeOrderMapper, TradeOrder>
         order.setIsDeleted(0);
 
         tradeOrderMapper.insert(order);
+
+        item.setStatus("SOLD");
+        itemMapper.updateById(item);
 
         TradeOrderLog log = new TradeOrderLog();
         log.setOrderId(order.getId());
@@ -136,24 +140,24 @@ public class TradeOrderService extends ServiceImpl<TradeOrderMapper, TradeOrder>
 
     public TradeOrderVO cancelOrder(Long orderId, CancelOrderDTO dto, Long currentUserId){
         if(orderId == null){
-            throw new RuntimeException("订单ID不能为空");
+            throw new BusinessException("订单ID不能为空");
         }
 
         TradeOrder order = tradeOrderMapper.selectById(orderId);
 
         if(order == null || (order.getIsDeleted() != null && order.getIsDeleted() == 1)){
-            throw new RuntimeException("订单不存在");
+            throw new BusinessException("订单不存在");
         }
 
         if (!OrderStatusEnum.PENDING.name().equals(order.getStatus())) {
-            throw new RuntimeException("当前订单状态不能取消");
+            throw new BusinessException("当前订单状态不能取消");
         }
 
         boolean isBuyer = order.getBuyerId().equals(currentUserId);
         boolean isSeller = order.getSellerId().equals(currentUserId);
 
         if (!isBuyer && !isSeller) {
-            throw new RuntimeException("无权取消该订单");
+            throw new BusinessException("无权取消该订单");
         }
 
         String beforeStatus = order.getStatus();
@@ -174,32 +178,42 @@ public class TradeOrderService extends ServiceImpl<TradeOrderMapper, TradeOrder>
 
         tradeOrderLogMapper.insert(log);
 
+        // 取消订单后恢复商品状态为在售
+        Item item = itemMapper.selectById(order.getItemId());
+        if (item != null && "SOLD".equals(item.getStatus())) {
+            item.setStatus("ON_SALE");
+            itemMapper.updateById(item);
+        }
+
         return toVO(order);
     }
 
     public TradeOrderVO completeOrder(Long orderId, Long currentUserId){
         if(orderId == null){
-            throw new RuntimeException("订单ID不能为空");
+            throw new BusinessException("订单ID不能为空");
         }
 
         TradeOrder order = tradeOrderMapper.selectById(orderId);
 
         if (order == null || order.getIsDeleted() != null && order.getIsDeleted() == 1) {
-            throw new RuntimeException("订单不存在");
+            throw new BusinessException("订单不存在");
         }
 
         if (!OrderStatusEnum.PENDING.name().equals(order.getStatus())) {
-            throw new RuntimeException("当前订单状态不能完成");
+            throw new BusinessException("当前订单状态不能完成");
         }
 
-        if (!order.getBuyerId().equals(currentUserId)) {
-            throw new RuntimeException("仅买家可确认订单完成");
+        boolean isBuyer = order.getBuyerId().equals(currentUserId);
+        boolean isSeller = order.getSellerId().equals(currentUserId);
+
+        if (!isBuyer && !isSeller) {
+            throw new BusinessException("无权完成该订单");
         }
 
         Item item = itemMapper.selectById(order.getItemId());
 
         if (item == null || item.getIsDeleted() != null && item.getIsDeleted() == 1) {
-            throw new RuntimeException("商品不存在");
+            throw new BusinessException("商品不存在");
         }
 
         String beforeStatus = order.getStatus();
@@ -208,9 +222,6 @@ public class TradeOrderService extends ServiceImpl<TradeOrderMapper, TradeOrder>
         order.setCompleteTime(LocalDateTime.now());
 
         tradeOrderMapper.updateById(order);
-
-        item.setStatus("SOLD");
-        itemMapper.updateById(item);
 
         TradeOrderLog log = new TradeOrderLog();
         log.setOrderId(order.getId());

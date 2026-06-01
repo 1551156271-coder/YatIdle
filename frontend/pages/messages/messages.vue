@@ -61,6 +61,7 @@
 		},
 		onHide() {
 			this.stopPolling()
+			uni.setStorageSync('msgUnread', 0)
 		},
 		methods: {
 			startPolling() {
@@ -79,16 +80,21 @@
 				const user = uni.getStorageSync('user')
 				if (!user || !user.id) {
 					this.chatList = []
+					uni.setStorageSync('msgUnread', 0)
 					return
 				}
 				this.loading = true
 				try {
 					const result = await getMySessions(user.id); const list = (result && result.records) || result || []
+					const totalUnread = list.reduce((sum, s) => sum + (s.unreadCount || 0), 0)
+					uni.setStorageSync('msgUnread', totalUnread)
 					this.chatList = list.map(s => {
 						const isBuyer = s.buyerId === user.id
 						const otherName = isBuyer ? '卖家' : '买家'
+						const partnerId = isBuyer ? s.sellerId : s.buyerId
 						return {
 							id: s.id,
+							partnerId: partnerId || 0,
 							avatar: s.partnerAvatar || '',
 							defaultAvatar: (s.partnerName || otherName).charAt(0),
 							name: s.wantedTitle || s.itemTitle || s.partnerName || otherName,
@@ -115,7 +121,7 @@
 			},
 			openChat(item) {
 				uni.navigateTo({
-					url: '/pages/chat/chat?id=' + item.id + '&name=' + encodeURIComponent(item.name) + '&avatar=' + encodeURIComponent(item.avatar || '')
+					url: '/pages/chat/chat?id=' + item.id + '&partnerId=' + (item.partnerId || 0) + '&name=' + encodeURIComponent(item.name) + '&avatar=' + encodeURIComponent(item.avatar || '')
 				})
 			},
 			goNotifications() {

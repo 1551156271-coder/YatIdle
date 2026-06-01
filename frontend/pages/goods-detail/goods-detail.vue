@@ -183,8 +183,8 @@
 				}
 				try {
 					const session = await createSession(user.id, { itemId: Number(this.goodsId) })
-					uni.navigateTo({ url: '/pages/chat/chat?id=' + session.id + '&name=' + encodeURIComponent(session.partnerName || '') + '&avatar=' + encodeURIComponent(session.partnerAvatar || '') })
-				} catch (e) {
+						const partnerId = session.buyerId === user.id ? session.sellerId : session.buyerId
+						uni.navigateTo({ url: '/pages/chat/chat?id=' + session.id + '&partnerId=' + (partnerId || 0) + '&name=' + encodeURIComponent(session.partnerName || '') + '&avatar=' + encodeURIComponent(session.partnerAvatar || '') })				} catch (e) {
 					uni.navigateTo({ url: '/pages/chat/chat?id=' + this.goodsId })
 				}
 			},

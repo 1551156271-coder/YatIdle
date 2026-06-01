@@ -6,13 +6,15 @@
 			class="tb-item"
 			@click="onTabClick(item, index)"
 		>
-			<!-- 选中顶部指示条 -->
 			<view v-if="current === index" class="tb-indicator"></view>
-			<text
-				class="tb-icon iconfont"
-				:class="current === index && item.selectedIcon ? item.selectedIcon : item.icon"
-				:style="{ color: current === index ? selectedColor : color }"
-			></text>
+			<view class="tb-icon-wrap">
+				<text
+					class="tb-icon iconfont"
+					:class="current === index && item.selectedIcon ? item.selectedIcon : item.icon"
+					:style="{ color: current === index ? selectedColor : color }"
+				></text>
+				<view v-if="item.badge > 0" class="tb-badge">{{ item.badge > 99 ? '99+' : item.badge }}</view>
+			</view>
 			<text
 				class="tb-text"
 				:class="{ 'tb-text-active': current === index }"
@@ -23,18 +25,21 @@
 </template>
 
 <script>
+	const BASE_URL = 'http://127.0.0.1:8080'
+
 	export default {
 		data() {
 			return {
 				color: '#676767',
 				selectedColor: '#3A6341',
 				current: 0,
+				badgeTimer: null,
 				list: [
-					{ pagePath: '/pages/index/index', text: '首页', icon: 'icon-shouye1', selectedIcon: 'icon-shouye' },
-					{ pagePath: '/pages/wanted/wanted', text: '求购', icon: 'icon-remenqiugou' },
-					{ pagePath: '/pages/publish/publish', text: '发布', icon: 'icon-fabu-', selectedIcon: 'icon-fabudianjizhuangtai-' },
-					{ pagePath: '/pages/messages/messages', text: '消息', icon: 'icon-xiaoxi', selectedIcon: 'icon-xiaoxi2' },
-					{ pagePath: '/pages/my/my', text: '我的', icon: 'icon-wode-copy', selectedIcon: 'icon-wode' }
+					{ pagePath: '/pages/index/index', text: '首页', icon: 'icon-shouye1', selectedIcon: 'icon-shouye', badge: 0 },
+					{ pagePath: '/pages/wanted/wanted', text: '求购', icon: 'icon-remenqiugou', badge: 0 },
+					{ pagePath: '/pages/publish/publish', text: '发布', icon: 'icon-fabu-', selectedIcon: 'icon-fabudianjizhuangtai-', badge: 0 },
+					{ pagePath: '/pages/messages/messages', text: '消息', icon: 'icon-xiaoxi', selectedIcon: 'icon-xiaoxi2', badge: 0 },
+					{ pagePath: '/pages/my/my', text: '我的', icon: 'icon-wode-copy', selectedIcon: 'icon-wode', badge: 0 }
 				]
 			}
 		},
@@ -45,11 +50,35 @@
 				const idx = this.list.findIndex(t => t.pagePath === '/' + page.route)
 				if (idx !== -1) this.current = idx
 			}
+			this.fetchUnread()
+			this.badgeTimer = setInterval(() => this.fetchUnread(), 5000)
+		},
+		beforeUnmount() {
+			if (this.badgeTimer) clearInterval(this.badgeTimer)
 		},
 		methods: {
 			onTabClick(item, index) {
 				if (this.current === index) return
 				uni.switchTab({ url: item.pagePath })
+			},
+			async fetchUnread() {
+				try {
+					const user = uni.getStorageSync('user')
+					if (!user || !user.id) return
+					const res = await uni.request({
+						url: BASE_URL + '/api/chat/sessions?userId=' + user.id + '&pageSize=50',
+						method: 'GET',
+						timeout: 5000
+					})
+					if (res.statusCode === 200 && res.data && res.data.code === 200) {
+						const list = (res.data.data && res.data.data.records) || res.data.data || []
+						const total = list.reduce((sum, s) => sum + (s.unreadCount || 0), 0)
+						const msgIdx = 3
+						if (this.list[msgIdx]) {
+							this.list[msgIdx].badge = total
+						}
+					}
+				} catch (e) {}
 			}
 		}
 	}
@@ -82,7 +111,6 @@
 		position: relative;
 	}
 
-	/* 选中顶部指示条 */
 	.tb-indicator {
 		position: absolute;
 		top: 0;
@@ -94,9 +122,28 @@
 		border-radius: 0 0 6rpx 6rpx;
 	}
 
+	.tb-icon-wrap {
+		position: relative;
+	}
+
 	.tb-icon {
 		font-size: 50rpx;
 		line-height: 1;
+	}
+
+	.tb-badge {
+		position: absolute;
+		top: -10rpx;
+		right: -16rpx;
+		min-width: 32rpx;
+		height: 32rpx;
+		line-height: 32rpx;
+		text-align: center;
+		background: #e74c3c;
+		color: #ffffff;
+		font-size: 20rpx;
+		border-radius: 16rpx;
+		padding: 0 8rpx;
 	}
 
 	.tb-text {

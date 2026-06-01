@@ -1,6 +1,7 @@
 package com.yatidle.backend.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.yatidle.backend.common.exception.BusinessException;
 import com.yatidle.backend.dto.chat.CreateChatSessionDTO;
 import com.yatidle.backend.dto.chat.SendMessageDTO;
 import com.yatidle.backend.entity.ChatMessage;
@@ -41,7 +42,7 @@ public class ChatService {
     @Transactional
     public ChatSessionVO createChatSession(CreateChatSessionDTO dto, Long currentUserId) {
         if (dto == null || (dto.getItemId() == null && dto.getWantedId() == null)) {
-            throw new RuntimeException("商品ID或求购ID不能为空");
+            throw new BusinessException("商品ID或求购ID不能为空");
         }
 
         boolean isWanted = dto.getWantedId() != null;
@@ -52,21 +53,21 @@ public class ChatService {
         if (isWanted) {
             Wanted wanted = wantedMapper.selectById(dto.getWantedId());
             if (wanted == null || (wanted.getIsDeleted() != null && wanted.getIsDeleted() == 1)) {
-                throw new RuntimeException("求购信息不存在");
+                throw new BusinessException("求购信息不存在");
             }
             sellerId = wanted.getUserId();
             refTitle = wanted.getTitle();
         } else {
             Item item = itemMapper.selectById(dto.getItemId());
             if (item == null || (item.getIsDeleted() != null && item.getIsDeleted() == 1)) {
-                throw new RuntimeException("商品不存在");
+                throw new BusinessException("商品不存在");
             }
             sellerId = item.getUserId();
             refTitle = item.getTitle();
         }
 
         if (sellerId.equals(currentUserId)) {
-            throw new RuntimeException("不能与自己进行对话");
+            throw new BusinessException("不能与自己进行对话");
         }
 
         LambdaQueryWrapper<ChatSession> existWrapper = new LambdaQueryWrapper<ChatSession>()
@@ -134,21 +135,41 @@ public class ChatService {
     @Transactional
     public ChatMessageVO sendMessage(SendMessageDTO dto, Long currentUserId) {
         if(dto == null || dto.getSessionId() == null){
-            throw new RuntimeException("会话ID不能为空");
+            throw new BusinessException("会话ID不能为空");
         }
-        if(dto.getContent() == null || dto.getContent().trim().isEmpty()){
-            throw new RuntimeException("消息内容不能为空");
+
+        String content = dto.getContent() == null ? "" : dto.getContent().trim();
+        if(content.isEmpty()){
+            throw new BusinessException("消息内容不能为空");
+        }
+
+        String messageType = dto.getMessageType();
+        if(messageType == null || messageType.trim().isEmpty()) {
+            messageType = MessageTypeEnum.TEXT.name();
+        }
+        else {
+            messageType = messageType.trim().toUpperCase();
+        }
+
+        if(!MessageTypeEnum.TEXT.name().equals(messageType)
+                && !MessageTypeEnum.IMAGE.name().equals(messageType)){
+            throw new BusinessException("不支持的消息类型");
+        }
+
+        if(MessageTypeEnum.IMAGE.name().equals(messageType)
+                && !content.startsWith("/uploads/chat/")){
+            throw new BusinessException("图片地址不合法");
         }
 
         ChatSession session = chatSessionMapper.selectById(dto.getSessionId());
         if(session == null || (session.getIsDeleted() != null && session.getIsDeleted() == 1)){
-            throw new RuntimeException("会话不存在");
+            throw new BusinessException("会话不存在");
         }
 
         boolean isBuyer = session.getBuyerId().equals(currentUserId);
         boolean isSeller = session.getSellerId().equals(currentUserId);
         if(!isBuyer && !isSeller){
-            throw new RuntimeException("无权发送该会话消息");
+            throw new BusinessException("无权发送该会话消息");
         }
 
         Long receiverId = isBuyer ? session.getSellerId() : session.getBuyerId();
@@ -157,14 +178,20 @@ public class ChatService {
         message.setSessionId(session.getId());
         message.setSenderId(currentUserId);
         message.setReceiverId(receiverId);
-        message.setMessageType(MessageTypeEnum.TEXT.name());
-        message.setContent(dto.getContent().trim());
+        message.setMessageType(messageType);
+        message.setContent(content);
         message.setReadFlag(0);
         message.setIsDeleted(0);
 
         chatMessageMapper.insert(message);
 
-        session.setLastMessage(message.getContent());
+        if(MessageTypeEnum.IMAGE.name().equals(messageType)) {
+            session.setLastMessage("[图片]");
+        }
+        else {
+            session.setLastMessage(message.getContent());
+        }
+
         session.setLastSenderId(message.getSenderId());
         session.setLastMessageTime(LocalDateTime.now());
 
@@ -182,18 +209,18 @@ public class ChatService {
 
     public List<ChatMessageVO> listMessages(Long sessionId, Long currentUserId) {
         if(sessionId == null){
-            throw new RuntimeException("会话ID不能为空");
+            throw new BusinessException("会话ID不能为空");
         }
 
         ChatSession session = chatSessionMapper.selectById(sessionId);
         if(session == null || (session.getIsDeleted() != null && session.getIsDeleted() == 1)){
-            throw new RuntimeException("会话不存在");
+            throw new BusinessException("会话不存在");
         }
 
         boolean isBuyer = session.getBuyerId().equals(currentUserId);
         boolean isSeller = session.getSellerId().equals(currentUserId);
         if(!isBuyer && !isSeller){
-            throw new RuntimeException("无权查看该会话消息");
+            throw new BusinessException("无权查看该会话消息");
         }
 
         List<ChatMessage> messages = chatMessageMapper.selectList(
@@ -214,17 +241,17 @@ public class ChatService {
     @Transactional
     public void markAsRead(Long sessionId, Long currentUserId){
         if(sessionId == null){
-            throw new RuntimeException("会话ID不能为空");
+            throw new BusinessException("会话ID不能为空");
         }
         ChatSession session = chatSessionMapper.selectById(sessionId);
         if(session == null || (session.getIsDeleted() != null && session.getIsDeleted() == 1)){
-            throw new RuntimeException("会话不存在");
+            throw new BusinessException("会话不存在");
         }
 
         boolean isBuyer = session.getBuyerId().equals(currentUserId);
         boolean isSeller = session.getSellerId().equals(currentUserId);
         if(!isBuyer && !isSeller){
-            throw new RuntimeException("无权操作该会话");
+            throw new BusinessException("无权操作该会话");
         }
         if(isBuyer){
             session.setBuyerUnreadCount(0);
