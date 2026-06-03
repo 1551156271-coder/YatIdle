@@ -15,9 +15,11 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -107,5 +109,18 @@ public class UserController {
         file.transferTo(target);
 
         return Result.success(Map.of("url", "/uploads/avatar/" + filename));
+    }
+
+    @GetMapping("/wallet")
+    public Result<Map<String, Object>> getWallet(@RequestParam Long userId) {
+        User user = userService.findById(userId);
+        if (user == null) {
+            throw new RuntimeException("用户不存在");
+        }
+        Map<String, Object> data = new HashMap<>();
+        data.put("balance", user.getBalance());
+        data.put("totalIncome", BigDecimal.ZERO);
+        data.put("totalExpense", BigDecimal.ZERO);
+        return Result.success(data);
     }
 }

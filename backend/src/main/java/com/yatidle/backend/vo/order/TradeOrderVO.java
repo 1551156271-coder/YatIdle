@@ -44,4 +44,6 @@ public class TradeOrderVO {
     private String sellerName;
 
     private String sellerAvatar;
+
+    private String buyerAvatar;
 }

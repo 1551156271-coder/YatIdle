@@ -65,6 +65,7 @@
 						buyerName: o.buyerName || '',
 						sellerName: o.sellerName || '',
 						sellerAvatar: o.sellerAvatar || '',
+						buyerAvatar: o.buyerAvatar || '',
 						image: o.itemImageUrl || '',
 						title: o.itemTitle || ('商品 #' + o.itemId),
 						price: o.price,

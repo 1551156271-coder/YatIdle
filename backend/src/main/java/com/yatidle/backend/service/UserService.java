@@ -1,10 +1,13 @@
 package com.yatidle.backend.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.yatidle.backend.common.exception.BusinessException;
 import com.yatidle.backend.entity.User;
 import com.yatidle.backend.mapper.UserMapper;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Service
@@ -103,5 +106,28 @@ public class UserService {
     // 返回所有用户
     public List<User> findAll() {
         return userMapper.selectList(null);
+    }
+
+    @Transactional
+    public void deduct(Long userId, BigDecimal amount) {
+        User user = userMapper.selectById(userId);
+        if (user == null) {
+            throw new BusinessException("用户不存在");
+        }
+        if (user.getBalance().compareTo(amount) < 0) {
+            throw new BusinessException("钱包余额不足");
+        }
+        user.setBalance(user.getBalance().subtract(amount));
+        userMapper.updateById(user);
+    }
+
+    @Transactional
+    public void refund(Long userId, BigDecimal amount) {
+        User user = userMapper.selectById(userId);
+        if (user == null) {
+            throw new BusinessException("用户不存在");
+        }
+        user.setBalance(user.getBalance().add(amount));
+        userMapper.updateById(user);
     }
 }

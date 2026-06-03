@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS `user` (
   bio VARCHAR(500) COMMENT '个人简介',
   campus ENUM('南校园','东校园','北校园','珠海校区','深圳校区') DEFAULT NULL COMMENT '所在校区',
   credit_score INT NOT NULL DEFAULT 100 COMMENT '信用分',
+  balance DECIMAL(10,2) NOT NULL DEFAULT 10000.00 COMMENT '账户余额',
   status VARCHAR(20) NOT NULL DEFAULT 'active' COMMENT '用户状态，active=正常，inactive锁定（被封禁），',
   create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   update_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
