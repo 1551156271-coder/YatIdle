@@ -31,8 +31,8 @@
         <text>{{ u.creditScore == null ? '-' : u.creditScore }}</text>
         <view class="ops">
           <button size="mini" @click="openDetail(u)">详情</button>
-          <button size="mini" @click="openAction(u, 'status')">{{ u.status === 'active' ? '封禁' : '解封' }}</button>
-          <button size="mini" @click="openAction(u, 'role')">{{ u.role === 1 ? '取消管理员' : '设为管理员' }}</button>
+          <button v-if="!isSelf(u)" size="mini" @click="openAction(u, 'status')">{{ u.status === 'active' ? '封禁' : '解封' }}</button>
+          <button v-if="!isSelf(u)" size="mini" @click="openAction(u, 'role')">{{ u.role === 1 ? '取消管理员' : '设为管理员' }}</button>
         </view>
       </view>
     </view>
@@ -65,35 +65,27 @@
       </view>
     </view>
 
-    <view v-if="actionVisible" class="modal-mask" @click="closeAction">
-      <view class="modal" @click.stop>
-        <view class="modal-header">
-          <text class="modal-title">{{ actionTitle }}</text>
-          <button @click="closeAction">关闭</button>
-        </view>
-        <view class="modal-body">
-          <view class="detail-item wide">
-            <text class="detail-label">操作对象</text>
-            <text class="detail-value">#{{ currentUser.id }} {{ currentUser.username }}</text>
-          </view>
-          <textarea v-model="actionReason" placeholder="请输入操作原因，原因会写入操作日志" />
-        </view>
-        <view class="modal-footer">
-          <button @click="closeAction">取消</button>
-          <button class="danger" :disabled="submitting" @click="submitAction">确认执行</button>
-        </view>
-      </view>
-    </view>
+    <danger-action-modal
+      :visible="actionVisible"
+      :title="actionTitle"
+      :object-text="actionObjectText"
+      :impact="actionImpact"
+      :submit="performAction"
+      @close="closeAction"
+      @success="onActionSuccess"
+    />
   </admin-layout>
 </template>
 
 <script>
 import AdminLayout from '../../components/admin-layout.vue'
+import DangerActionModal from '../../components/danger-action-modal.vue'
 import { listUsers, getUserDetail, updateUserStatus, updateUserRole } from '../../api/users'
 
 export default {
-  components: { AdminLayout },
+  components: { AdminLayout, DangerActionModal },
   data() {
+    const adminUser = uni.getStorageSync('adminUser') || {}
     return {
       query: { keyword: '', status: '', role: '', page: 1, size: 10 },
       records: [],
@@ -105,8 +97,7 @@ export default {
       actionVisible: false,
       actionType: '',
       currentUser: {},
-      actionReason: '',
-      submitting: false
+      currentAdminId: adminUser.id
     }
   },
   onShow() {
@@ -117,6 +108,16 @@ export default {
       if (!this.currentUser.id) return '确认操作'
       if (this.actionType === 'role') return this.currentUser.role === 1 ? '取消管理员权限' : '设置管理员权限'
       return this.currentUser.status === 'active' ? '封禁用户' : '解封用户'
+    },
+    actionObjectText() {
+      if (!this.currentUser.id) return ''
+      return `#${this.currentUser.id} ${this.currentUser.username || this.currentUser.nickname || ''}`
+    },
+    actionImpact() {
+      if (this.actionType === 'role') {
+        return this.currentUser.role === 1 ? '取消后该用户将失去后台管理权限。' : '设置后该用户将获得后台管理权限，请确认身份可信。'
+      }
+      return this.currentUser.status === 'active' ? '封禁后该用户将无法继续正常使用账号。' : '解封后该用户将恢复正常使用权限。'
     }
   },
   methods: {
@@ -159,55 +160,42 @@ export default {
       this.detail = {}
     },
     openAction(user, type) {
+      if (this.isSelf(user)) {
+        uni.showToast({ title: '不能操作当前登录管理员', icon: 'none' })
+        return
+      }
       this.currentUser = user
       this.actionType = type
-      this.actionReason = ''
       this.actionVisible = true
     },
     closeAction() {
       this.actionVisible = false
       this.currentUser = {}
       this.actionType = ''
-      this.actionReason = ''
     },
-    async submitAction() {
-      if (!this.actionReason.trim()) {
-        uni.showToast({ title: '请填写操作原因', icon: 'none' })
-        return
+    async performAction(reason) {
+      if (this.isSelf(this.currentUser)) {
+        throw new Error('不能操作当前登录管理员。')
       }
-      this.submitting = true
-      try {
-        const ok = await this.confirmTwice(this.actionTitle)
-        if (!ok) return
-        if (this.actionType === 'role') {
-          const role = this.currentUser.role === 1 ? 0 : 1
-          await updateUserRole(this.currentUser.id, { role, reason: this.actionReason })
-        } else {
-          const status = this.currentUser.status === 'active' ? 'inactive' : 'active'
-          await updateUserStatus(this.currentUser.id, { status, reason: this.actionReason })
-        }
-        this.closeAction()
-        await this.load()
-      } finally {
-        this.submitting = false
+      if (this.actionType === 'role') {
+        const role = this.currentUser.role === 1 ? 0 : 1
+        await updateUserRole(this.currentUser.id, { role, reason })
+      } else {
+        const status = this.currentUser.status === 'active' ? 'inactive' : 'active'
+        await updateUserStatus(this.currentUser.id, { status, reason })
       }
     },
-    confirmTwice(content) {
-      return new Promise(resolve => {
-        uni.showModal({
-          title: '二次确认',
-          content: `确认${content}？`,
-          confirmColor: '#b42318',
-          success: res => resolve(res.confirm),
-          fail: () => resolve(false)
-        })
-      })
+    async onActionSuccess() {
+      await this.load()
     },
     roleText(role) {
       return role === 1 ? '管理员' : '普通用户'
     },
     statusText(status) {
       return status === 'inactive' ? '封禁' : '正常'
+    },
+    isSelf(user) {
+      return user && this.currentAdminId != null && Number(user.id) === Number(this.currentAdminId)
     }
   }
 }

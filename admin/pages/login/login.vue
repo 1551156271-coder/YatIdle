@@ -2,8 +2,8 @@
   <view class="login-page">
     <view class="login-panel">
       <view class="title">YatIdle 后台管理</view>
-      <view class="field"><text>账号</text><input v-model="form.username" placeholder="admin" /></view>
-      <view class="field"><text>密码</text><input v-model="form.password" password placeholder="123456" /></view>
+      <view class="field"><text>账号</text><input v-model="form.username" autocomplete="off" /></view>
+      <view class="field"><text>密码</text><input v-model="form.password" password autocomplete="new-password" /></view>
       <button class="login-btn" :loading="loading" @click="submit">登录</button>
     </view>
   </view>

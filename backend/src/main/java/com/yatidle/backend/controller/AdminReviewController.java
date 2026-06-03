@@ -37,4 +37,10 @@ public class AdminReviewController {
         adminReviewService.delete(AdminControllerSupport.currentAdminId(request), id, dto == null ? null : dto.getReason());
         return Result.success();
     }
+
+    @PutMapping("/{id}/delete")
+    public Result<Void> deleteByPut(@PathVariable Long id, @RequestBody(required = false) AdminStatusUpdateDTO dto, HttpServletRequest request) {
+        adminReviewService.delete(AdminControllerSupport.currentAdminId(request), id, dto == null ? null : dto.getReason());
+        return Result.success();
+    }
 }

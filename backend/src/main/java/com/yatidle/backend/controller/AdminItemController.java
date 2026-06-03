@@ -3,8 +3,8 @@ package com.yatidle.backend.controller;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.yatidle.backend.common.Result;
 import com.yatidle.backend.dto.admin.AdminStatusUpdateDTO;
-import com.yatidle.backend.entity.Item;
 import com.yatidle.backend.service.AdminItemService;
+import com.yatidle.backend.vo.admin.AdminItemVO;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,12 +21,12 @@ public class AdminItemController {
     }
 
     @GetMapping
-    public Result<Page<Item>> list(@RequestParam(required = false) String keyword,
-                                   @RequestParam(required = false) Long categoryId,
-                                   @RequestParam(required = false) String status,
-                                   @RequestParam(required = false) String campus,
-                                   @RequestParam(defaultValue = "1") int page,
-                                   @RequestParam(defaultValue = "10") int size) {
+    public Result<Page<AdminItemVO>> list(@RequestParam(required = false) String keyword,
+                                          @RequestParam(required = false) Long categoryId,
+                                          @RequestParam(required = false) String status,
+                                          @RequestParam(required = false) String campus,
+                                          @RequestParam(defaultValue = "1") int page,
+                                          @RequestParam(defaultValue = "10") int size) {
         return Result.success(adminItemService.list(keyword, categoryId, status, campus, page, size));
     }
 
@@ -43,6 +43,12 @@ public class AdminItemController {
 
     @DeleteMapping("/{id}")
     public Result<Void> delete(@PathVariable Long id, @RequestBody(required = false) AdminStatusUpdateDTO dto, HttpServletRequest request) {
+        adminItemService.delete(AdminControllerSupport.currentAdminId(request), id, dto == null ? null : dto.getReason());
+        return Result.success();
+    }
+
+    @PutMapping("/{id}/delete")
+    public Result<Void> deleteByPut(@PathVariable Long id, @RequestBody(required = false) AdminStatusUpdateDTO dto, HttpServletRequest request) {
         adminItemService.delete(AdminControllerSupport.currentAdminId(request), id, dto == null ? null : dto.getReason());
         return Result.success();
     }

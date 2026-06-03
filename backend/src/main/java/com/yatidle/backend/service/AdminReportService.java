@@ -8,19 +8,29 @@ import com.yatidle.backend.common.exception.BusinessException;
 import com.yatidle.backend.dto.report.CreateReportDTO;
 import com.yatidle.backend.entity.Item;
 import com.yatidle.backend.entity.Report;
+import com.yatidle.backend.entity.TradeOrder;
 import com.yatidle.backend.entity.User;
+import com.yatidle.backend.entity.Wanted;
 import com.yatidle.backend.mapper.ItemMapper;
 import com.yatidle.backend.mapper.ReportMapper;
 import com.yatidle.backend.mapper.TradeOrderMapper;
 import com.yatidle.backend.mapper.UserMapper;
 import com.yatidle.backend.mapper.WantedMapper;
+import com.yatidle.backend.vo.admin.AdminReportVO;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 public class AdminReportService {
@@ -73,26 +83,22 @@ public class AdminReportService {
         return report;
     }
 
-    public Page<Report> list(String status, String reason, int page, int size) {
+    public Page<AdminReportVO> list(String status, String reason, int page, int size) {
         LambdaQueryWrapper<Report> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(Report::getIsDeleted, 0);
         if (status != null && !status.isBlank()) wrapper.eq(Report::getStatus, status);
         if (reason != null && !reason.isBlank()) wrapper.eq(Report::getReason, reason);
         wrapper.orderByDesc(Report::getCreateTime);
-        return reportMapper.selectPage(new Page<>(page, size), wrapper);
+        return toVOPage(reportMapper.selectPage(new Page<>(page, size), wrapper));
     }
 
-    public Map<String, Object> detail(Long id) {
+    public AdminReportVO detail(Long id) {
         Report report = findReport(id);
-        Map<String, Object> data = new HashMap<>();
-        data.put("report", report);
-        data.put("reporter", safeUser(report.getReporterId()));
-        data.put("targetUser", safeUser(report.getTargetUserId()));
-        data.put("item", itemMapper == null || report.getItemId() == null ? null : itemMapper.selectById(report.getItemId()));
-        data.put("wanted", wantedMapper == null || report.getWantedId() == null ? null : wantedMapper.selectById(report.getWantedId()));
-        data.put("order", tradeOrderMapper == null || report.getOrderId() == null ? null : tradeOrderMapper.selectById(report.getOrderId()));
-        data.put("baseUrl", baseUrl);
-        return data;
+        return enrich(AdminReportVO.from(report),
+                mapUsers(ids(report.getReporterId(), report.getTargetUserId(), report.getHandlerId())),
+                mapItems(ids(report.getItemId())),
+                mapWanted(ids(report.getWantedId())),
+                mapOrders(ids(report.getOrderId())));
     }
 
     @Transactional
@@ -145,5 +151,90 @@ public class AdminReportService {
 
     private void requireResult(String result) {
         if (result == null || result.isBlank()) throw new BusinessException("处理结果不能为空");
+    }
+
+    private Page<AdminReportVO> toVOPage(Page<Report> source) {
+        Page<AdminReportVO> result = new Page<>(source.getCurrent(), source.getSize(), source.getTotal());
+        result.setPages(source.getPages());
+        result.setRecords(enrichReports(source.getRecords()));
+        return result;
+    }
+
+    private List<AdminReportVO> enrichReports(List<Report> reports) {
+        Set<Long> userIds = new LinkedHashSet<>();
+        Set<Long> itemIds = new LinkedHashSet<>();
+        Set<Long> wantedIds = new LinkedHashSet<>();
+        Set<Long> orderIds = new LinkedHashSet<>();
+        for (Report report : reports) {
+            add(userIds, report.getReporterId());
+            add(userIds, report.getTargetUserId());
+            add(userIds, report.getHandlerId());
+            add(itemIds, report.getItemId());
+            add(wantedIds, report.getWantedId());
+            add(orderIds, report.getOrderId());
+        }
+        Map<Long, User> users = mapUsers(userIds);
+        Map<Long, Item> items = mapItems(itemIds);
+        Map<Long, Wanted> wanted = mapWanted(wantedIds);
+        Map<Long, TradeOrder> orders = mapOrders(orderIds);
+        return reports.stream()
+                .map(AdminReportVO::from)
+                .map(vo -> enrich(vo, users, items, wanted, orders))
+                .toList();
+    }
+
+    private AdminReportVO enrich(AdminReportVO vo, Map<Long, User> users, Map<Long, Item> items,
+                                 Map<Long, Wanted> wanted, Map<Long, TradeOrder> orders) {
+        User reporter = users.get(vo.getReporterId());
+        if (reporter != null) vo.setReporterUsername(displayUser(reporter));
+        User target = users.get(vo.getTargetUserId());
+        if (target != null) vo.setTargetUserUsername(displayUser(target));
+        User handler = users.get(vo.getHandlerId());
+        if (handler != null) vo.setHandlerUsername(displayUser(handler));
+        Item item = items.get(vo.getItemId());
+        if (item != null) vo.setItemTitle(item.getTitle());
+        Wanted wantedItem = wanted.get(vo.getWantedId());
+        if (wantedItem != null) vo.setWantedTitle(wantedItem.getTitle());
+        TradeOrder order = orders.get(vo.getOrderId());
+        if (order != null) vo.setOrderNo(order.getOrderNo());
+        return vo;
+    }
+
+    private Map<Long, User> mapUsers(Set<Long> ids) {
+        if (userMapper == null || ids.isEmpty()) return Map.of();
+        return userMapper.selectBatchIds(List.copyOf(ids)).stream()
+                .collect(Collectors.toMap(User::getId, Function.identity(), (a, b) -> a, LinkedHashMap::new));
+    }
+
+    private Map<Long, Item> mapItems(Set<Long> ids) {
+        if (itemMapper == null || ids.isEmpty()) return Map.of();
+        return itemMapper.selectBatchIds(List.copyOf(ids)).stream()
+                .collect(Collectors.toMap(Item::getId, Function.identity(), (a, b) -> a, LinkedHashMap::new));
+    }
+
+    private Map<Long, Wanted> mapWanted(Set<Long> ids) {
+        if (wantedMapper == null || ids.isEmpty()) return Map.of();
+        return wantedMapper.selectBatchIds(List.copyOf(ids)).stream()
+                .collect(Collectors.toMap(Wanted::getId, Function.identity(), (a, b) -> a, LinkedHashMap::new));
+    }
+
+    private Map<Long, TradeOrder> mapOrders(Set<Long> ids) {
+        if (tradeOrderMapper == null || ids.isEmpty()) return Map.of();
+        return tradeOrderMapper.selectBatchIds(List.copyOf(ids)).stream()
+                .collect(Collectors.toMap(TradeOrder::getId, Function.identity(), (a, b) -> a, LinkedHashMap::new));
+    }
+
+    private Set<Long> ids(Long... values) {
+        Set<Long> ids = new LinkedHashSet<>();
+        for (Long value : values) add(ids, value);
+        return ids;
+    }
+
+    private void add(Set<Long> ids, Long value) {
+        if (value != null) ids.add(value);
+    }
+
+    private String displayUser(User user) {
+        return Objects.requireNonNullElse(user.getUsername(), Objects.requireNonNullElse(user.getNickname(), "用户" + user.getId()));
     }
 }

@@ -2,15 +2,14 @@ package com.yatidle.backend.controller;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.yatidle.backend.common.Result;
-import com.yatidle.backend.common.exception.BusinessException;
 import com.yatidle.backend.dto.item.ItemPublishDTO;
 import com.yatidle.backend.dto.item.ItemSearchDTO;
 import com.yatidle.backend.service.ItemService;
+import com.yatidle.backend.util.ImageUploadValidator;
 import com.yatidle.backend.vo.item.ItemCardVO;
 import com.yatidle.backend.vo.item.ItemDetailVO;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -66,17 +65,7 @@ public class ItemController {
 
     @PostMapping("/images/upload")
     public Result<Map<String, String>> uploadImage(@RequestParam("file") MultipartFile file) throws IOException {
-        if (file == null || file.isEmpty()) {
-            throw new BusinessException("图片文件不能为空");
-        }
-
-        String originalFilename = StringUtils.cleanPath(file.getOriginalFilename() == null ? "" : file.getOriginalFilename());
-        String ext = "";
-        int dotIndex = originalFilename.lastIndexOf('.');
-        if (dotIndex >= 0) {
-            ext = originalFilename.substring(dotIndex);
-        }
-
+        String ext = ImageUploadValidator.validate(file);
         String filename = UUID.randomUUID() + ext;
         Path uploadDir = Paths.get("uploads", "items").toAbsolutePath().normalize();
         Files.createDirectories(uploadDir);

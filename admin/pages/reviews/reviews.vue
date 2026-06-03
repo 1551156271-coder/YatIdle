@@ -41,24 +41,48 @@
       </view>
     </view>
 
-    <view v-if="deleteVisible" class="modal-mask" @click="closeDelete">
-      <view class="modal" @click.stop>
-        <view class="modal-header"><text class="modal-title">删除违规评价</text><button @click="closeDelete">关闭</button></view>
-        <view class="modal-body"><view class="detail-item wide"><text class="detail-label">评价</text><text class="detail-value">#{{ current.id }} {{ current.content || '' }}</text></view><textarea v-model="reason" placeholder="请输入删除原因" /></view>
-        <view class="modal-footer"><button @click="closeDelete">取消</button><button class="danger" :disabled="submitting" @click="submitDelete">确认删除</button></view>
-      </view>
-    </view>
+    <danger-action-modal
+      :visible="deleteVisible"
+      title="删除违规评价"
+      :object-text="deleteObjectText"
+      impact="删除后该评价将不再展示，请确认内容确实违规。"
+      :submit="performDelete"
+      submit-text="确认删除"
+      @close="closeDelete"
+      @success="onDeleteSuccess"
+    />
   </admin-layout>
 </template>
 
 <script>
 import AdminLayout from '../../components/admin-layout.vue'
+import DangerActionModal from '../../components/danger-action-modal.vue'
 import { listReviews, getReviewDetail, deleteReview } from '../../api/reviews'
 
 export default {
-  components: { AdminLayout },
-  data() { return { query: { reviewerId: '', revieweeId: '', rating: '', page: 1, size: 10 }, records: [], total: 0, pages: 1, loading: false, detailVisible: false, detail: {}, deleteVisible: false, current: {}, reason: '', submitting: false } },
-  onShow() { this.load() },
+  components: { AdminLayout, DangerActionModal },
+  data() {
+    return {
+      query: { reviewerId: '', revieweeId: '', rating: '', page: 1, size: 10 },
+      records: [],
+      total: 0,
+      pages: 1,
+      loading: false,
+      detailVisible: false,
+      detail: {},
+      deleteVisible: false,
+      current: {}
+    }
+  },
+  onShow() {
+    this.load()
+  },
+  computed: {
+    deleteObjectText() {
+      if (!this.current.id) return ''
+      return `#${this.current.id} ${this.current.content || ''}`
+    }
+  },
   methods: {
     async load() {
       this.loading = true
@@ -71,32 +95,68 @@ export default {
         this.records = data.records || []
         this.total = Number(data.total || 0)
         this.pages = Math.max(1, Number(data.pages || Math.ceil(this.total / this.query.size) || 1))
-      } finally { this.loading = false }
+      } finally {
+        this.loading = false
+      }
     },
-    search() { this.query.page = 1; this.load() },
-    reset() { this.query = { reviewerId: '', revieweeId: '', rating: '', page: 1, size: 10 }; this.load() },
-    setRating(rating) { this.query.rating = rating; this.search() },
-    goPage(page) { if (page >= 1 && page <= this.pages) { this.query.page = page; this.load() } },
-    async openDetail(row) { this.detail = await getReviewDetail(row.id); this.detailVisible = true },
-    closeDetail() { this.detailVisible = false; this.detail = {} },
-    openDelete(row) { this.current = row; this.reason = ''; this.deleteVisible = true },
-    closeDelete() { this.deleteVisible = false; this.current = {}; this.reason = '' },
-    async submitDelete() {
-      if (!this.reason.trim()) return uni.showToast({ title: '请填写删除原因', icon: 'none' })
-      this.submitting = true
-      try {
-        const ok = await new Promise(resolve => uni.showModal({ title: '二次确认', content: '确认删除该违规评价？', confirmColor: '#b42318', success: r => resolve(r.confirm), fail: () => resolve(false) }))
-        if (!ok) return
-        await deleteReview(this.current.id, { reason: this.reason })
-        this.closeDelete()
-        await this.load()
-      } finally { this.submitting = false }
+    search() {
+      this.query.page = 1
+      this.load()
+    },
+    reset() {
+      this.query = { reviewerId: '', revieweeId: '', rating: '', page: 1, size: 10 }
+      this.load()
+    },
+    setRating(rating) {
+      this.query.rating = rating
+      this.search()
+    },
+    goPage(page) {
+      if (page >= 1 && page <= this.pages) {
+        this.query.page = page
+        this.load()
+      }
+    },
+    async openDetail(row) {
+      this.detail = await getReviewDetail(row.id)
+      this.detailVisible = true
+    },
+    closeDetail() {
+      this.detailVisible = false
+      this.detail = {}
+    },
+    openDelete(row) {
+      this.current = row
+      this.deleteVisible = true
+    },
+    closeDelete() {
+      this.deleteVisible = false
+      this.current = {}
+    },
+    async performDelete(reason) {
+      await deleteReview(this.current.id, { reason })
+    },
+    async onDeleteSuccess() {
+      await this.load()
     }
   }
 }
 </script>
 
 <style scoped>
-.tr { display: grid; grid-template-columns: 70px 100px 100px 110px 80px 1fr 170px; align-items: center; min-height: 50px; padding: 0 14px; border-bottom: 1px solid #edf1f5; font-size: 14px; }
-.th { background: #f8fafc; font-weight: 700; color: #4a5568; }
+.tr {
+  display: grid;
+  grid-template-columns: 70px 100px 100px 110px 80px 1fr 170px;
+  align-items: center;
+  min-height: 50px;
+  padding: 0 14px;
+  border-bottom: 1px solid #edf1f5;
+  font-size: 14px;
+}
+
+.th {
+  background: #f8fafc;
+  font-weight: 700;
+  color: #4a5568;
+}
 </style>

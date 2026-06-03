@@ -74,7 +74,8 @@ export default {
 .admin-shell { width: 100vw; min-height: 100vh; display: flex; background: #f4f6f8; overflow: hidden; }
 .sidebar { flex: 0 0 224px; width: 224px; min-height: 100vh; background: #1f3d2f; color: #dce8df; padding: 18px 12px; box-sizing: border-box; }
 .brand { height: 52px; line-height: 52px; padding: 0 12px; font-size: 18px; font-weight: 700; color: #fff; }
-.menu-item { height: 42px; display: flex; align-items: center; gap: 10px; padding: 0 12px; border-radius: 6px; cursor: pointer; font-size: 14px; }
+.menu-item { height: 42px; display: flex; align-items: center; gap: 10px; padding: 0 12px; border-radius: 6px; cursor: pointer; user-select: none; font-size: 14px; }
+.menu-item * { cursor: inherit; user-select: none; }
 .menu-item.active, .menu-item:hover { background: #2f6a4b; color: #fff; }
 .menu-icon { width: 22px; height: 22px; line-height: 22px; text-align: center; border: 1px solid rgba(255,255,255,.25); border-radius: 5px; font-size: 12px; }
 .main { flex: 1; min-width: 0; max-width: calc(100vw - 224px); }

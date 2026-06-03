@@ -39,4 +39,10 @@ public class AdminCategoryController {
         adminCategoryService.delete(AdminControllerSupport.currentAdminId(request), id);
         return Result.success();
     }
+
+    @PutMapping("/{id}/delete")
+    public Result<Void> deleteByPut(@PathVariable Long id, HttpServletRequest request) {
+        adminCategoryService.delete(AdminControllerSupport.currentAdminId(request), id);
+        return Result.success();
+    }
 }

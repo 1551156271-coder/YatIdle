@@ -5,6 +5,7 @@ import com.yatidle.backend.common.Result;
 import com.yatidle.backend.dto.admin.AdminStatusUpdateDTO;
 import com.yatidle.backend.entity.Wanted;
 import com.yatidle.backend.service.AdminWantedService;
+import com.yatidle.backend.vo.wanted.WantedDetailVO;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.*;
 
@@ -28,7 +29,7 @@ public class AdminWantedController {
     }
 
     @GetMapping("/{id}")
-    public Result<Wanted> detail(@PathVariable Long id) {
+    public Result<WantedDetailVO> detail(@PathVariable Long id) {
         return Result.success(adminWantedService.detail(id));
     }
 
@@ -40,6 +41,12 @@ public class AdminWantedController {
 
     @DeleteMapping("/{id}")
     public Result<Void> delete(@PathVariable Long id, @RequestBody(required = false) AdminStatusUpdateDTO dto, HttpServletRequest request) {
+        adminWantedService.delete(AdminControllerSupport.currentAdminId(request), id, dto == null ? null : dto.getReason());
+        return Result.success();
+    }
+
+    @PutMapping("/{id}/delete")
+    public Result<Void> deleteByPut(@PathVariable Long id, @RequestBody(required = false) AdminStatusUpdateDTO dto, HttpServletRequest request) {
         adminWantedService.delete(AdminControllerSupport.currentAdminId(request), id, dto == null ? null : dto.getReason());
         return Result.success();
     }

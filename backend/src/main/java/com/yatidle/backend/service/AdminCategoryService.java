@@ -28,7 +28,9 @@ public class AdminCategoryService {
         Category category = new Category();
         category.setName(dto.getName());
         category.setSortOrder(dto.getSortOrder() == null ? 0 : dto.getSortOrder());
-        category.setStatus(dto.getStatus() == null ? 1 : dto.getStatus());
+        Integer status = dto.getStatus() == null ? 1 : dto.getStatus();
+        validateStatus(status);
+        category.setStatus(status);
         category.setIsDeleted(0);
         categoryMapper.insert(category);
         adminLogService.log(adminId, "CREATE_CATEGORY", "CATEGORY", category.getId(), null, String.valueOf(category.getStatus()), category.getName());
@@ -40,7 +42,10 @@ public class AdminCategoryService {
         String before = String.valueOf(category.getStatus());
         if (dto.getName() != null) category.setName(dto.getName());
         if (dto.getSortOrder() != null) category.setSortOrder(dto.getSortOrder());
-        if (dto.getStatus() != null) category.setStatus(dto.getStatus());
+        if (dto.getStatus() != null) {
+            validateStatus(dto.getStatus());
+            category.setStatus(dto.getStatus());
+        }
         categoryMapper.updateById(category);
         adminLogService.log(adminId, "UPDATE_CATEGORY", "CATEGORY", id, before, String.valueOf(category.getStatus()), category.getName());
         return category;
@@ -58,5 +63,9 @@ public class AdminCategoryService {
         Category category = categoryMapper.selectById(id);
         if (category == null || (category.getIsDeleted() != null && category.getIsDeleted() == 1)) throw new BusinessException("分类不存在");
         return category;
+    }
+
+    private void validateStatus(Integer status) {
+        if (status == null || (status != 0 && status != 1)) throw new BusinessException("分类状态不合法");
     }
 }

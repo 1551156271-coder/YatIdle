@@ -16,15 +16,15 @@
     <view v-else-if="records.length === 0" class="empty">暂无举报数据</view>
     <view v-else class="table">
       <view class="tr th">
-        <text>ID</text><text>原因</text><text>举报人</text><text>被举报用户</text><text>商品</text><text>状态</text><text>操作</text>
+        <text>举报</text><text>原因</text><text>举报人</text><text>被举报用户</text><text>关联对象</text><text>处理</text><text>操作</text>
       </view>
       <view v-for="r in records" :key="r.id" class="tr">
-        <text>{{ r.id }}</text>
+        <text>#{{ r.id }}</text>
         <text>{{ reasonText(r.reason) }}</text>
-        <text>{{ r.reporterId || '-' }}</text>
-        <text>{{ r.targetUserId || '-' }}</text>
-        <text>{{ r.itemId || '-' }}</text>
-        <text>{{ reportStatusText(r.status) }}</text>
+        <text>{{ namedUser(r.reporterUsername, r.reporterId) }}</text>
+        <text>{{ namedUser(r.targetUserUsername, r.targetUserId) }}</text>
+        <text>{{ reportTargetText(r) }}</text>
+        <text>{{ reportStatusText(r.status) }}<text v-if="r.handlerUsername" class="subtext"> · {{ r.handlerUsername }}</text></text>
         <view class="ops">
           <button size="mini" @click="openDetail(r)">详情</button>
           <button v-if="r.status === 'PENDING'" size="mini" @click="openHandle(r, 'HANDLED')">处理</button>
@@ -50,18 +50,20 @@
             <view class="detail-item"><text class="detail-label">举报ID</text><text class="detail-value">{{ report.id }}</text></view>
             <view class="detail-item"><text class="detail-label">状态</text><text class="detail-value">{{ reportStatusText(report.status) }}</text></view>
             <view class="detail-item"><text class="detail-label">举报原因</text><text class="detail-value">{{ reasonText(report.reason) }}</text></view>
-            <view class="detail-item"><text class="detail-label">处理结果</text><text class="detail-value">{{ report.handleResult || '-' }}</text></view>
-            <view class="detail-item"><text class="detail-label">举报人</text><text class="detail-value">{{ userName(detail.reporter) }}</text></view>
-            <view class="detail-item"><text class="detail-label">被举报用户</text><text class="detail-value">{{ userName(detail.targetUser) }}</text></view>
-            <view class="detail-item"><text class="detail-label">关联商品</text><text class="detail-value">{{ itemName(detail.item) }}</text></view>
-            <view class="detail-item"><text class="detail-label">关联求购</text><text class="detail-value">{{ wantedName(detail.wanted) }}</text></view>
-            <view class="detail-item"><text class="detail-label">关联订单</text><text class="detail-value">{{ orderName(detail.order) }}</text></view>
+            <view class="detail-item"><text class="detail-label">举报人</text><text class="detail-value">{{ namedUser(report.reporterUsername, report.reporterId) }}</text></view>
+            <view class="detail-item"><text class="detail-label">被举报用户</text><text class="detail-value">{{ namedUser(report.targetUserUsername, report.targetUserId) }}</text></view>
+            <view class="detail-item"><text class="detail-label">关联商品</text><text class="detail-value">{{ namedEntity(report.itemTitle, report.itemId, '商品') }}</text></view>
+            <view class="detail-item"><text class="detail-label">关联求购</text><text class="detail-value">{{ namedEntity(report.wantedTitle, report.wantedId, '求购') }}</text></view>
+            <view class="detail-item"><text class="detail-label">关联订单</text><text class="detail-value">{{ namedEntity(report.orderNo, report.orderId, '订单') }}</text></view>
             <view class="detail-item"><text class="detail-label">聊天会话</text><text class="detail-value">{{ report.chatSessionId || '-' }}</text></view>
+            <view class="detail-item"><text class="detail-label">处理人</text><text class="detail-value">{{ namedUser(report.handlerUsername, report.handlerId) }}</text></view>
+            <view class="detail-item"><text class="detail-label">处理时间</text><text class="detail-value">{{ report.handleTime || '-' }}</text></view>
+            <view class="detail-item wide"><text class="detail-label">处理结果</text><text class="detail-value">{{ report.handleResult || '尚未处理' }}</text></view>
             <view class="detail-item wide"><text class="detail-label">详细描述</text><text class="detail-value">{{ report.description || '-' }}</text></view>
             <view class="detail-item wide">
               <text class="detail-label">截图</text>
               <view v-if="reportImages.length" class="image-list">
-                <image v-for="img in reportImages" :key="img" :src="img" mode="aspectFill" class="preview-img"></image>
+                <image v-for="(img, index) in reportImages" :key="img" :src="img" mode="aspectFit" class="preview-img" @click="previewImages(reportImages, index)"></image>
               </view>
               <text v-else class="detail-value muted">暂无截图</text>
             </view>
@@ -70,42 +72,38 @@
       </view>
     </view>
 
-    <view v-if="handleVisible" class="modal-mask" @click="closeHandle">
-      <view class="modal" @click.stop>
-        <view class="modal-header">
-          <text class="modal-title">{{ handleStatus === 'HANDLED' ? '处理举报' : '驳回举报' }}</text>
-          <button @click="closeHandle">关闭</button>
-        </view>
-        <view class="modal-body">
-          <view class="detail-item wide">
-            <text class="detail-label">举报对象</text>
-            <text class="detail-value">#{{ currentReport.id }} {{ reasonText(currentReport.reason) }}</text>
+    <danger-action-modal
+      :visible="handleVisible"
+      :title="handleTitle"
+      :object-text="handleObjectText"
+      :impact="handleImpact"
+      :submit="performHandle"
+      reason-placeholder="请输入处理结果，结果会写入操作日志"
+      submit-text="确认提交"
+      @close="closeHandle"
+      @success="onHandleSuccess"
+    >
+      <template v-slot:extra>
+        <view v-if="handleStatus === 'HANDLED'" class="action-options">
+          <text class="detail-label">联动操作</text>
+          <view class="segmented">
+            <text :class="{ active: actionType === '' }" @click="actionType = ''">仅处理</text>
+            <text :class="{ active: actionType === 'BAN_USER' }" @click="actionType = 'BAN_USER'">封禁用户</text>
+            <text :class="{ active: actionType === 'OFFLINE_ITEM' }" @click="actionType = 'OFFLINE_ITEM'">下架商品</text>
           </view>
-          <view v-if="handleStatus === 'HANDLED'" class="action-options">
-            <text class="detail-label">联动操作</text>
-            <view class="segmented">
-              <text :class="{ active: actionType === '' }" @click="actionType = ''">仅处理</text>
-              <text :class="{ active: actionType === 'BAN_USER' }" @click="actionType = 'BAN_USER'">封禁用户</text>
-              <text :class="{ active: actionType === 'OFFLINE_ITEM' }" @click="actionType = 'OFFLINE_ITEM'">下架商品</text>
-            </view>
-          </view>
-          <textarea v-model="handleResult" placeholder="请输入处理结果，结果会写入操作日志" />
         </view>
-        <view class="modal-footer">
-          <button @click="closeHandle">取消</button>
-          <button class="danger" :disabled="submitting" @click="submitHandle">确认提交</button>
-        </view>
-      </view>
-    </view>
+      </template>
+    </danger-action-modal>
   </admin-layout>
 </template>
 
 <script>
 import AdminLayout from '../../components/admin-layout.vue'
+import DangerActionModal from '../../components/danger-action-modal.vue'
 import { listReports, getReportDetail, handleReport } from '../../api/reports'
 
 export default {
-  components: { AdminLayout },
+  components: { AdminLayout, DangerActionModal },
   data() {
     return {
       query: { status: '', reason: '', page: 1, size: 10 },
@@ -118,9 +116,7 @@ export default {
       handleVisible: false,
       currentReport: {},
       handleStatus: 'HANDLED',
-      actionType: '',
-      handleResult: '',
-      submitting: false
+      actionType: ''
     }
   },
   onShow() {
@@ -128,7 +124,7 @@ export default {
   },
   computed: {
     report() {
-      return this.detail.report || {}
+      return this.detail || {}
     },
     reportImages() {
       const raw = this.report.imageUrls
@@ -139,6 +135,19 @@ export default {
       } catch (e) {
         return String(raw).split(',').map(x => x.trim()).filter(Boolean)
       }
+    },
+    handleTitle() {
+      return this.handleStatus === 'HANDLED' ? '处理举报' : '驳回举报'
+    },
+    handleObjectText() {
+      if (!this.currentReport.id) return ''
+      return `#${this.currentReport.id} ${this.reasonText(this.currentReport.reason)} · ${this.reportTargetText(this.currentReport)}`
+    },
+    handleImpact() {
+      if (this.handleStatus === 'REJECTED') return '驳回后举报会记录处理结果，请说明驳回依据。'
+      if (this.actionType === 'BAN_USER') return '处理举报时会联动封禁被举报用户，请确认处罚对象正确。'
+      if (this.actionType === 'OFFLINE_ITEM') return '处理举报时会联动下架关联商品，请确认商品确实违规。'
+      return '处理结果会写入操作日志，请填写可追溯说明。'
     }
   },
   methods: {
@@ -182,45 +191,27 @@ export default {
       this.currentReport = report
       this.handleStatus = status
       this.actionType = ''
-      this.handleResult = ''
       this.handleVisible = true
     },
     closeHandle() {
       this.handleVisible = false
       this.currentReport = {}
-      this.handleResult = ''
       this.actionType = ''
     },
-    async submitHandle() {
-      if (!this.handleResult.trim()) {
-        uni.showToast({ title: '请填写处理结果', icon: 'none' })
-        return
-      }
-      this.submitting = true
-      try {
-        const ok = await this.confirmTwice(this.handleStatus === 'HANDLED' ? '处理该举报' : '驳回该举报')
-        if (!ok) return
-        await handleReport(this.currentReport.id, {
-          status: this.handleStatus,
-          result: this.handleResult,
-          actionType: this.handleStatus === 'HANDLED' ? this.actionType : ''
-        })
-        this.closeHandle()
-        await this.load()
-      } finally {
-        this.submitting = false
-      }
-    },
-    confirmTwice(content) {
-      return new Promise(resolve => {
-        uni.showModal({
-          title: '二次确认',
-          content: `确认${content}？`,
-          confirmColor: '#b42318',
-          success: res => resolve(res.confirm),
-          fail: () => resolve(false)
-        })
+    async performHandle(result) {
+      await handleReport(this.currentReport.id, {
+        status: this.handleStatus,
+        result,
+        actionType: this.handleStatus === 'HANDLED' ? this.actionType : ''
       })
+    },
+    async onHandleSuccess() {
+      await this.load()
+    },
+    previewImages(images, index) {
+      const urls = (images || []).filter(Boolean)
+      if (!urls.length) return
+      uni.previewImage({ urls, current: urls[index] || urls[0] })
     },
     reasonText(reason) {
       const map = { fake: '虚假商品', counterfeit: '假冒商品', harass: '骚扰辱骂', fraud: '欺诈行为', other: '其他违规' }
@@ -230,17 +221,22 @@ export default {
       const map = { PENDING: '待处理', HANDLED: '已处理', REJECTED: '已驳回' }
       return map[status] || status || '-'
     },
-    userName(user) {
-      return user && user.id ? `${user.username || user.nickname || '用户'} (#${user.id})` : '-'
+    reportTargetText(report) {
+      if (report.itemTitle || report.itemId) return this.namedEntity(report.itemTitle, report.itemId, '商品')
+      if (report.wantedTitle || report.wantedId) return this.namedEntity(report.wantedTitle, report.wantedId, '求购')
+      if (report.orderNo || report.orderId) return this.namedEntity(report.orderNo, report.orderId, '订单')
+      if (report.chatSessionId) return `聊天 #${report.chatSessionId}`
+      return '-'
     },
-    itemName(item) {
-      return item && item.id ? `${item.title || '商品'} (#${item.id})` : '-'
+    namedUser(name, id) {
+      if (name && id) return `${name} (#${id})`
+      if (name) return name
+      return id ? `用户 #${id}` : '-'
     },
-    wantedName(wanted) {
-      return wanted && wanted.id ? `${wanted.title || '求购'} (#${wanted.id})` : '-'
-    },
-    orderName(order) {
-      return order && order.id ? `${order.orderNo || '订单'} (#${order.id})` : '-'
+    namedEntity(name, id, fallback) {
+      if (name && id) return `${name} (#${id})`
+      if (name) return name
+      return id ? `${fallback} #${id}` : '-'
     }
   }
 }
@@ -249,8 +245,9 @@ export default {
 <style scoped>
 .tr {
   display: grid;
-  grid-template-columns: 76px 150px 110px 130px 110px 110px 240px;
+  grid-template-columns: 90px 130px 180px 180px 260px 160px 240px;
   align-items: center;
+  width: 1240px;
   min-height: 50px;
   padding: 0 14px;
   border-bottom: 1px solid #edf1f5;
@@ -265,5 +262,9 @@ export default {
 
 .action-options {
   margin: 14px 0;
+}
+
+.subtext {
+  color: #718096;
 }
 </style>

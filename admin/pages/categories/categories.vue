@@ -11,7 +11,7 @@
       <view class="tr th"><text>ID</text><text>名称</text><text>排序</text><text>状态</text><text>操作</text></view>
       <view v-for="c in records" :key="c.id" class="tr">
         <text>{{ c.id }}</text><text>{{ c.name }}</text><text>{{ c.sortOrder }}</text><text>{{ c.status === 1 ? '启用' : '禁用' }}</text>
-        <view class="ops"><button size="mini" @click="openEditor(c)">编辑</button><button size="mini" @click="toggle(c)">{{ c.status === 1 ? '禁用' : '启用' }}</button><button size="mini" class="danger" @click="remove(c)">删除</button></view>
+        <view class="ops"><button size="mini" @click="openEditor(c)">编辑</button><button size="mini" class="danger" @click="remove(c)">删除</button></view>
       </view>
     </view>
 
@@ -53,17 +53,15 @@ export default {
         await this.load()
       } finally { this.submitting = false }
     },
-    async toggle(row) {
-      const ok = await this.confirm(`确认${row.status === 1 ? '禁用' : '启用'}分类 ${row.name}？`)
-      if (!ok) return
-      await updateCategory(row.id, { status: row.status === 1 ? 0 : 1 })
-      this.load()
-    },
     async remove(row) {
       const ok = await this.confirm(`确认删除分类 ${row.name}？`)
       if (!ok) return
-      await deleteCategory(row.id)
-      this.load()
+      try {
+        await deleteCategory(row.id)
+        this.load()
+      } catch (e) {
+        uni.showToast({ title: e.message || '删除失败，请稍后重试', icon: 'none' })
+      }
     },
     confirm(content) { return new Promise(resolve => uni.showModal({ title: '二次确认', content, confirmColor: '#b42318', success: r => resolve(r.confirm), fail: () => resolve(false) })) }
   }
@@ -71,7 +69,7 @@ export default {
 </script>
 
 <style scoped>
-.tr { display: grid; grid-template-columns: 80px 1fr 120px 120px 240px; align-items: center; min-height: 50px; padding: 0 14px; border-bottom: 1px solid #edf1f5; font-size: 14px; }
+.tr { display: grid; grid-template-columns: 80px 1fr 120px 120px 180px; align-items: center; min-height: 50px; padding: 0 14px; border-bottom: 1px solid #edf1f5; font-size: 14px; }
 .th { background: #f8fafc; font-weight: 700; color: #4a5568; }
 .form-grid { display: grid; grid-template-columns: 1fr 160px; gap: 14px; }
 .wide { grid-column: 1 / -1; }
