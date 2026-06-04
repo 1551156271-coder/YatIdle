@@ -47,7 +47,7 @@
 		<!-- 发布者信息 -->
 		<view class="wd-publisher-card">
 			<view class="wd-pub-left">
-				<view class="wd-pub-avatar">
+				<view class="wd-pub-avatar" @click="goPublisherProfile">
 					<image v-if="detail.avatar" class="wd-pub-avatar-img" :src="detail.avatar" mode="aspectFill"></image>
 					<text v-else class="wd-pub-avatar-emoji">{{ (detail.username || '?').charAt(0) }}</text>
 				</view>
@@ -187,6 +187,11 @@
 						uni.showToast({ title: '已收藏', icon: 'none' })
 					}
 				} catch (e) {}
+			},
+			goPublisherProfile() {
+				if (this.detail.userId) {
+					uni.navigateTo({ url: '/pages/profile/profile?id=' + this.detail.userId })
+				}
 			},
 			async contactSeller() {
 				const user = uni.getStorageSync('user')

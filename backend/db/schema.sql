@@ -182,7 +182,7 @@ CREATE TABLE IF NOT EXISTS chat_session (
   
   is_deleted TINYINT NOT NULL DEFAULT 0 COMMENT '逻辑删除标记，0未删除，1已删除',
   
-  UNIQUE KEY uk_item_buyer_seller (item_id, buyer_id, seller_id),
+  UNIQUE KEY uk_buyer_seller (buyer_id, seller_id),
   
   INDEX idx_chat_session_item_id (item_id),
   INDEX idx_chat_session_buyer_id (buyer_id),

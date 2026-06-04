@@ -175,9 +175,31 @@
 						remark: this.remark || undefined
 					})
 					uni.showToast({ title: '下单成功', icon: 'success' })
+					uni.setStorageSync('currentOrder', {
+						id: data.id,
+						orderNo: data.orderNo,
+						itemId: data.itemId,
+						buyerId: data.buyerId,
+						sellerId: data.sellerId,
+						image: data.itemImageUrl || this.goods.image,
+						buyerName: data.buyerName || '',
+						sellerName: data.sellerName || '',
+						sellerAvatar: data.sellerAvatar || '',
+						buyerAvatar: data.buyerAvatar || '',
+						title: data.itemTitle || this.goods.title,
+						price: data.price || this.goods.price,
+						status: data.status || 'PENDING',
+						tradeLocation: data.tradeLocation || this.tradeLocation,
+						remark: data.remark || this.remark,
+						createTime: data.createTime || '',
+						completeTime: data.completeTime || '',
+						cancelTime: data.cancelTime || '',
+						cancelReason: data.cancelReason || '',
+						hasReviewed: data.hasReviewed || false
+					})
 					setTimeout(() => {
-						uni.navigateBack()
-					}, 1500)
+						uni.redirectTo({ url: '/pages/order-detail/order-detail?id=' + data.id + '&type=purchased' })
+					}, 1000)
 				} catch (e) {
 					this.submitting = false
 				}

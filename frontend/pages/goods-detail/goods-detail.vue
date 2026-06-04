@@ -199,7 +199,7 @@
 				}
 			},
 			handleBuy() {
-				uni.navigateTo({ url: '/pages/buy/buy?id=' + this.goodsId })
+				uni.redirectTo({ url: '/pages/buy/buy?id=' + this.goodsId })
 			},
 			editGoods() {
 				uni.navigateTo({ url: '/pages/goods-edit/goods-edit?id=' + this.goodsId })

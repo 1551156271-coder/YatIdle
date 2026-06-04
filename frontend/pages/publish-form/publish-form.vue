@@ -76,7 +76,7 @@
 						<input class="form-input price-input" type="digit" v-model="buyForm.budgetMax" placeholder="最高" />
 					</view>
 				</view>
-				<text v-if="budgetError" class="error-text">最低价格不能高于最高价格</text>
+				<text v-if="budgetError" class="error-text">最低价格必须低于最高价格</text>
 			</view>
 			<view class="form-item">
 				<text class="form-label">商品分类</text>
@@ -163,7 +163,7 @@
 				const min = parseFloat(this.buyForm.budgetMin)
 				const max = parseFloat(this.buyForm.budgetMax)
 				if (this.buyForm.budgetMin && this.buyForm.budgetMax && !isNaN(min) && !isNaN(max)) {
-					return min > max
+					return min >= max
 				}
 				return false
 			}

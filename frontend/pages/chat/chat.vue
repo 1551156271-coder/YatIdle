@@ -23,7 +23,7 @@
 					</view>
 
 					<view v-else class="msg-row" :class="{ 'msg-self': msg.fromMe }">
-						<view v-if="!msg.fromMe" class="msg-avatar">
+						<view v-if="!msg.fromMe" class="msg-avatar" @click="goPartnerProfile">
 							<image v-if="contactInfo.avatar" class="msg-avatar-img" :src="contactInfo.avatar" mode="aspectFill"></image>
 							<text v-else class="msg-avatar-emoji">{{ contactInfo.defaultAvatar }}</text>
 						</view>
@@ -49,7 +49,7 @@
 							</view>
 						</view>
 
-						<view v-if="msg.fromMe" class="msg-avatar msg-avatar-self">
+						<view v-if="msg.fromMe" class="msg-avatar msg-avatar-self" @click="goMyProfile">
 							<image v-if="myAvatar" class="msg-avatar-img" :src="myAvatar" mode="aspectFill"></image>
 							<text v-else class="msg-avatar-emoji">{{ myDefaultAvatar }}</text>
 						</view>
@@ -374,7 +374,15 @@ export default {
 			}
 		},
 
-		openProductDetail(msg) {
+		goPartnerProfile() {
+				if (this.partnerId) {
+					uni.navigateTo({ url: '/pages/profile/profile?id=' + this.partnerId })
+				}
+			},
+			goMyProfile() {
+				uni.navigateTo({ url: '/pages/my-edit/my-edit' })
+			},
+			openProductDetail(msg) {
 			if (msg.product && msg.product.id) {
 				uni.navigateTo({ url: '/pages/goods-detail/goods-detail?id=' + msg.product.id })
 			}

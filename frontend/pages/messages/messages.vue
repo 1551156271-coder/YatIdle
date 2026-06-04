@@ -12,6 +12,7 @@
 					</view>
 					<view class="chat-bottom">
 						<text class="chat-msg">查看订单状态变更等系统通知</text>
+						<view v-if="notifyUnread > 0" class="unread-badge">{{ notifyUnread > 99 ? '99+' : notifyUnread }}</view>
 					</view>
 				</view>
 			</view>
@@ -45,18 +46,21 @@
 <script>
 	import TabBar from '@/components/tab-bar.vue'
 	import { getMySessions } from '@/api/chat.js'
+	import { getMySellOrders, getMyBuyOrders } from '@/api/order.js'
 	export default {
 		components: { TabBar },
 		data() {
 			return {
 				loading: false,
 				chatList: [],
+				notifyUnread: 0,
 				pollTimer: null
 			}
 		},
 		onShow() {
 			uni.hideTabBar()
 			this.loadSessions()
+			this.loadNotifyUnread()
 			this.startPolling()
 		},
 		onHide() {
@@ -68,12 +72,40 @@
 				this.stopPolling()
 				this.pollTimer = setInterval(() => {
 					this.loadSessions()
+					this.loadNotifyUnread()
 				}, 5000)
 			},
 			stopPolling() {
 				if (this.pollTimer) {
 					clearInterval(this.pollTimer)
 					this.pollTimer = null
+				}
+			},
+			async loadNotifyUnread() {
+				const user = uni.getStorageSync('user')
+				if (!user || !user.id) {
+					this.notifyUnread = 0
+					return
+				}
+				try {
+					let lastSeen = uni.getStorageSync('notifyLastSeen')
+					if (!lastSeen || lastSeen.startsWith('1970')) {
+						lastSeen = new Date().toISOString()
+						uni.setStorageSync('notifyLastSeen', lastSeen)
+					}
+					const [sellResult, buyResult] = await Promise.all([
+						getMySellOrders(user.id).catch(() => []),
+						getMyBuyOrders(user.id).catch(() => [])
+					])
+					const allOrders = [...(sellResult || []), ...(buyResult || [])]
+					const lastSeenMs = new Date(lastSeen).getTime()
+					this.notifyUnread = allOrders.filter(o => {
+						const t = o.completeTime || o.cancelTime || o.createTime || ''
+						if (!t) return false
+						return new Date(t).getTime() > lastSeenMs
+					}).length
+				} catch (e) {
+					this.notifyUnread = 0
 				}
 			},
 			async loadSessions() {
@@ -97,7 +129,7 @@
 							partnerId: partnerId || 0,
 							avatar: s.partnerAvatar || '',
 							defaultAvatar: (s.partnerName || otherName).charAt(0),
-							name: s.wantedTitle || s.itemTitle || s.partnerName || otherName,
+							name: s.partnerName || s.wantedTitle || s.itemTitle || otherName,
 							lastMsg: s.lastMessage || '暂无消息',
 							time: this.formatTime(s.lastMessageTime),
 							unread: s.unreadCount || 0

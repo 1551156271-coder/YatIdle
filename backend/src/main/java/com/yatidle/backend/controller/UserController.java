@@ -2,6 +2,7 @@ package com.yatidle.backend.controller;
 
 import com.yatidle.backend.common.JwtUtils;
 import com.yatidle.backend.common.Result;
+import com.yatidle.backend.common.exception.BusinessException;
 import com.yatidle.backend.dto.user.LoginDTO;
 import com.yatidle.backend.dto.user.RegisterDTO;
 import com.yatidle.backend.dto.user.UpdateProfileDTO;
@@ -64,7 +65,7 @@ public class UserController {
     public Result<UserVO> getById(@PathVariable Long id) {
         User user = userService.findById(id);
         if (user == null) {
-            throw new RuntimeException("用户不存在");
+            throw new BusinessException("用户不存在");
         }
         return Result.success(UserVO.from(user, baseUrl));
     }
@@ -92,7 +93,7 @@ public class UserController {
     @PostMapping("/avatar/upload")
     public Result<Map<String, String>> uploadAvatar(@RequestParam("file") MultipartFile file) throws IOException {
         if (file == null || file.isEmpty()) {
-            throw new RuntimeException("图片文件不能为空");
+            throw new BusinessException("图片文件不能为空");
         }
 
         String originalFilename = StringUtils.cleanPath(file.getOriginalFilename() == null ? "" : file.getOriginalFilename());
@@ -115,7 +116,7 @@ public class UserController {
     public Result<Map<String, Object>> getWallet(@RequestParam Long userId) {
         User user = userService.findById(userId);
         if (user == null) {
-            throw new RuntimeException("用户不存在");
+            throw new BusinessException("用户不存在");
         }
         Map<String, Object> data = new HashMap<>();
         data.put("balance", user.getBalance());

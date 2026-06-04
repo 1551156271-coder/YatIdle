@@ -66,7 +66,7 @@
 				campusList: ['东校园', '南校园', '北校园', '珠海校区', '深圳校区'],
 				form: {
 					avatar: user.avatar || '',
-					nickname: user.username || '',
+					nickname: user.nickname || '',
 					campus: user.campus || ''
 				}
 			}
@@ -118,7 +118,7 @@
 					})
 					uni.hideLoading()
 					// 更新本地存储
-					user.username = nickname
+					user.nickname = nickname
 					user.avatar = this.form.avatar
 					user.campus = this.form.campus
 					uni.setStorageSync('user', user)

@@ -27,6 +27,8 @@
 <script>
 	const BASE_URL = 'http://127.0.0.1:8080'
 
+	import { getMySellOrders, getMyBuyOrders } from '@/api/order.js'
+
 	export default {
 		data() {
 			return {
@@ -65,18 +67,45 @@
 				try {
 					const user = uni.getStorageSync('user')
 					if (!user || !user.id) return
-					const res = await uni.request({
-						url: BASE_URL + '/api/chat/sessions?userId=' + user.id + '&pageSize=50',
-						method: 'GET',
-						timeout: 5000
-					})
-					if (res.statusCode === 200 && res.data && res.data.code === 200) {
-						const list = (res.data.data && res.data.data.records) || res.data.data || []
-						const total = list.reduce((sum, s) => sum + (s.unreadCount || 0), 0)
-						const msgIdx = 3
-						if (this.list[msgIdx]) {
-							this.list[msgIdx].badge = total
+
+					// 聊天未读
+					let chatUnread = 0
+					try {
+						const res = await uni.request({
+							url: BASE_URL + '/api/chat/sessions?userId=' + user.id + '&pageSize=50',
+							method: 'GET',
+							timeout: 5000
+						})
+						if (res.statusCode === 200 && res.data && res.data.code === 200) {
+							const list = (res.data.data && res.data.data.records) || res.data.data || []
+							chatUnread = list.reduce((sum, s) => sum + (s.unreadCount || 0), 0)
 						}
+					} catch (e) {}
+
+					// 通知未读
+					let notifyUnread = 0
+					try {
+						let lastSeen = uni.getStorageSync('notifyLastSeen')
+						if (!lastSeen || lastSeen.startsWith('1970')) {
+							lastSeen = new Date().toISOString()
+							uni.setStorageSync('notifyLastSeen', lastSeen)
+						}
+						const [sellResult, buyResult] = await Promise.all([
+							getMySellOrders(user.id).catch(() => []),
+							getMyBuyOrders(user.id).catch(() => [])
+						])
+						const allOrders = [...(sellResult || []), ...(buyResult || [])]
+						const lastSeenMs = new Date(lastSeen).getTime()
+						notifyUnread = allOrders.filter(o => {
+							const t = o.completeTime || o.cancelTime || o.createTime || ''
+							if (!t) return false
+							return new Date(t).getTime() > lastSeenMs
+						}).length
+					} catch (e) {}
+
+					const msgIdx = 3
+					if (this.list[msgIdx]) {
+						this.list[msgIdx].badge = chatUnread + notifyUnread
 					}
 				} catch (e) {}
 			}

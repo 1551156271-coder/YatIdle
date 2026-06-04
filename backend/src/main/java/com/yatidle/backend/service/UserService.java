@@ -50,7 +50,7 @@ public class UserService {
     // 用户注册
     public User register(String username, String password, String nickname, String bio, String campus) {
         if (existsByUsername(username)) {
-            throw new RuntimeException("用户名已存在");
+            throw new BusinessException("用户名已存在");
         }
         User user = new User();
         user.setUsername(username);
@@ -67,10 +67,10 @@ public class UserService {
     public User login(String username, String password) {
         User user = findByUsername(username);
         if (user == null) {
-            throw new RuntimeException("用户名不存在");
+            throw new BusinessException("用户名不存在");
         }
         if (!user.getPassword().equals(password)) {
-            throw new RuntimeException("密码错误");
+            throw new BusinessException("密码错误");
         }
         return user;
     }
@@ -80,7 +80,7 @@ public class UserService {
                              String nickname, String bio, String campus) {
         User user = userMapper.selectById(userId);
         if (user == null) {
-            throw new RuntimeException("用户不存在");
+            throw new BusinessException("用户不存在");
         }
         if (phone != null) {
             user.setPhone(phone);
