@@ -160,4 +160,86 @@ class ItemServiceTest {
         category.setIsDeleted(0);
         return category;
     }
+    @Test
+    void publishRejectsMissingCategory() {
+        ItemService service = new ItemService(
+                itemMapper,
+                itemImageMapper,
+                categoryMapper,
+                "http://127.0.0.1:8080"
+        );
+
+        when(categoryMapper.selectById(1L))
+                .thenReturn(null);
+
+        assertThatThrownBy(() ->
+                service.publish(publishDto(1L)))
+                .isInstanceOf(BusinessException.class)
+                .hasMessage("商品分类不存在或已禁用");
+    }
+    @Test
+    void offlineRejectsMissingItem() {
+
+        ItemService service = new ItemService(
+                itemMapper,
+                itemImageMapper,
+                categoryMapper,
+                "http://127.0.0.1:8080"
+        );
+
+        when(itemMapper.selectById(100L))
+                .thenReturn(null);
+
+        assertThatThrownBy(() ->
+                service.offline(100L, 1L))
+                .isInstanceOf(BusinessException.class)
+                .hasMessage("商品不存在");
+    }
+    @Test
+    void offlineRejectsDeletedItem() {
+
+        ItemService service = new ItemService(
+                itemMapper,
+                itemImageMapper,
+                categoryMapper,
+                "http://127.0.0.1:8080"
+        );
+
+        Item item = new Item();
+        item.setId(1L);
+        item.setUserId(1L);
+        item.setIsDeleted(1);
+
+        when(itemMapper.selectById(1L))
+                .thenReturn(item);
+
+        assertThatThrownBy(() ->
+                service.offline(1L, 1L))
+                .isInstanceOf(BusinessException.class)
+                .hasMessage("商品不存在");
+    }
+    @Test
+    void onlineRejectsSoldItem() {
+
+        ItemService service = new ItemService(
+                itemMapper,
+                itemImageMapper,
+                categoryMapper,
+                "http://127.0.0.1:8080"
+        );
+
+        Item item = new Item();
+        item.setId(1L);
+        item.setUserId(1L);
+        item.setIsDeleted(0);
+        item.setStatus(ItemService.STATUS_SOLD);
+
+        when(itemMapper.selectById(1L))
+                .thenReturn(item);
+
+        assertThatThrownBy(() ->
+                service.online(1L, 1L))
+                .isInstanceOf(BusinessException.class)
+                .hasMessage("已售商品不能重新上架");
+    }
 }
