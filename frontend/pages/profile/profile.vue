@@ -217,7 +217,7 @@
 					success: (res) => {
 						if (res.tapIndex === 0) {
 							uni.navigateTo({
-								url: '/pages/report/report?targetUserId=' + (this.userId || '')
+								url: '/pages/report/report'
 							})
 						}
 					}
