@@ -132,7 +132,7 @@
 				categories: [],
 				categoryLabels: [],
 				campusList: ['东校园', '南校园', '北校园', '珠海校区', '深圳校区'],
-				conditionList: ['不限', '全新', '99新', '95新', '90新', '85新', '80新以下'],
+				conditionList: ['不限', '全新', '99新', '95新', '9成新', '八成新', '八成新以下'],
 
 				sellForm: {
 					title: '',
@@ -360,7 +360,7 @@
 					budgetMax: Number(this.buyForm.budgetMax) || 0,
 					categoryId: this.buyForm.categoryId || undefined,
 					campus: this.buyForm.campus || undefined,
-					conditionLevel: this.buyForm.condition || undefined,
+					conditionLevel: this.buyForm.condition && this.buyForm.condition !== '不限' ? this.buyForm.condition : undefined,
 					description: this.buyForm.desc || undefined,
 					imageUrls
 				}

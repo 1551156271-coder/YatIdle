@@ -133,6 +133,7 @@
 						budgetMax: data.budgetMax,
 						campus: data.campus || '',
 						condition: data.conditionLevel || '不限',
+						categoryId: data.categoryId,
 						categoryLabel: this.getCategoryLabel(data.categoryId),
 						status: data.status,
 						desc: data.description || '',
