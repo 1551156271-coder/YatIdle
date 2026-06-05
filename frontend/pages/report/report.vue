@@ -70,10 +70,13 @@
 </template>
 
 <script>
+	import { createReport } from '../../api/report'
+
 	export default {
 		data() {
 			return {
 				statusBarHeight: 44,
+				targetUserId: null,
 				reasons: [
 					{ label: '发布虚假商品信息', value: 'fake' },
 					{ label: '假冒品牌/商品', value: 'counterfeit' },
@@ -86,7 +89,8 @@
 				images: []
 			}
 		},
-		onLoad() {
+		onLoad(options) {
+			this.targetUserId = options && options.targetUserId ? Number(options.targetUserId) : null
 			try {
 				const sys = uni.getSystemInfoSync()
 				this.statusBarHeight = sys.statusBarHeight || 44
@@ -111,8 +115,20 @@
 				uni.showModal({
 					title: '提交举报',
 					content: '确认提交此举报？我们将在24小时内处理',
-					success: (res) => {
+					success: async (res) => {
 						if (res.confirm) {
+							const user = uni.getStorageSync('user') || {}
+							if (!user.id) {
+								uni.showToast({ title: '请先登录', icon: 'none' })
+								return
+							}
+							await createReport({
+								reporterId: user.id,
+								targetUserId: this.targetUserId,
+								reason: this.selectedReason,
+								description: this.description,
+								imageUrls: this.images
+							})
 							uni.showToast({ title: '举报已提交', icon: 'success' })
 							setTimeout(() => {
 								uni.navigateBack()
