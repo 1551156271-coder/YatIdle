@@ -49,10 +49,10 @@
 			<view class="wd-pub-left">
 				<view class="wd-pub-avatar" @click="goPublisherProfile">
 					<image v-if="detail.avatar" class="wd-pub-avatar-img" :src="detail.avatar" mode="aspectFill"></image>
-					<text v-else class="wd-pub-avatar-emoji">{{ (detail.username || '?').charAt(0) }}</text>
+					<text v-else class="wd-pub-avatar-emoji">{{ (detail.nickname || detail.username || '?').charAt(0) }}</text>
 				</view>
 				<view class="wd-pub-info">
-					<text class="wd-pub-name">{{ detail.username }}</text>
+					<text class="wd-pub-name">{{ detail.nickname || detail.username }}</text>
 					<text class="wd-pub-time">{{ detail.time }} 发布</text>
 				</view>
 			</view>
@@ -137,7 +137,9 @@
 						status: data.status,
 						desc: data.description || '',
 						images: data.images || [],
+						nickname: data.nickname || '',
 						username: data.username || '',
+						avatar: data.avatar || '',
 						time: this.formatTime(data.createTime),
 						userId: data.userId,
 						isOwner: data.userId === user.id

@@ -6,12 +6,13 @@
 					<image v-if="g.image" class="g-img" :src="g.image" mode="aspectFill"></image>
 					<text v-else class="g-placeholder">{{ g.type === 'wanted' ? '📋' : '🛒' }}</text>
 					<text v-if="g.type === 'wanted'" class="g-badge-wanted">求购</text>
+					<text v-if="g.unavailable" class="g-badge-sold">{{ g.unavailableLabel }}</text>
 				</view>
 				<view class="g-info">
-					<text class="g-title">{{ g.title }}</text>
+					<text class="g-title" :class="{ 'g-title-dim': g.unavailable }">{{ g.title }}</text>
 					<view class="g-bottom">
 						<text v-if="g.type === 'wanted'" class="g-budget">¥{{ g.budgetMin }}—¥{{ g.budgetMax }}</text>
-						<text v-else class="g-price">¥{{ g.price }}</text>
+						<text v-else class="g-price" :class="{ 'g-price-dim': g.unavailable }">¥{{ g.price }}</text>
 						<text class="g-heart iconfont icon-xz"></text>
 					</view>
 				</view>
@@ -46,16 +47,24 @@
 				this.loading = true
 				try {
 					const result = await getMyFavorites(user.id); const list = (result && result.records) || result || []
-					this.wishList = list.map(f => ({
-						uid: (f.type || 'item') + '_' + (f.wantedId || f.itemId),
-						type: f.type || 'item',
-						id: f.wantedId || f.itemId,
-						image: f.coverImage || '',
-						title: f.wantedTitle || f.itemTitle || '商品',
-						price: f.price,
-						budgetMin: f.budgetMin,
-						budgetMax: f.budgetMax
-					}))
+					this.wishList = list.map(f => {
+						const isItem = (f.type || 'item') === 'item'
+						const unavailable = isItem
+							? (f.itemStatus && f.itemStatus !== 'ON_SALE')
+							: (f.wantedStatus && f.wantedStatus !== 'active')
+						return {
+							uid: (f.type || 'item') + '_' + (f.wantedId || f.itemId),
+							type: f.type || 'item',
+							id: f.wantedId || f.itemId,
+							image: f.coverImage || '',
+							title: f.wantedTitle || f.itemTitle || '商品',
+							price: f.price,
+							budgetMin: f.budgetMin,
+							budgetMax: f.budgetMax,
+							unavailable,
+							unavailableLabel: isItem ? '已售' : '已结束'
+						}
+					})
 				} catch (e) {
 					this.wishList = []
 				} finally {
@@ -105,14 +114,22 @@
 		font-size: 20rpx; padding: 4rpx 14rpx;
 		border-radius: 6rpx;
 	}
+	.g-badge-sold {
+		position: absolute; top: 12rpx; right: 12rpx;
+		background: rgba(0,0,0,0.6); color: #fff;
+		font-size: 20rpx; padding: 4rpx 14rpx;
+		border-radius: 6rpx;
+	}
 	.g-info { padding: 16rpx 18rpx 20rpx; }
 	.g-title {
 		font-size: 26rpx; color: #333; line-height: 1.4;
 		display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2;
 		overflow: hidden; margin-bottom: 12rpx;
 	}
+	.g-title-dim { color: #bbb; }
 	.g-bottom { display: flex; justify-content: space-between; align-items: center; }
 	.g-price { font-size: 30rpx; color: #e74c3c; font-weight: bold; }
+	.g-price-dim { color: #bbb; }
 	.g-budget { font-size: 24rpx; color: #5A7D9E; font-weight: bold; }
 	.g-heart { font-size: 32rpx; color: #E85A4F; }
 

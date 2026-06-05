@@ -106,16 +106,14 @@
 					])
 
 					if (userData) {
-						const u = userData.data || userData
-						this.credit.creditScore = u.creditScore || 0
-						this.credit.dealCount = u.dealCount || 0
-						this.credit.goodsCount = u.goodsCount || 0
+						this.credit.creditScore = userData.creditScore || 0
+						this.credit.dealCount = userData.dealCount || 0
+						this.credit.goodsCount = userData.goodsCount || 0
+						this.credit.reviewCount = userData.reviewCount || 0
 					}
 
 					if (reviewData) {
-						const r = reviewData.data || reviewData
-						const reviewList = r.reviews || r || []
-						this.credit.reviewCount = r.totalCount || reviewList.length
+						const reviewList = Array.isArray(reviewData) ? reviewData : (reviewData.reviews || [])
 						this.reviews = reviewList.map(rv => ({
 							id: rv.id,
 							avatar: rv.reviewerAvatar || '',

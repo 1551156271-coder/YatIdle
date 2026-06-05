@@ -156,6 +156,7 @@ public class FavoriteService {
                 vo.setType("wanted");
                 vo.setWantedId(wanted.getId());
                 vo.setWantedTitle(wanted.getTitle());
+                vo.setWantedStatus(wanted.getStatus());
                 vo.setBudgetMin(wanted.getBudgetMin());
                 vo.setBudgetMax(wanted.getBudgetMax());
                 vo.setCreateTime(favorite.getCreateTime());

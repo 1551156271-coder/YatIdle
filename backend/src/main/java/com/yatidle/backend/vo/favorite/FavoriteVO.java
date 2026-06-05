@@ -23,6 +23,8 @@ public class FavoriteVO {
 
     private String wantedTitle;
 
+    private String wantedStatus;
+
     private BigDecimal budgetMin;
 
     private BigDecimal budgetMax;

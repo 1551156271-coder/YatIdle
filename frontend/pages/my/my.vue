@@ -212,8 +212,7 @@
 					this.stats.wishCount = favorites.length
 					if (walletData) this.stats.walletBalance = walletData.balance || 0
 					if (userData) {
-						const u = userData.data || userData
-						this.credit.score = u.creditScore || 0
+						this.credit.score = userData.creditScore || 0
 					}
 				} catch (e) {}
 			},

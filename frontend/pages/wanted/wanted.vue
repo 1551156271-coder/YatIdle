@@ -27,7 +27,11 @@
 				</view>
 				<text class="wanted-desc">{{ item.desc }}</text>
 				<view class="wanted-footer">
-					<text class="wanted-user">{{ item.username }}</text>
+					<view class="wanted-user">
+						<image v-if="item.avatar" class="wanted-avatar" :src="item.avatar" mode="aspectFill"></image>
+						<text v-else class="wanted-avatar-def">{{ (item.nickname || item.username || '?').charAt(0) }}</text>
+						<text class="wanted-name">{{ item.nickname || item.username }}</text>
+					</view>
 					<text class="wanted-time">{{ item.time }}</text>
 				</view>
 			</view>
@@ -81,7 +85,9 @@
 						condition: item.conditionLevel || '不限',
 						categoryLabel: this.getCategoryLabel(item.categoryId),
 						desc: '',
+						nickname: item.nickname || '',
 						username: item.username || '',
+						avatar: item.avatar || '',
 						time: this.formatTime(item.createTime)
 					}))
 				} catch (e) {
@@ -226,8 +232,19 @@
 	}
 
 	.wanted-user {
-		font-size: 24rpx;
-		color: #999;
+		display: flex; align-items: center; gap: 8rpx;
+	}
+	.wanted-avatar {
+		width: 36rpx; height: 36rpx; border-radius: 50%; background: #EDF2F6;
+	}
+	.wanted-avatar-def {
+		width: 36rpx; height: 36rpx; border-radius: 50%;
+		background: #EDF2F6; color: #5A7D9E;
+		font-size: 20rpx; font-weight: bold;
+		display: flex; align-items: center; justify-content: center;
+	}
+	.wanted-name {
+		font-size: 24rpx; color: #999;
 	}
 
 	.wanted-time {
