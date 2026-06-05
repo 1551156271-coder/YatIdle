@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS `user` (
   bio VARCHAR(500) COMMENT '个人简介',
   campus ENUM('南校园','东校园','北校园','珠海校区','深圳校区') DEFAULT NULL COMMENT '所在校区',
   credit_score INT NOT NULL DEFAULT 100 COMMENT '信用分',
+  balance DECIMAL(10,2) NOT NULL DEFAULT 10000.00 COMMENT '账户余额',
   status VARCHAR(20) NOT NULL DEFAULT 'active' COMMENT '用户状态，active=正常，inactive锁定（被封禁），',
   create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   update_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
@@ -181,7 +182,7 @@ CREATE TABLE IF NOT EXISTS chat_session (
   
   is_deleted TINYINT NOT NULL DEFAULT 0 COMMENT '逻辑删除标记，0未删除，1已删除',
   
-  UNIQUE KEY uk_item_buyer_seller (item_id, buyer_id, seller_id),
+  UNIQUE KEY uk_buyer_seller (buyer_id, seller_id),
   
   INDEX idx_chat_session_item_id (item_id),
   INDEX idx_chat_session_buyer_id (buyer_id),
@@ -213,17 +214,15 @@ CREATE TABLE IF NOT EXISTS chat_message (
 
 CREATE TABLE IF NOT EXISTS favorite (
   id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '收藏ID',
-  
   user_id BIGINT NOT NULL COMMENT '用户ID',
-  item_id BIGINT NOT NULL COMMENT '商品ID',
-  
+  item_id BIGINT COMMENT '商品ID（收藏普通商品时使用）',
+  wanted_id BIGINT COMMENT '求购ID（收藏求购时使用）',
   create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '收藏时间',
-  
-  UNIQUE KEY uk_user_item (user_id, item_id),
   INDEX idx_favorite_user_id (user_id),
   INDEX idx_favorite_item_id (item_id),
+  INDEX idx_favorite_wanted_id (wanted_id),
   INDEX idx_favorite_create_time (create_time)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='商品收藏表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='收藏表';
 
 CREATE TABLE IF NOT EXISTS review (
   id BIGINT PRIMARY KEY AUTO_INCREMENT,

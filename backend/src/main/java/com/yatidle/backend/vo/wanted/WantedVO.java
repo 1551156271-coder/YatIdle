@@ -20,6 +20,8 @@ public class WantedVO {
     private Integer viewCount;
     private LocalDateTime createTime;
     private String username;
+    private String nickname;
+    private String avatar;
 
     public static WantedVO from(Wanted wanted) {
         if (wanted == null) return null;

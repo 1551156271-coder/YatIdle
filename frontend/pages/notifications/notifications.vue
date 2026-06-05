@@ -40,6 +40,7 @@
 			}
 		},
 		onShow() {
+			uni.setStorageSync('notifyLastSeen', new Date().toISOString())
 			this.loadNotifications()
 		},
 		methods: {

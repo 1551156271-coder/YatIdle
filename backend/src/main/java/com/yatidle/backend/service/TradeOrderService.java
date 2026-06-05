@@ -38,6 +38,7 @@ public class TradeOrderService extends ServiceImpl<TradeOrderMapper, TradeOrder>
     private final ItemImageMapper itemImageMapper;
     private final UserMapper userMapper;
     private final String baseUrl;
+    private final UserService userService;
 
     public TradeOrderService(TradeOrderMapper tradeOrderMapper,
                              TradeOrderLogMapper tradeOrderLogMapper,
@@ -45,7 +46,8 @@ public class TradeOrderService extends ServiceImpl<TradeOrderMapper, TradeOrder>
                              ReviewMapper reviewMapper,
                              ItemImageMapper itemImageMapper,
                              UserMapper userMapper,
-                             @Value("${app.base-url}") String baseUrl) {
+                             @Value("${app.base-url}") String baseUrl,
+                             UserService userService) {
         this.tradeOrderMapper = tradeOrderMapper;
         this.tradeOrderLogMapper = tradeOrderLogMapper;
         this.itemMapper = itemMapper;
@@ -53,6 +55,7 @@ public class TradeOrderService extends ServiceImpl<TradeOrderMapper, TradeOrder>
         this.itemImageMapper = itemImageMapper;
         this.userMapper = userMapper;
         this.baseUrl = baseUrl;
+        this.userService = userService;
     }
 
     @Transactional
@@ -83,6 +86,8 @@ public class TradeOrderService extends ServiceImpl<TradeOrderMapper, TradeOrder>
         if(item.getUserId().equals(currentUserId)){
             throw new BusinessException("不能购买自己发布的商品");
         }
+
+        userService.deduct(currentUserId, item.getPrice());
 
         TradeOrder order = new TradeOrder();
         order.setItemId(item.getId());
@@ -185,6 +190,8 @@ public class TradeOrderService extends ServiceImpl<TradeOrderMapper, TradeOrder>
             itemMapper.updateById(item);
         }
 
+        userService.refund(order.getBuyerId(), order.getPrice());
+
         return toVO(order);
     }
 
@@ -233,6 +240,8 @@ public class TradeOrderService extends ServiceImpl<TradeOrderMapper, TradeOrder>
 
         tradeOrderLogMapper.insert(log);
 
+        userService.refund(order.getSellerId(), order.getPrice());
+
         return toVO(order);
     }
 
@@ -275,11 +284,12 @@ public class TradeOrderService extends ServiceImpl<TradeOrderMapper, TradeOrder>
 
         User buyer = userMapper.selectById(order.getBuyerId());
         if (buyer != null) {
-            vo.setBuyerName(buyer.getUsername());
+            vo.setBuyerName(buyer.getNickname() != null ? buyer.getNickname() : buyer.getUsername());
+            vo.setBuyerAvatar(resolveUrl(buyer.getAvatar()));
         }
         User seller = userMapper.selectById(order.getSellerId());
         if (seller != null) {
-            vo.setSellerName(seller.getUsername());
+            vo.setSellerName(seller.getNickname() != null ? seller.getNickname() : seller.getUsername());
             vo.setSellerAvatar(resolveUrl(seller.getAvatar()));
         }
 

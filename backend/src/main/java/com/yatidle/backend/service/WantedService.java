@@ -64,6 +64,8 @@ public class WantedService {
         }
         WantedDetailVO detailVO = WantedDetailVO.from(wanted, imageUrls);
         detailVO.setUsername(getUsername(wanted.getUserId()));
+        detailVO.setNickname(getUsername(wanted.getUserId()));
+        detailVO.setAvatar(getAvatar(wanted.getUserId()));
         return detailVO;
     }
 
@@ -84,6 +86,8 @@ public class WantedService {
         return list.stream().map(w -> {
             WantedVO vo = WantedVO.from(w);
             vo.setUsername(getUsername(w.getUserId()));
+            vo.setNickname(getUsername(w.getUserId()));
+            vo.setAvatar(getAvatar(w.getUserId()));
             return vo;
         }).collect(Collectors.toList());
     }
@@ -99,6 +103,8 @@ public class WantedService {
         List<String> imageUrls = images.stream().map(WantedImage::getImageUrl).map(this::resolveUrl).collect(Collectors.toList());
         WantedDetailVO vo = WantedDetailVO.from(wanted, imageUrls);
         vo.setUsername(getUsername(wanted.getUserId()));
+        vo.setNickname(getUsername(wanted.getUserId()));
+        vo.setAvatar(getAvatar(wanted.getUserId()));
         return vo;
     }
 
@@ -159,6 +165,8 @@ public class WantedService {
         return list.stream().map(w -> {
             WantedVO vo = WantedVO.from(w);
             vo.setUsername(getUsername(w.getUserId()));
+            vo.setNickname(getUsername(w.getUserId()));
+            vo.setAvatar(getAvatar(w.getUserId()));
             return vo;
         }).collect(Collectors.toList());
     }
@@ -166,7 +174,13 @@ public class WantedService {
     private String getUsername(Long userId) {
         if (userId == null) return null;
         User user = userMapper.selectById(userId);
-        return user != null ? user.getUsername() : null;
+        return user != null ? (user.getNickname() != null ? user.getNickname() : user.getUsername()) : null;
+    }
+
+    private String getAvatar(Long userId) {
+        if (userId == null) return null;
+        User user = userMapper.selectById(userId);
+        return user != null ? resolveUrl(user.getAvatar()) : null;
     }
 
     private String resolveUrl(String url) {

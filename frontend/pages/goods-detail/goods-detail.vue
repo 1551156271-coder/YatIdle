@@ -36,7 +36,7 @@
 				</view>
 				<view class="seller-text">
 					<view class="name-row">
-						<text class="seller-name">{{ sellerInfo.username || '卖家' }}</text>
+						<text class="seller-name">{{ (sellerInfo.nickname || sellerInfo.username) || '卖家' }}</text>
 						<text v-if="sellerInfo.verified" class="verified-badge">已认证</text>
 					</view>
 				</view>
@@ -75,7 +75,7 @@
 
 <script>
 	import { getItemDetail, offlineItem, onlineItem } from '@/api/item.js'
-	import { addFavorite, removeFavorite } from '@/api/favorite.js'
+	import { addFavorite, removeFavorite, getMyFavorites } from '@/api/favorite.js'
 	import { createSession } from '@/api/chat.js'
 	import { getUserInfo } from '@/api/user.js'
 
@@ -117,7 +117,7 @@
 				this.itemStatus = statusMap[options.status] || 'ON_SALE'
 			}
 			if (options.id) {
-				this.goodsId = options.id
+				this.goodsId = Number(options.id)
 				this.loadItem()
 			}
 		},
@@ -134,9 +134,19 @@
 					if (data.userId) {
 						this.loadSellerInfo(data.userId)
 					}
+					if (user && user.id) {
+						this.checkIfCollected(user.id)
+					}
 				} catch (e) {
 					uni.showToast({ title: '加载商品失败', icon: 'none' })
 				}
+			},
+			async checkIfCollected(userId) {
+				try {
+					const favList = await getMyFavorites(userId)
+					const list = (favList && favList.records) || favList || []
+					this.isCollected = list.some(f => f.itemId === this.goodsId)
+				} catch (e) {}
 			},
 			async loadSellerInfo(userId) {
 				try {
@@ -189,7 +199,7 @@
 				}
 			},
 			handleBuy() {
-				uni.navigateTo({ url: '/pages/buy/buy?id=' + this.goodsId })
+				uni.redirectTo({ url: '/pages/buy/buy?id=' + this.goodsId })
 			},
 			editGoods() {
 				uni.navigateTo({ url: '/pages/goods-edit/goods-edit?id=' + this.goodsId })

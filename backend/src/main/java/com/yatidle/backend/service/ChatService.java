@@ -70,18 +70,26 @@ public class ChatService {
             throw new BusinessException("不能与自己进行对话");
         }
 
+        // 以人为维度：同一对用户之间只有一个会话，不区分商品/求购
         LambdaQueryWrapper<ChatSession> existWrapper = new LambdaQueryWrapper<ChatSession>()
-                .eq(ChatSession::getBuyerId, currentUserId)
-                .eq(ChatSession::getSellerId, sellerId)
-                .eq(ChatSession::getIsDeleted, 0);
-        if (isWanted) {
-            existWrapper.eq(ChatSession::getWantedId, refId);
-        } else {
-            existWrapper.eq(ChatSession::getItemId, refId);
-        }
+                .and(w -> w
+                    .eq(ChatSession::getBuyerId, currentUserId)
+                    .eq(ChatSession::getSellerId, sellerId)
+                ).or(w -> w
+                    .eq(ChatSession::getBuyerId, sellerId)
+                    .eq(ChatSession::getSellerId, currentUserId)
+                )
+                .eq(ChatSession::getIsDeleted, 0)
+                .last("LIMIT 1");
 
         ChatSession exist = chatSessionMapper.selectOne(existWrapper);
         if (exist != null) {
+            if (isWanted) {
+                exist.setWantedId(refId);
+            } else {
+                exist.setItemId(refId);
+            }
+            chatSessionMapper.updateById(exist);
             return toSessionVO(exist, currentUserId, refTitle, isWanted, refId);
         }
 
@@ -289,7 +297,7 @@ public class ChatService {
                 ? session.getSellerId() : session.getBuyerId();
         User partner = userMapper.selectById(partnerId);
         if (partner != null) {
-            vo.setPartnerName(partner.getUsername());
+            vo.setPartnerName(partner.getNickname() != null ? partner.getNickname() : partner.getUsername());
             vo.setPartnerAvatar(resolveUrl(partner.getAvatar()));
         }
 

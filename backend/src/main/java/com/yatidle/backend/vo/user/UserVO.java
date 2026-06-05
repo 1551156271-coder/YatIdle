@@ -2,6 +2,7 @@ package com.yatidle.backend.vo.user;
 
 import com.yatidle.backend.entity.User;
 import lombok.Data;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Data
@@ -14,6 +15,7 @@ public class UserVO {
     private String bio;
     private String campus;
     private Integer creditScore;
+    private BigDecimal balance;
     private Integer role;
     private String status;
     private LocalDateTime createTime;
@@ -42,6 +44,7 @@ public class UserVO {
         vo.setBio(user.getBio());
         vo.setCampus(user.getCampus());
         vo.setCreditScore(user.getCreditScore());
+        vo.setBalance(user.getBalance());
         vo.setRole(user.getRole());
         vo.setStatus(user.getStatus());
         vo.setCreateTime(user.getCreateTime());

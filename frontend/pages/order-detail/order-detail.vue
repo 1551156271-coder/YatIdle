@@ -67,12 +67,20 @@
 		<view class="section-card">
 			<view class="section-title">交易双方</view>
 			<view class="party-row">
-				<view class="party-item">
+				<view class="party-item" @click="goProfile(order.buyerId)">
+					<view class="party-avatar">
+						<image v-if="order.buyerAvatar" class="party-avatar-img" :src="order.buyerAvatar" mode="aspectFill"></image>
+						<text v-else class="party-avatar-emoji">{{ (order.buyerName || '?').charAt(0) }}</text>
+					</view>
 					<text class="party-label">买家</text>
 					<text class="party-name">{{ order.buyerName || '用户 #' + order.buyerId }}</text>
 				</view>
 				<view class="party-arrow">⇄</view>
-				<view class="party-item">
+				<view class="party-item" @click="goProfile(order.sellerId)">
+					<view class="party-avatar">
+						<image v-if="order.sellerAvatar" class="party-avatar-img" :src="order.sellerAvatar" mode="aspectFill"></image>
+						<text v-else class="party-avatar-emoji">{{ (order.sellerName || '?').charAt(0) }}</text>
+					</view>
 					<text class="party-label">卖家</text>
 					<text class="party-name">{{ order.sellerName || '用户 #' + order.sellerId }}</text>
 				</view>
@@ -127,6 +135,7 @@
 					buyerName: '',
 					sellerName: '',
 					sellerAvatar: '',
+					buyerAvatar: '',
 					image: '',
 					title: '加载中...',
 					price: '',
@@ -175,9 +184,10 @@
 					itemId: stored.itemId || null,
 					buyerId: stored.buyerId || null,
 					sellerId: stored.sellerId || null,
-					buyerName: stored.buyerName || '',
-					sellerName: stored.sellerName || '',
-					sellerAvatar: stored.sellerAvatar || '',
+				buyerName: stored.buyerName || '',
+				sellerName: stored.sellerName || '',
+				sellerAvatar: stored.sellerAvatar || '',
+				buyerAvatar: stored.buyerAvatar || '',
 					image: stored.image || '',
 					title: stored.title || '商品 #' + (stored.itemId || ''),
 					price: stored.price || '',
@@ -199,6 +209,11 @@
 			goGoods() {
 				if (this.order.itemId) {
 					uni.navigateTo({ url: '/pages/goods-detail/goods-detail?id=' + this.order.itemId })
+				}
+			},
+			goProfile(userId) {
+				if (userId) {
+					uni.navigateTo({ url: '/pages/profile/profile?id=' + userId })
 				}
 			},
 			onCancel() {
@@ -333,8 +348,16 @@
 	}
 	.party-item {
 		display: flex; flex-direction: column; align-items: center;
-		flex: 1;
+		flex: 1; cursor: pointer;
 	}
+	.party-avatar {
+		width: 88rpx; height: 88rpx;
+		background: #e8f5ee; border-radius: 50%;
+		display: flex; align-items: center; justify-content: center;
+		font-size: 36rpx; margin-bottom: 12rpx; overflow: hidden;
+	}
+	.party-avatar-img { width: 100%; height: 100%; border-radius: 50%; }
+	.party-avatar-emoji { font-size: 36rpx; }
 	.party-label { font-size: 24rpx; color: #999; margin-bottom: 8rpx; }
 	.party-name { font-size: 28rpx; color: #333; font-weight: 500; }
 	.party-arrow { font-size: 32rpx; color: #ccc; margin: 0 20rpx; }

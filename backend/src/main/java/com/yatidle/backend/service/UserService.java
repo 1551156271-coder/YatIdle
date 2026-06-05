@@ -1,10 +1,13 @@
 package com.yatidle.backend.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.yatidle.backend.common.exception.BusinessException;
 import com.yatidle.backend.entity.User;
 import com.yatidle.backend.mapper.UserMapper;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Service
@@ -47,7 +50,7 @@ public class UserService {
     // 用户注册
     public User register(String username, String password, String nickname, String bio, String campus) {
         if (existsByUsername(username)) {
-            throw new RuntimeException("用户名已存在");
+            throw new BusinessException("用户名已存在");
         }
         User user = new User();
         user.setUsername(username);
@@ -64,10 +67,10 @@ public class UserService {
     public User login(String username, String password) {
         User user = findByUsername(username);
         if (user == null) {
-            throw new RuntimeException("用户名不存在");
+            throw new BusinessException("用户名不存在");
         }
         if (!user.getPassword().equals(password)) {
-            throw new RuntimeException("密码错误");
+            throw new BusinessException("密码错误");
         }
         return user;
     }
@@ -77,7 +80,7 @@ public class UserService {
                              String nickname, String bio, String campus) {
         User user = userMapper.selectById(userId);
         if (user == null) {
-            throw new RuntimeException("用户不存在");
+            throw new BusinessException("用户不存在");
         }
         if (phone != null) {
             user.setPhone(phone);
@@ -103,5 +106,28 @@ public class UserService {
     // 返回所有用户
     public List<User> findAll() {
         return userMapper.selectList(null);
+    }
+
+    @Transactional
+    public void deduct(Long userId, BigDecimal amount) {
+        User user = userMapper.selectById(userId);
+        if (user == null) {
+            throw new BusinessException("用户不存在");
+        }
+        if (user.getBalance().compareTo(amount) < 0) {
+            throw new BusinessException("钱包余额不足");
+        }
+        user.setBalance(user.getBalance().subtract(amount));
+        userMapper.updateById(user);
+    }
+
+    @Transactional
+    public void refund(Long userId, BigDecimal amount) {
+        User user = userMapper.selectById(userId);
+        if (user == null) {
+            throw new BusinessException("用户不存在");
+        }
+        user.setBalance(user.getBalance().add(amount));
+        userMapper.updateById(user);
     }
 }

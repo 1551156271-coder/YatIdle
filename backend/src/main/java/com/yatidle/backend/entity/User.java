@@ -6,6 +6,7 @@ package com.yatidle.backend.entity;
 
 import com.baomidou.mybatisplus.annotation.*;
 import lombok.Data;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Data
@@ -30,6 +31,8 @@ public class User {
     private String campus;
 
     private Integer creditScore = 100;
+
+    private BigDecimal balance;
 
     private Integer role = 0;
 

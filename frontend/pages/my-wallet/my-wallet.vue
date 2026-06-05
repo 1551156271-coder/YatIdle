@@ -25,16 +25,18 @@
 				<text class="empty-txt">加载中...</text>
 			</view>
 			<view v-else-if="transactions.length > 0" class="tx-list">
-				<view v-for="t in transactions" :key="t.id" class="tx-item">
-					<view class="tx-left">
-						<text class="tx-icon">{{ t.type === 'INCOME' ? '↓' : '↑' }}</text>
-						<view class="tx-info">
-							<text class="tx-title">{{ t.title }}</text>
+				<view v-for="t in transactions" :key="t.id + '_' + t.txType" class="tx-item" @click="goDetail(t)">
+					<image class="tx-img" :src="t.image" mode="aspectFill"></image>
+					<view class="tx-info">
+						<text class="tx-title">{{ t.title }}</text>
+						<view class="tx-meta">
 							<text class="tx-time">{{ t.time }}</text>
+							<text class="tx-tag" :class="t.txType === 'sold' ? 'tag-sold' : 'tag-bought'">{{ t.txType === 'sold' ? '已售' : '已购' }}</text>
+							<text class="tx-status" :class="t.status === 'COMPLETED' ? 'st-done' : 'st-pending'">{{ t.statusLabel }}</text>
 						</view>
 					</view>
-					<text class="tx-amount" :class="t.type === 'INCOME' ? 'tx-income' : 'tx-expense'">
-						{{ t.type === 'INCOME' ? '+' : '' }}{{ t.amount }}
+					<text class="tx-amount" :class="t.txType === 'sold' ? 'tx-income' : 'tx-expense'">
+						{{ t.txType === 'sold' ? '+' : '-' }}¥{{ Number(t.price || 0).toFixed(2) }}
 					</text>
 				</view>
 			</view>
@@ -46,7 +48,8 @@
 </template>
 
 <script>
-	import { getWallet, getWalletTransactions } from '@/api/wallet.js'
+	import { getWallet } from '@/api/wallet.js'
+	import { getMySellOrders, getMyBuyOrders } from '@/api/order.js'
 
 	export default {
 		data() {
@@ -69,31 +72,51 @@
 				const userId = user ? user.id : 1
 				this.loading = true
 				try {
-					const [walletData, txList] = await Promise.all([
+					const [walletData, sellRes, buyRes] = await Promise.all([
 						getWallet(userId).catch(() => null),
-						getWalletTransactions(userId).catch(() => [])
+						getMySellOrders(userId).catch(() => []),
+						getMyBuyOrders(userId).catch(() => [])
 					])
 					if (walletData) {
 						this.wallet = {
 							balance: walletData.balance || 0,
-							frozenAmount: walletData.frozenAmount || 0,
 							totalIncome: walletData.totalIncome || 0,
 							totalExpense: walletData.totalExpense || 0
 						}
 					}
-					this.transactions = (txList || []).map(t => ({
-						id: t.id,
-						type: t.type,
-						title: t.title,
-						amount: t.amount,
-						balanceAfter: t.balanceAfter,
-						time: this.formatTime(t.createTime)
+
+					const sellList = (sellRes.records || sellRes || []).map(o => ({ ...o, txType: 'sold' }))
+					const buyList = (buyRes.records || buyRes || []).map(o => ({ ...o, txType: 'bought' }))
+					const merged = [...sellList, ...buyList]
+						.filter(o => o.status !== 'CANCELLED')
+						.sort((a, b) => new Date(b.createTime) - new Date(a.createTime))
+
+					this.transactions = merged.map(o => ({
+						id: o.id,
+						txType: o.txType,
+						type: o.txType === 'sold' ? 'INCOME' : 'EXPENSE',
+						title: o.itemTitle || ('商品 #' + o.itemId),
+						image: o.itemImageUrl || '',
+						price: o.price,
+						amount: o.price,
+						status: o.status,
+						statusLabel: this.mapStatus(o.status),
+						time: this.formatTime(o.createTime),
+						_raw: o
 					}))
 				} catch (e) {
 					// ignore
 				} finally {
 					this.loading = false
 				}
+			},
+			mapStatus(status) {
+				const map = { PENDING: '待交易', COMPLETED: '已完成', CANCELLED: '已取消' }
+				return map[status] || status
+			},
+			goDetail(t) {
+				uni.setStorageSync('currentOrder', t._raw)
+				uni.navigateTo({ url: '/pages/order-detail/order-detail?id=' + t.id + '&type=' + (t.txType === 'bought' ? 'purchased' : 'sold') })
 			},
 			formatTime(dateStr) {
 				if (!dateStr) return ''
@@ -163,19 +186,25 @@
 		padding: 22rpx 0; border-bottom: 1rpx solid #f5f5f5;
 	}
 	.tx-item:last-child { border-bottom: none; }
-	.tx-left { display: flex; align-items: center; gap: 16rpx; flex: 1; overflow: hidden; }
-	.tx-icon {
-		width: 52rpx; height: 52rpx; border-radius: 50%;
-		background: #f5f5f5;
-		display: flex; align-items: center; justify-content: center;
-		font-size: 28rpx; flex-shrink: 0;
+	.tx-img {
+		width: 100rpx; height: 100rpx;
+		border-radius: 10rpx; background: #eee;
+		flex-shrink: 0; margin-right: 18rpx;
 	}
 	.tx-info { flex: 1; overflow: hidden; }
 	.tx-title {
 		font-size: 28rpx; color: #333; display: block;
 		overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+		margin-bottom: 6rpx;
 	}
-	.tx-time { font-size: 22rpx; color: #ccc; margin-top: 4rpx; display: block; }
+	.tx-meta { display: flex; align-items: center; gap: 12rpx; }
+	.tx-time { font-size: 22rpx; color: #ccc; }
+	.tx-tag { font-size: 20rpx; padding: 2rpx 10rpx; border-radius: 4rpx; }
+	.tag-sold { color: #2E7D32; background: #e8f5e9; }
+	.tag-bought { color: #e74c3c; background: #fdecea; }
+	.tx-status { font-size: 20rpx; }
+	.st-done { color: #2E7D32; }
+	.st-pending { color: #f0ad4e; }
 	.tx-amount { font-size: 30rpx; font-weight: bold; flex-shrink: 0; margin-left: 16rpx; }
 	.tx-income { color: #2E7D32; }
 	.tx-expense { color: #e74c3c; }

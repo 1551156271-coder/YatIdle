@@ -23,6 +23,8 @@ public class WantedDetailVO {
     private LocalDateTime createTime;
     private List<String> images;
     private String username;
+    private String nickname;
+    private String avatar;
 
     public static WantedDetailVO from(Wanted wanted, List<String> images) {
         if (wanted == null) return null;
