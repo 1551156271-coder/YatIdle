@@ -56,7 +56,7 @@ CREATE TABLE IF NOT EXISTS item_image (
 CREATE TABLE IF NOT EXISTS wanted (
   id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '求购ID',
   user_id BIGINT NOT NULL COMMENT '发布用户ID',
-  title VARCHAR(100) NOT NULL COMMENT '求购标题',
+  title VARCHAR(50) NOT NULL COMMENT '求购标题',
   budget_min DECIMAL(10,2) NOT NULL DEFAULT 0.00 COMMENT '最低预算',
   budget_max DECIMAL(10,2) NOT NULL DEFAULT 0.00 COMMENT '最高预算',
   campus ENUM('南校园','东校园','北校园','珠海校区','深圳校区') DEFAULT NULL COMMENT '所在校区',

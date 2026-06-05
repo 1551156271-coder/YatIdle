@@ -61,7 +61,7 @@
 		<view v-else class="form-card">
 			<view class="form-item">
 				<text class="form-label">求购物品</text>
-				<input class="form-input" v-model="buyForm.title" placeholder="你想买什么？" />
+				<input class="form-input" v-model="buyForm.title" placeholder="你想买什么？" :maxlength="50" />
 			</view>
 			<view class="form-item">
 				<text class="form-label">预算范围</text>
@@ -325,6 +325,10 @@
 		async onBuySubmit() {
 			if (!this.buyForm.title) {
 				uni.showToast({ title: '请输入求购物品', icon: 'none' })
+				return
+			}
+			if(this.buyForm.title.length > 50) {
+				uni.showToast({ title: '求购标题不能超过50字', icon: 'none'})
 				return
 			}
 			if (this.budgetError) {

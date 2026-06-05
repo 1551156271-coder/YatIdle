@@ -5,6 +5,7 @@ import com.yatidle.backend.dto.wanted.CreateWantedDTO;
 import com.yatidle.backend.service.WantedService;
 import com.yatidle.backend.vo.wanted.WantedDetailVO;
 import com.yatidle.backend.vo.wanted.WantedVO;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,7 +22,7 @@ public class WantedController {
     }
 
     @PostMapping
-    public Result<WantedDetailVO> create(@RequestBody CreateWantedDTO dto) {
+    public Result<WantedDetailVO> create(@Valid @RequestBody CreateWantedDTO dto) {
         return Result.success(wantedService.create(dto));
     }
 
@@ -38,7 +39,7 @@ public class WantedController {
     }
 
     @PutMapping("/{id}")
-    public Result<Void> update(@PathVariable Long id, @RequestBody CreateWantedDTO dto) {
+    public Result<Void> update(@PathVariable Long id, @Valid @RequestBody CreateWantedDTO dto) {
         wantedService.update(id, dto);
         return Result.success(null);
     }
