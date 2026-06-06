@@ -63,7 +63,7 @@
 				loading: true
 			}
 		},
-		onLoad() {
+		onShow() {
 			this.loadData()
 		},
 		methods: {

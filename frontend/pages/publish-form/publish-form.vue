@@ -277,6 +277,7 @@
 						imageUrls
 					}
 					const data = await publishItem(payload)
+					uni.setStorageSync('needRefreshHomeGoods',true)
 					uni.showToast({ title: '发布成功！', icon: 'success' })
 					setTimeout(() => {
 						uni.switchTab({
@@ -368,19 +369,16 @@
 					await updateWanted(this.editId, payload)
 					uni.showToast({ title: '修改成功！', icon: 'success' })
 					setTimeout(() => {
-						uni.navigateBack()
+						uni.switchTab({
+							url: '/pages/wanted/wanted'
+						})
 					}, 1200)
 				} else {
 					const data = await publishWanted(payload)
 					uni.showToast({ title: '发布成功！', icon: 'success' })
 					setTimeout(() => {
 						uni.switchTab({
-							url: '/pages/index/index',
-							success: () => {
-								setTimeout(() => {
-									uni.navigateTo({ url: '/pages/wanted-detail/wanted-detail?id=' + data.id })
-								}, 150)
-							}
+							url: '/pages/wanted/wanted'
 						})
 					}, 1200)
 				}

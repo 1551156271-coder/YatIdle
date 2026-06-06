@@ -90,6 +90,12 @@
 		},
 		onShow() {
 			uni.hideTabBar()
+			if(uni.getStorageSync('needRefreshHomeGoods')){
+				uni.removeStorageSync('needRefreshHomeGoods')
+				this.page = 1
+				this.hasMore = true
+				this.loadGoods()
+			}
 		},
 		methods: {
 			onSearchClick() {
