@@ -1,0 +1,20 @@
+{
+  "pages": [
+    { "path": "pages/login/login", "style": { "navigationStyle": "custom" } },
+    { "path": "pages/dashboard/dashboard", "style": { "navigationStyle": "custom" } },
+    { "path": "pages/users/users", "style": { "navigationStyle": "custom" } },
+    { "path": "pages/items/items", "style": { "navigationStyle": "custom" } },
+    { "path": "pages/reports/reports", "style": { "navigationStyle": "custom" } },
+    { "path": "pages/wanted/wanted", "style": { "navigationStyle": "custom" } },
+    { "path": "pages/orders/orders", "style": { "navigationStyle": "custom" } },
+    { "path": "pages/reviews/reviews", "style": { "navigationStyle": "custom" } },
+    { "path": "pages/chats/chats", "style": { "navigationStyle": "custom" } },
+    { "path": "pages/categories/categories", "style": { "navigationStyle": "custom" } },
+    { "path": "pages/logs/logs", "style": { "navigationStyle": "custom" } }
+  ],
+  "globalStyle": {
+    "navigationStyle": "custom",
+    "backgroundColor": "#f4f6f8"
+  },
+  "uniIdRouter": {}
+}

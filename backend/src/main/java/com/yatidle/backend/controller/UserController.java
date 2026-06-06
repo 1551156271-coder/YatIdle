@@ -15,10 +15,10 @@ import com.yatidle.backend.mapper.ItemMapper;
 import com.yatidle.backend.mapper.ReviewMapper;
 import com.yatidle.backend.mapper.TradeOrderMapper;
 import com.yatidle.backend.service.UserService;
+import com.yatidle.backend.util.ImageUploadValidator;
 import com.yatidle.backend.vo.user.LoginVO;
 import com.yatidle.backend.vo.user.UserVO;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -136,17 +136,7 @@ public class UserController {
 
     @PostMapping("/avatar/upload")
     public Result<Map<String, String>> uploadAvatar(@RequestParam("file") MultipartFile file) throws IOException {
-        if (file == null || file.isEmpty()) {
-            throw new BusinessException("图片文件不能为空");
-        }
-
-        String originalFilename = StringUtils.cleanPath(file.getOriginalFilename() == null ? "" : file.getOriginalFilename());
-        String ext = "";
-        int dotIndex = originalFilename.lastIndexOf('.');
-        if (dotIndex >= 0) {
-            ext = originalFilename.substring(dotIndex);
-        }
-
+        String ext = ImageUploadValidator.validate(file);
         String filename = UUID.randomUUID() + ext;
         Path uploadDir = Paths.get("uploads", "avatar").toAbsolutePath().normalize();
         Files.createDirectories(uploadDir);
