@@ -357,7 +357,7 @@
 		font-size: 36rpx; margin-bottom: 12rpx; overflow: hidden;
 	}
 	.party-avatar-img { width: 100%; height: 100%; border-radius: 50%; }
-	.party-avatar-emoji { font-size: 36rpx; }
+	.party-avatar-emoji { font-size: 36rpx; color: #375f3e; font-weight: bold; }
 	.party-label { font-size: 24rpx; color: #999; margin-bottom: 8rpx; }
 	.party-name { font-size: 28rpx; color: #333; font-weight: 500; }
 	.party-arrow { font-size: 32rpx; color: #ccc; margin: 0 20rpx; }

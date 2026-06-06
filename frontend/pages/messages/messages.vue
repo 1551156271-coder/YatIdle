@@ -187,7 +187,7 @@
 		font-size: 44rpx; margin-right: 20rpx; flex-shrink: 0; overflow: hidden;
 	}
 	.chat-avatar-img { width: 100%; height: 100%; border-radius: 50%; }
-	.chat-avatar-emoji { font-size: 44rpx; }
+	.chat-avatar-emoji { font-size: 44rpx; color: #375f3e; font-weight: bold; }
 
 	.chat-content { flex: 1; overflow: hidden; }
 	.chat-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8rpx; }

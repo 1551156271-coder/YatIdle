@@ -314,7 +314,7 @@
 	font-size: 44rpx; flex-shrink: 0; overflow: hidden;
 }
 .avatar-img { width: 100%; height: 100%; border-radius: 50%; }
-.avatar-emoji { font-size: 44rpx; }
+.avatar-emoji { font-size: 44rpx; color: #375f3e; font-weight: bold; }
 	.seller-text { display: flex; flex-direction: column; justify-content: center; }
 	.name-row { display: flex; align-items: center; gap: 12rpx; }
 	.seller-name { font-size: 30rpx; font-weight: bold; color: #333; line-height: 1.4; }

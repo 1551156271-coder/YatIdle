@@ -444,7 +444,7 @@ export default {
 	display: flex; align-items: center; justify-content: center; font-size: 36rpx; flex-shrink: 0; overflow: hidden;
 }
 .msg-avatar-img { width: 100%; height: 100%; border-radius: 50%; }
-.msg-avatar-emoji { font-size: 36rpx; }
+.msg-avatar-emoji { font-size: 36rpx; color: #375f3e; font-weight: bold; }
 .msg-row:not(.msg-self) .msg-avatar { margin-right: 16rpx; }
 .msg-self .msg-avatar { margin-left: 16rpx; background: #e3f2fd; }
 

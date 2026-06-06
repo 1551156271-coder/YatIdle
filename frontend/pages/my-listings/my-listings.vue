@@ -51,7 +51,7 @@
 			<view v-else-if="!loading" class="empty-wrap">
 				<text class="empty-icon">📋</text>
 				<text class="empty-text">暂无发布的求购</text>
-				<view class="empty-btn" @click="goPublishWanted">去发布求购</view>
+				<view class="empty-btn empty-btn-wanted" @click="goPublishWanted">去发布</view>
 			</view>
 		</view>
 
@@ -241,6 +241,9 @@
 		font-size: 28rpx; color: #ffffff;
 		background: linear-gradient(135deg, #3A6341, #4E7D56);
 		padding: 16rpx 60rpx; border-radius: 44rpx;
+	}
+	.empty-btn-wanted {
+		background: linear-gradient(135deg, #5A7D9E, #7A9DBE);
 	}
 
 	.loading-tip { text-align: center; padding: 60rpx; font-size: 24rpx; color: #ccc; }

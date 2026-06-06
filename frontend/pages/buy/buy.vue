@@ -339,7 +339,7 @@
 	flex-shrink: 0; overflow: hidden;
 }
 .seller-avatar-img { width: 100%; height: 100%; border-radius: 50%; }
-.seller-avatar-emoji { font-size: 36rpx; }
+.seller-avatar-emoji { font-size: 36rpx; color: #375f3e; font-weight: bold; }
 
 	.seller-info {
 		display: flex;

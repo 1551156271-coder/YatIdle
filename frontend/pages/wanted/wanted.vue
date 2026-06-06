@@ -239,7 +239,7 @@
 	}
 	.wanted-avatar-def {
 		width: 36rpx; height: 36rpx; border-radius: 50%;
-		background: #EDF2F6; color: #5A7D9E;
+		background: #EDF2F6; color: #375f3e;
 		font-size: 20rpx; font-weight: bold;
 		display: flex; align-items: center; justify-content: center;
 	}

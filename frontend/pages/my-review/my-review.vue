@@ -135,7 +135,7 @@
 	}
 t	.seller-avatar-img { width: 100%; height: 100%; border-radius: 50%; }
 	.seller-avatar-text {
-		font-size: 40rpx; color: #ffffff; font-weight: bold;
+		font-size: 40rpx; color: #375f3e; font-weight: bold;
 	}
 	.seller-info { flex: 1; }
 	.seller-name { font-size: 30rpx; color: #333; font-weight: bold; display: block; }

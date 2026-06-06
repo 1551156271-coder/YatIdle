@@ -19,7 +19,7 @@
 			</view>
 		</view>
 		<view v-else-if="!loading" class="empty-wrap">
-			<text class="empty-icon">💝</text>
+			<text class="empty-icon iconfont icon-xinyuandan"></text>
 			<text class="empty-text">心愿单还是空的</text>
 			<text class="empty-sub">去首页逛逛，收藏喜欢的宝贝吧</text>
 		</view>
@@ -138,7 +138,7 @@
 		display: flex; flex-direction: column; align-items: center;
 		padding-top: 200rpx;
 	}
-	.empty-icon { font-size: 80rpx; margin-bottom: 24rpx; }
+	.empty-icon { font-size: 80rpx; margin-bottom: 24rpx; color: #999}
 	.empty-text { font-size: 30rpx; color: #999; margin-bottom: 12rpx; }
 	.empty-sub { font-size: 24rpx; color: #ccc; }
 
