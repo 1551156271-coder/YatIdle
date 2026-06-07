@@ -92,6 +92,9 @@
 <script>
 import AdminLayout from '../../components/admin-layout.vue'
 import { overview } from '../../api/dashboard'
+import { listCategories } from '../../api/categories'
+import { listItems } from '../../api/items'
+import { listWanted } from '../../api/wanted'
 
 export default {
   components: { AdminLayout },
@@ -118,7 +121,9 @@ export default {
       this.loading = true
       this.error = ''
       try {
-        this.data = await overview()
+        const data = await overview()
+        await this.fillFallbackStats(data)
+        this.data = data
       } catch (e) {
         this.data = {}
         this.error = '看板数据加载失败，请确认后端已启动且后台数据表已初始化。'
@@ -146,6 +151,50 @@ export default {
       if (['PENDING', 'SOLD', 'admin', 'pending', 'sold'].includes(key)) return 'tone-warning'
       if (['REMOVED', 'REJECTED', 'inactive', 'closed'].includes(key)) return 'tone-danger'
       return 'tone-neutral'
+    },
+    async fillFallbackStats(data) {
+      const needsCategoryStats = Number(data.onSaleItems || 0) > 0 && !(data.onSaleCategoryStats || []).length
+      const needsWantedStats = Number(data.wantedTotal || 0) > 0 && !(data.wantedStatusStats || []).length
+      if (!needsCategoryStats && !needsWantedStats) return
+
+      const [categoriesResult, itemsResult, wantedResult] = await Promise.all([
+        needsCategoryStats ? listCategories().catch(() => []) : Promise.resolve([]),
+        needsCategoryStats ? listItems({ status: 'ON_SALE', page: 1, size: 1000 }).catch(() => ({ records: [] })) : Promise.resolve({ records: [] }),
+        needsWantedStats ? listWanted({ page: 1, size: 1000 }).catch(() => ({ records: [] })) : Promise.resolve({ records: [] })
+      ])
+
+      if (needsCategoryStats) {
+        data.onSaleCategoryStats = this.buildCategoryStats(itemsResult.records || [], categoriesResult || [])
+      }
+      if (needsWantedStats) {
+        data.wantedStatusStats = this.buildWantedStatusStats(wantedResult.records || [])
+      }
+    },
+    buildCategoryStats(items, categories) {
+      const categoryMap = new Map((categories || []).map(category => [Number(category.id), category.name]))
+      const counts = new Map()
+      ;(items || []).forEach(item => {
+        const key = Number(item.categoryId || 0)
+        if (!key) return
+        counts.set(key, (counts.get(key) || 0) + 1)
+      })
+      return Array.from(counts.entries()).map(([key, count]) => ({
+        key: String(key),
+        label: categoryMap.get(key) || `分类 #${key}`,
+        count
+      }))
+    },
+    buildWantedStatusStats(wantedList) {
+      const labels = { active: '有效', pending: '待定', closed: '已关闭', sold: '已成交' }
+      const order = ['active', 'pending', 'closed', 'sold']
+      const counts = new Map(order.map(status => [status, 0]))
+      ;(wantedList || []).forEach(wanted => {
+        const status = wanted.status || 'unknown'
+        counts.set(status, (counts.get(status) || 0) + 1)
+      })
+      return Array.from(counts.entries())
+        .filter(([, count]) => count > 0)
+        .map(([key, count]) => ({ key, label: labels[key] || key, count }))
     }
   }
 }

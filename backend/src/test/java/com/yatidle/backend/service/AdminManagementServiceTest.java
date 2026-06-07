@@ -14,6 +14,7 @@ import com.yatidle.backend.mapper.AdminActionLogMapper;
 import com.yatidle.backend.mapper.CategoryMapper;
 import com.yatidle.backend.mapper.ItemMapper;
 import com.yatidle.backend.mapper.ReportMapper;
+import com.yatidle.backend.mapper.ReviewMapper;
 import com.yatidle.backend.mapper.TradeOrderLogMapper;
 import com.yatidle.backend.mapper.TradeOrderMapper;
 import com.yatidle.backend.mapper.UserMapper;
@@ -66,6 +67,9 @@ class AdminManagementServiceTest {
 
     @Mock
     private AdminActionLogMapper adminActionLogMapper;
+
+    @Mock
+    private ReviewMapper reviewMapper;
 
     @Mock
     private CategoryMapper categoryMapper;
