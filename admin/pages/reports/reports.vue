@@ -64,7 +64,10 @@
             <view class="detail-item wide">
               <text class="detail-label">截图</text>
               <view v-if="reportImages.length" class="image-list">
-                <image v-for="(img, index) in reportImages" :key="img" :src="img" mode="aspectFit" class="preview-img" @click="previewImages(reportImages, index)"></image>
+                <view v-for="(img, index) in reportImages" :key="img + index" class="report-image-tile" @click="canPreviewImage(img) && previewImages(reportImages, index)">
+                  <image v-if="canPreviewImage(img)" :src="img" mode="aspectFit" class="preview-img" @error="markReportImageBroken(img)"></image>
+                  <text v-else class="image-unavailable">{{ isTemporaryImage(img) ? '临时图片不可预览' : '图片加载失败' }}</text>
+                </view>
               </view>
               <text v-else class="detail-value muted">暂无截图</text>
             </view>
@@ -116,7 +119,8 @@
         </view>
         <view class="image-viewer-body">
           <button v-if="imageViewerImages.length > 1" class="viewer-nav viewer-prev" @click="prevImage">上一张</button>
-          <image v-if="currentViewerImage" :src="currentViewerImage" mode="aspectFit" class="viewer-img"></image>
+          <image v-if="currentViewerImage && !imageViewerError" :src="currentViewerImage" mode="aspectFit" class="viewer-img" @error="imageViewerError = true"></image>
+          <text v-else class="viewer-empty">图片无法加载</text>
           <button v-if="imageViewerImages.length > 1" class="viewer-nav viewer-next" @click="nextImage">下一张</button>
         </view>
       </view>
@@ -148,7 +152,9 @@ export default {
       actionType: '',
       imageViewerVisible: false,
       imageViewerImages: [],
-      imageViewerIndex: 0
+      imageViewerIndex: 0,
+      imageViewerError: false,
+      brokenReportImages: {}
     }
   },
   onShow() {
@@ -284,24 +290,43 @@ export default {
       return 'http://127.0.0.1:8080/' + url
     },
     previewImages(images, index) {
-      const urls = (images || []).filter(Boolean)
+      const source = images || []
+      const urls = source.filter(this.canPreviewImage)
       if (!urls.length) return
       this.imageViewerImages = urls
-      this.imageViewerIndex = Math.min(Math.max(Number(index) || 0, 0), urls.length - 1)
+      const current = source[index]
+      const safeIndex = Math.max(urls.indexOf(current), 0)
+      this.imageViewerIndex = Math.min(safeIndex, urls.length - 1)
+      this.imageViewerError = false
       this.imageViewerVisible = true
     },
     closeImageViewer() {
       this.imageViewerVisible = false
       this.imageViewerImages = []
       this.imageViewerIndex = 0
+      this.imageViewerError = false
     },
     prevImage() {
       if (!this.imageViewerImages.length) return
       this.imageViewerIndex = (this.imageViewerIndex + this.imageViewerImages.length - 1) % this.imageViewerImages.length
+      this.imageViewerError = false
     },
     nextImage() {
       if (!this.imageViewerImages.length) return
       this.imageViewerIndex = (this.imageViewerIndex + 1) % this.imageViewerImages.length
+      this.imageViewerError = false
+    },
+    isTemporaryImage(url) {
+      return /^https?:\/\/tmp\//i.test(url || '') || /^wxfile:\/\//i.test(url || '')
+    },
+    isReportImageBroken(url) {
+      return !!this.brokenReportImages[url]
+    },
+    canPreviewImage(url) {
+      return !!url && !this.isTemporaryImage(url) && !this.isReportImageBroken(url)
+    },
+    markReportImageBroken(url) {
+      this.brokenReportImages = { ...this.brokenReportImages, [url]: true }
     },
     reasonText(reason) {
       const map = { fake: '虚假商品', counterfeit: '假冒商品', harass: '骚扰辱骂', fraud: '欺诈行为', other: '其他违规' }
@@ -381,6 +406,51 @@ export default {
   cursor: zoom-in;
 }
 
+.preview-img > div,
+.preview-img img,
+.preview-img .uni-image-img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain !important;
+  background-size: contain !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+}
+
+::v-deep .preview-img > div,
+::v-deep .preview-img img,
+::v-deep .preview-img .uni-image-img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain !important;
+  background-size: contain !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+}
+
+.report-image-tile {
+  width: 96px;
+  height: 96px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.image-unavailable {
+  width: 96px;
+  height: 96px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  border: 1px dashed #cbd5e1;
+  border-radius: 6px;
+  color: #718096;
+  background: #f8fafc;
+  font-size: 12px;
+  text-align: center;
+}
+
 .image-viewer-mask {
   position: fixed;
   z-index: 1400;
@@ -436,6 +506,33 @@ export default {
   height: min(72vh, 640px);
   display: block;
   object-fit: contain;
+}
+
+.viewer-img > div,
+.viewer-img img,
+.viewer-img .uni-image-img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain !important;
+  background-size: contain !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+}
+
+::v-deep .viewer-img > div,
+::v-deep .viewer-img img,
+::v-deep .viewer-img .uni-image-img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain !important;
+  background-size: contain !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+}
+
+.viewer-empty {
+  color: #cbd5e1;
+  font-size: 14px;
 }
 
 .viewer-nav {

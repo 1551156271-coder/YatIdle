@@ -8,6 +8,7 @@ import com.yatidle.backend.entity.Review;
 import com.yatidle.backend.entity.TradeOrder;
 import com.yatidle.backend.entity.User;
 import com.yatidle.backend.entity.Wanted;
+import com.yatidle.backend.entity.WantedImage;
 import com.yatidle.backend.common.exception.BusinessException;
 import com.yatidle.backend.mapper.AdminActionLogMapper;
 import com.yatidle.backend.mapper.CategoryMapper;
@@ -17,9 +18,11 @@ import com.yatidle.backend.mapper.TradeOrderLogMapper;
 import com.yatidle.backend.mapper.TradeOrderMapper;
 import com.yatidle.backend.mapper.UserMapper;
 import com.yatidle.backend.mapper.WantedMapper;
+import com.yatidle.backend.mapper.WantedImageMapper;
 import com.yatidle.backend.vo.admin.AdminActionLogVO;
 import com.yatidle.backend.vo.admin.AdminOrderVO;
 import com.yatidle.backend.vo.admin.AdminReportVO;
+import com.yatidle.backend.vo.wanted.WantedDetailVO;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -51,6 +54,9 @@ class AdminManagementServiceTest {
 
     @Mock
     private WantedMapper wantedMapper;
+
+    @Mock
+    private WantedImageMapper wantedImageMapper;
 
     @Mock
     private TradeOrderMapper tradeOrderMapper;
@@ -261,6 +267,29 @@ class AdminManagementServiceTest {
     }
 
     @Test
+    void listWantedReturnsImagesForAdminList() {
+        AdminLogService logService = new AdminLogService(adminActionLogMapper);
+        AdminWantedService service = new AdminWantedService(wantedMapper, wantedImageMapper, null, logService, "http://127.0.0.1:8080");
+        Wanted wanted = new Wanted();
+        wanted.setId(15L);
+        wanted.setTitle("wanted");
+        wanted.setIsDeleted(0);
+        Page<Wanted> page = new Page<>(1, 10);
+        page.setRecords(List.of(wanted));
+        page.setTotal(1);
+        when(wantedMapper.selectPage(any(Page.class), any())).thenReturn(page);
+        WantedImage image = new WantedImage();
+        image.setWantedId(15L);
+        image.setImageUrl("/uploads/wanted/cover.jpg");
+        when(wantedImageMapper.selectByWantedId(15L)).thenReturn(List.of(image));
+
+        Page<WantedDetailVO> result = service.list(null, null, null, 1, 10);
+
+        assertThat(result.getRecords().get(0).getImages())
+                .containsExactly("http://127.0.0.1:8080/uploads/wanted/cover.jpg");
+    }
+
+    @Test
     void deleteWantedRequiresReasonAndWritesLog() {
         AdminLogService logService = new AdminLogService(adminActionLogMapper);
         AdminWantedService service = new AdminWantedService(wantedMapper, logService);
@@ -354,7 +383,7 @@ class AdminManagementServiceTest {
         verify(adminUserService).updateStatus(1L, 3L, "active", "restore");
         verify(adminUserService).restoreVisibleContentByUser(1L, 3L, "restore");
         assertThat(report.getActionType()).isNull();
-        verify(reportMapper).updateById(report);
+        verify(reportMapper).update(any(), any());
         verify(adminActionLogMapper).insert(any(AdminActionLog.class));
     }
 
@@ -379,7 +408,7 @@ class AdminManagementServiceTest {
         assertThat(item.getStatus()).isEqualTo("ON_SALE");
         assertThat(report.getActionType()).isNull();
         verify(itemMapper).updateById(item);
-        verify(reportMapper).updateById(report);
+        verify(reportMapper).update(any(), any());
         verify(adminActionLogMapper, org.mockito.Mockito.times(2)).insert(any(AdminActionLog.class));
     }
 
