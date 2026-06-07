@@ -1,11 +1,23 @@
-# 上传文件（调试用图片）
-backend/uploads/items/*
-backend/uploads/avatar/*
-!backend/uploads/items/.gitkeep
-!backend/uploads/avatar/.gitkeep
+# 运行时上传文件（商品、头像、举报、聊天、求购等用户图片）
+backend/uploads/**
+!backend/uploads/
+!backend/uploads/**/
+!backend/uploads/**/.gitkeep
 
 # Maven 构建产物
 backend/target/
+
+# 运行日志和本地运行状态
+logs/
+backend/logs/
+admin/logs/
+*.log
+*.pid
+*.tmp
+
+# 前端本地构建产物
+frontend/unpackage/
+admin/unpackage/
 
 # IDE
 .idea/
