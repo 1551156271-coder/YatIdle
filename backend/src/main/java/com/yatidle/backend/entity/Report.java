@@ -25,6 +25,7 @@ public class Report {
     private String imageUrls;
     private String status;
     private String handleResult;
+    private String actionType;
     private Long handlerId;
     private LocalDateTime handleTime;
 

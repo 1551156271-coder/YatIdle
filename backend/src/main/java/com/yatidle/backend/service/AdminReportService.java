@@ -1,6 +1,7 @@
 package com.yatidle.backend.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -109,6 +110,7 @@ public class AdminReportService {
         String before = report.getStatus();
         report.setStatus(status);
         report.setHandleResult(result);
+        report.setActionType(actionType);
         report.setHandlerId(adminId);
         report.setHandleTime(LocalDateTime.now());
         reportMapper.updateById(report);
@@ -125,6 +127,50 @@ public class AdminReportService {
             }
         }
         adminLogService.log(adminId, "HANDLE_REPORT", "REPORT", reportId, before, status, result);
+    }
+
+    @Transactional
+    public void restoreAction(Long adminId, Long reportId, String result) {
+        requireResult(result);
+        Report report = findReport(reportId);
+        if (!"HANDLED".equals(report.getStatus())) throw new BusinessException("Only handled reports can be restored");
+        String actionType = report.getActionType();
+        if (actionType == null || actionType.isBlank()) throw new BusinessException("No report action can be restored");
+        if ("BAN_USER".equals(actionType)) {
+            restoreBannedUser(adminId, report, result);
+        } else if ("OFFLINE_ITEM".equals(actionType)) {
+            restoreOfflineItem(adminId, report, result);
+        } else {
+            throw new BusinessException("Unsupported report restore action");
+        }
+        report.setActionType(null);
+        report.setHandleResult(result);
+        report.setHandlerId(adminId);
+        report.setHandleTime(LocalDateTime.now());
+        reportMapper.update(null, new LambdaUpdateWrapper<Report>()
+                .eq(Report::getId, reportId)
+                .set(Report::getActionType, null)
+                .set(Report::getHandleResult, result)
+                .set(Report::getHandlerId, adminId)
+                .set(Report::getHandleTime, report.getHandleTime()));
+        adminLogService.log(adminId, "RESTORE_REPORT_ACTION", "REPORT", reportId, actionType, "RESTORED", result);
+    }
+
+    private void restoreBannedUser(Long adminId, Report report, String result) {
+        if (report.getTargetUserId() == null || adminUserService == null) throw new BusinessException("Report has no restorable user");
+        adminUserService.updateStatus(adminId, report.getTargetUserId(), "active", result);
+        adminUserService.restoreVisibleContentByUser(adminId, report.getTargetUserId(), result);
+    }
+
+    private void restoreOfflineItem(Long adminId, Report report, String result) {
+        if (report.getItemId() == null || itemMapper == null) throw new BusinessException("Report has no restorable item");
+        Item item = itemMapper.selectById(report.getItemId());
+        if (item == null || (item.getIsDeleted() != null && item.getIsDeleted() == 1)) throw new BusinessException("Item does not exist");
+        if (!"REMOVED".equals(item.getStatus())) return;
+        String before = item.getStatus();
+        item.setStatus("ON_SALE");
+        itemMapper.updateById(item);
+        adminLogService.log(adminId, "UPDATE_ITEM_STATUS", "ITEM", item.getId(), before, "ON_SALE", result);
     }
 
     private Report findReport(Long id) {
@@ -185,19 +231,23 @@ public class AdminReportService {
 
     private AdminReportVO enrich(AdminReportVO vo, Map<Long, User> users, Map<Long, Item> items,
                                  Map<Long, Wanted> wanted, Map<Long, TradeOrder> orders) {
-        User reporter = users.get(vo.getReporterId());
+        User reporter = find(users, vo.getReporterId());
         if (reporter != null) vo.setReporterUsername(displayUser(reporter));
-        User target = users.get(vo.getTargetUserId());
+        User target = find(users, vo.getTargetUserId());
         if (target != null) vo.setTargetUserUsername(displayUser(target));
-        User handler = users.get(vo.getHandlerId());
+        User handler = find(users, vo.getHandlerId());
         if (handler != null) vo.setHandlerUsername(displayUser(handler));
-        Item item = items.get(vo.getItemId());
+        Item item = find(items, vo.getItemId());
         if (item != null) vo.setItemTitle(item.getTitle());
-        Wanted wantedItem = wanted.get(vo.getWantedId());
+        Wanted wantedItem = find(wanted, vo.getWantedId());
         if (wantedItem != null) vo.setWantedTitle(wantedItem.getTitle());
-        TradeOrder order = orders.get(vo.getOrderId());
+        TradeOrder order = find(orders, vo.getOrderId());
         if (order != null) vo.setOrderNo(order.getOrderNo());
         return vo;
+    }
+
+    private <T> T find(Map<Long, T> values, Long id) {
+        return id == null ? null : values.get(id);
     }
 
     private Map<Long, User> mapUsers(Set<Long> ids) {

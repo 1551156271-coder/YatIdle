@@ -20,14 +20,18 @@
     <view v-else-if="records.length === 0" class="empty">暂无用户数据</view>
     <view v-else class="table">
       <view class="tr th">
-        <text>ID</text><text>用户名</text><text>昵称</text><text>角色</text><text>状态</text><text>信用分</text><text>操作</text>
+        <text>ID</text><text>头像</text><text>用户名</text><text>昵称</text><text>角色</text><text>状态</text><text>信用分</text><text>操作</text>
       </view>
-      <view v-for="u in records" :key="u.id" class="tr">
+      <view v-for="u in records" :key="u.id" class="tr" :class="{ banned: u.status === 'inactive' }">
         <text>{{ u.id }}</text>
+        <view class="cover-cell">
+          <image v-if="userAvatar(u) && !brokenUserAvatars[u.id]" :src="userAvatar(u)" mode="aspectFill" class="avatar-img" @error="markUserAvatarBroken(u.id)"></image>
+          <text v-else class="cover-empty">无头像</text>
+        </view>
         <text>{{ u.username || '-' }}</text>
         <text>{{ u.nickname || '-' }}</text>
         <text>{{ roleText(u.role) }}</text>
-        <text>{{ statusText(u.status) }}</text>
+        <text><text class="status-pill" :class="userStatusClass(u.status)">{{ statusText(u.status) }}</text></text>
         <text>{{ u.creditScore == null ? '-' : u.creditScore }}</text>
         <view class="ops">
           <button size="mini" @click="openDetail(u)">详情</button>
@@ -51,6 +55,10 @@
         </view>
         <view class="modal-body">
           <view class="detail-grid">
+            <view class="detail-item"><text class="detail-label">余额</text><text class="detail-value">{{ detail.balance == null ? '-' : detail.balance }}</text></view>
+            <view class="detail-item"><text class="detail-label">成交数</text><text class="detail-value">{{ detail.dealCount == null ? '-' : detail.dealCount }}</text></view>
+            <view class="detail-item"><text class="detail-label">在售数</text><text class="detail-value">{{ detail.goodsCount == null ? '-' : detail.goodsCount }}</text></view>
+            <view class="detail-item"><text class="detail-label">评价数</text><text class="detail-value">{{ detail.reviewCount == null ? '-' : detail.reviewCount }}</text></view>
             <view class="detail-item"><text class="detail-label">ID</text><text class="detail-value">{{ detail.id }}</text></view>
             <view class="detail-item"><text class="detail-label">用户名</text><text class="detail-value">{{ detail.username || '-' }}</text></view>
             <view class="detail-item"><text class="detail-label">昵称</text><text class="detail-value">{{ detail.nickname || '-' }}</text></view>
@@ -97,7 +105,8 @@ export default {
       actionVisible: false,
       actionType: '',
       currentUser: {},
-      currentAdminId: adminUser.id
+      currentAdminId: adminUser.id,
+      brokenUserAvatars: {}
     }
   },
   onShow() {
@@ -194,6 +203,21 @@ export default {
     statusText(status) {
       return status === 'inactive' ? '封禁' : '正常'
     },
+    userStatusClass(status) {
+      return status === 'inactive' ? 'status-inactive' : 'status-active'
+    },
+    userAvatar(user) {
+      return this.resolveAssetUrl(user.avatar || '')
+    },
+    resolveAssetUrl(url) {
+      if (!url) return ''
+      if (url.startsWith('http://') || url.startsWith('https://')) return url
+      if (url.startsWith('/')) return 'http://127.0.0.1:8080' + url
+      return 'http://127.0.0.1:8080/' + url
+    },
+    markUserAvatarBroken(id) {
+      this.brokenUserAvatars = { ...this.brokenUserAvatars, [id]: true }
+    },
     isSelf(user) {
       return user && this.currentAdminId != null && Number(user.id) === Number(this.currentAdminId)
     }
@@ -204,17 +228,102 @@ export default {
 <style scoped>
 .tr {
   display: grid;
-  grid-template-columns: 76px 150px 150px 110px 100px 100px 320px;
+  grid-template-columns: 76px 92px 150px 150px 110px 100px 100px 320px;
   align-items: center;
-  min-height: 50px;
-  padding: 0 14px;
+  min-height: 76px;
+  padding: 6px 14px;
   border-bottom: 1px solid #edf1f5;
   font-size: 14px;
 }
 
 .th {
+  min-height: 44px;
+  padding-top: 0;
+  padding-bottom: 0;
   background: #f8fafc;
   font-weight: 700;
   color: #4a5568;
+}
+
+.cover-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 70px;
+  height: 64px;
+  overflow: hidden;
+}
+
+.avatar-img {
+  width: 48px;
+  height: 48px;
+  display: block;
+  border-radius: 50%;
+  border: 1px solid #dfe5ec;
+  background: #f8fafc;
+  object-fit: cover;
+}
+
+.avatar-img > div,
+.avatar-img img,
+.avatar-img .uni-image-img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  background-size: cover !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+}
+
+::v-deep .avatar-img > div,
+::v-deep .avatar-img img,
+::v-deep .avatar-img .uni-image-img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  background-size: cover !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+}
+
+.cover-empty {
+  color: #9aa5b1;
+  font-size: 12px;
+}
+
+.tr.banned {
+  background: #fff7f6;
+  border-left: 4px solid #e67c73;
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 52px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.status-active {
+  color: #0f7a45;
+  background: #e8f5ee;
+}
+
+.status-inactive {
+  color: #b42318;
+  background: #fff0ed;
+}
+
+.tr:not(.banned) .ops button:nth-child(2) {
+  color: #b42318;
+  background: #fff0ed;
+}
+
+.tr.banned .ops button:nth-child(2) {
+  color: #0f7a45;
+  background: #e8f5ee;
 }
 </style>

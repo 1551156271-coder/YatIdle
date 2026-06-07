@@ -23,9 +23,15 @@
     <view v-if="loading" class="loading">正在加载求购...</view>
     <view v-else-if="records.length === 0" class="empty">暂无求购数据</view>
     <view v-else class="table">
-      <view class="tr th"><text>ID</text><text>标题</text><text>分类</text><text>预算</text><text>状态</text><text>操作</text></view>
+      <view class="tr th"><text>ID</text><text>图片</text><text>标题</text><text>分类</text><text>预算</text><text>状态</text><text>操作</text></view>
       <view v-for="w in records" :key="w.id" class="tr">
-        <text>{{ w.id }}</text><text>{{ w.title || '-' }}</text><text>{{ categoryName(w.categoryId) }}</text>
+        <text>{{ w.id }}</text>
+        <view class="cover-cell">
+          <image v-if="wantedCover(w) && !brokenWantedImages[w.id]" :src="wantedCover(w)" mode="aspectFit" class="cover-img" @error="markWantedImageBroken(w.id)" @click="previewImages([wantedCover(w)], 0)"></image>
+          <text v-else-if="wantedCover(w)" class="cover-empty">图片加载失败</text>
+          <text v-else class="cover-empty">无图</text>
+        </view>
+        <text>{{ w.title || '-' }}</text><text>{{ categoryName(w.categoryId) }}</text>
         <text>{{ money(w.budgetMin) }} - {{ money(w.budgetMax) }}</text><text>{{ wantedStatusText(w.status) }}</text>
         <view class="ops">
           <button size="mini" @click="openDetail(w)">详情</button>
@@ -99,7 +105,8 @@ export default {
       detail: {},
       actionVisible: false,
       current: {},
-      nextStatus: ''
+      nextStatus: '',
+      brokenWantedImages: {}
     }
   },
   onShow() {
@@ -199,6 +206,19 @@ export default {
       if (!urls.length) return
       uni.previewImage({ urls, current: urls[index] || urls[0] })
     },
+    wantedCover(wanted) {
+      const images = Array.isArray(wanted.images) ? wanted.images : []
+      return this.resolveAssetUrl(images[0] || wanted.imageUrl || '')
+    },
+    resolveAssetUrl(url) {
+      if (!url) return ''
+      if (url.startsWith('http://') || url.startsWith('https://')) return url
+      if (url.startsWith('/')) return 'http://127.0.0.1:8080' + url
+      return 'http://127.0.0.1:8080/' + url
+    },
+    markWantedImageBroken(id) {
+      this.brokenWantedImages = { ...this.brokenWantedImages, [id]: true }
+    },
     categoryName(id) {
       const hit = this.categories.find(c => c.id === id)
       return hit ? hit.name : (id ? `#${id}` : '-')
@@ -238,17 +258,67 @@ export default {
 
 .tr {
   display: grid;
-  grid-template-columns: 76px 1fr 130px 180px 110px 300px;
+  grid-template-columns: 76px 92px 1fr 130px 180px 110px 300px;
   align-items: center;
-  min-height: 50px;
-  padding: 0 14px;
+  min-height: 76px;
+  padding: 6px 14px;
   border-bottom: 1px solid #edf1f5;
   font-size: 14px;
 }
 
 .th {
+  min-height: 44px;
+  padding-top: 0;
+  padding-bottom: 0;
   background: #f8fafc;
   font-weight: 700;
   color: #4a5568;
+}
+
+.cover-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 70px;
+  height: 64px;
+  overflow: hidden;
+}
+
+.cover-img {
+  width: 64px;
+  height: 64px;
+  display: block;
+  border-radius: 6px;
+  border: 1px solid #dfe5ec;
+  background: #f8fafc;
+  object-fit: contain;
+  cursor: pointer;
+}
+
+.cover-img > div,
+.cover-img img,
+.cover-img .uni-image-img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain !important;
+  background-size: contain !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+}
+
+::v-deep .cover-img > div,
+::v-deep .cover-img img,
+::v-deep .cover-img .uni-image-img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain !important;
+  background-size: contain !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+}
+
+.cover-empty {
+  color: #9aa5b1;
+  font-size: 12px;
 }
 </style>

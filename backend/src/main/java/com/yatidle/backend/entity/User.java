@@ -38,6 +38,15 @@ public class User {
 
     private String status = "active";
 
+    @TableField(exist = false)
+    private Long dealCount;
+
+    @TableField(exist = false)
+    private Long goodsCount;
+
+    @TableField(exist = false)
+    private Long reviewCount;
+
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createTime;
 

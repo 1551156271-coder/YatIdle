@@ -4,9 +4,11 @@ import com.yatidle.backend.entity.AdminActionLog;
 import com.yatidle.backend.entity.Category;
 import com.yatidle.backend.entity.Item;
 import com.yatidle.backend.entity.Report;
+import com.yatidle.backend.entity.Review;
 import com.yatidle.backend.entity.TradeOrder;
 import com.yatidle.backend.entity.User;
 import com.yatidle.backend.entity.Wanted;
+import com.yatidle.backend.entity.WantedImage;
 import com.yatidle.backend.common.exception.BusinessException;
 import com.yatidle.backend.mapper.AdminActionLogMapper;
 import com.yatidle.backend.mapper.CategoryMapper;
@@ -16,9 +18,11 @@ import com.yatidle.backend.mapper.TradeOrderLogMapper;
 import com.yatidle.backend.mapper.TradeOrderMapper;
 import com.yatidle.backend.mapper.UserMapper;
 import com.yatidle.backend.mapper.WantedMapper;
+import com.yatidle.backend.mapper.WantedImageMapper;
 import com.yatidle.backend.vo.admin.AdminActionLogVO;
 import com.yatidle.backend.vo.admin.AdminOrderVO;
 import com.yatidle.backend.vo.admin.AdminReportVO;
+import com.yatidle.backend.vo.wanted.WantedDetailVO;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -28,6 +32,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -51,6 +56,9 @@ class AdminManagementServiceTest {
     private WantedMapper wantedMapper;
 
     @Mock
+    private WantedImageMapper wantedImageMapper;
+
+    @Mock
     private TradeOrderMapper tradeOrderMapper;
 
     @Mock
@@ -61,6 +69,9 @@ class AdminManagementServiceTest {
 
     @Mock
     private CategoryMapper categoryMapper;
+
+    @Mock
+    private AdminUserService adminUserService;
 
     @Test
     void updateUserStatusChangesStatusAndWritesLog() {
@@ -118,6 +129,37 @@ class AdminManagementServiceTest {
         verify(adminActionLogMapper, org.mockito.Mockito.times(3)).insert(logCaptor.capture());
         assertThat(logCaptor.getAllValues()).extracting(AdminActionLog::getAction)
                 .contains("UPDATE_USER_STATUS", "UPDATE_ITEM_STATUS", "UPDATE_WANTED_STATUS");
+    }
+
+    @Test
+    void restoringUserVisibleContentRestoresRemovedItemsAndClosedWantedPosts() {
+        AdminLogService logService = new AdminLogService(adminActionLogMapper);
+        AdminUserService service = new AdminUserService(userMapper, itemMapper, wantedMapper, logService);
+
+        Item removedItem = new Item();
+        removedItem.setId(9L);
+        removedItem.setUserId(3L);
+        removedItem.setStatus("REMOVED");
+        removedItem.setIsDeleted(0);
+        when(itemMapper.selectList(any())).thenReturn(List.of(removedItem));
+
+        Wanted closedWanted = new Wanted();
+        closedWanted.setId(15L);
+        closedWanted.setUserId(3L);
+        closedWanted.setStatus("closed");
+        closedWanted.setIsDeleted(0);
+        when(wantedMapper.selectList(any())).thenReturn(List.of(closedWanted));
+
+        service.restoreVisibleContentByUser(1L, 3L, "restore");
+
+        assertThat(removedItem.getStatus()).isEqualTo("ON_SALE");
+        assertThat(closedWanted.getStatus()).isEqualTo("active");
+        verify(itemMapper).updateById(removedItem);
+        verify(wantedMapper).updateById(closedWanted);
+        ArgumentCaptor<AdminActionLog> logCaptor = ArgumentCaptor.forClass(AdminActionLog.class);
+        verify(adminActionLogMapper, org.mockito.Mockito.times(2)).insert(logCaptor.capture());
+        assertThat(logCaptor.getAllValues()).extracting(AdminActionLog::getAction)
+                .containsExactly("UPDATE_ITEM_STATUS", "UPDATE_WANTED_STATUS");
     }
 
     @Test
@@ -225,6 +267,29 @@ class AdminManagementServiceTest {
     }
 
     @Test
+    void listWantedReturnsImagesForAdminList() {
+        AdminLogService logService = new AdminLogService(adminActionLogMapper);
+        AdminWantedService service = new AdminWantedService(wantedMapper, wantedImageMapper, null, logService, "http://127.0.0.1:8080");
+        Wanted wanted = new Wanted();
+        wanted.setId(15L);
+        wanted.setTitle("wanted");
+        wanted.setIsDeleted(0);
+        Page<Wanted> page = new Page<>(1, 10);
+        page.setRecords(List.of(wanted));
+        page.setTotal(1);
+        when(wantedMapper.selectPage(any(Page.class), any())).thenReturn(page);
+        WantedImage image = new WantedImage();
+        image.setWantedId(15L);
+        image.setImageUrl("/uploads/wanted/cover.jpg");
+        when(wantedImageMapper.selectByWantedId(15L)).thenReturn(List.of(image));
+
+        Page<WantedDetailVO> result = service.list(null, null, null, 1, 10);
+
+        assertThat(result.getRecords().get(0).getImages())
+                .containsExactly("http://127.0.0.1:8080/uploads/wanted/cover.jpg");
+    }
+
+    @Test
     void deleteWantedRequiresReasonAndWritesLog() {
         AdminLogService logService = new AdminLogService(adminActionLogMapper);
         AdminWantedService service = new AdminWantedService(wantedMapper, logService);
@@ -303,6 +368,51 @@ class AdminManagementServiceTest {
     }
 
     @Test
+    void restoreBanUserReportUnbansUserAndRestoresVisibleContent() {
+        AdminLogService logService = new AdminLogService(adminActionLogMapper);
+        AdminReportService service = new AdminReportService(reportMapper, null, null, null, null, adminUserService, logService, "http://127.0.0.1:8080");
+        Report report = new Report();
+        report.setId(5L);
+        report.setStatus("HANDLED");
+        report.setTargetUserId(3L);
+        report.setActionType("BAN_USER");
+        when(reportMapper.selectById(5L)).thenReturn(report);
+
+        service.restoreAction(1L, 5L, "restore");
+
+        verify(adminUserService).updateStatus(1L, 3L, "active", "restore");
+        verify(adminUserService).restoreVisibleContentByUser(1L, 3L, "restore");
+        assertThat(report.getActionType()).isNull();
+        verify(reportMapper).update(any(), any());
+        verify(adminActionLogMapper).insert(any(AdminActionLog.class));
+    }
+
+    @Test
+    void restoreOfflineItemReportRestoresLinkedItem() {
+        AdminLogService logService = new AdminLogService(adminActionLogMapper);
+        AdminReportService service = new AdminReportService(reportMapper, null, itemMapper, null, null, null, logService, "http://127.0.0.1:8080");
+        Report report = new Report();
+        report.setId(5L);
+        report.setStatus("HANDLED");
+        report.setItemId(9L);
+        report.setActionType("OFFLINE_ITEM");
+        when(reportMapper.selectById(5L)).thenReturn(report);
+        Item item = new Item();
+        item.setId(9L);
+        item.setStatus("REMOVED");
+        item.setIsDeleted(0);
+        when(itemMapper.selectById(9L)).thenReturn(item);
+
+        service.restoreAction(1L, 5L, "restore");
+
+        assertThat(item.getStatus()).isEqualTo("ON_SALE");
+        assertThat(report.getActionType()).isNull();
+        verify(itemMapper).updateById(item);
+        verify(reportMapper).update(any(), any());
+        verify(adminActionLogMapper, org.mockito.Mockito.times(2)).insert(any(AdminActionLog.class));
+    }
+
+    @Test
     void handleReportRequiresResult() {
         AdminLogService logService = new AdminLogService(adminActionLogMapper);
         AdminReportService service = new AdminReportService(reportMapper, null, null, null, null, null, logService, "http://127.0.0.1:8080");
@@ -353,6 +463,71 @@ class AdminManagementServiceTest {
         assertThat(vo.getWantedTitle()).isEqualTo("求购键盘");
         assertThat(vo.getOrderNo()).isEqualTo("NO20260601");
         assertThat(vo.getHandlerUsername()).isEqualTo("admin");
+    }
+
+    @Test
+    void listReportsReturnsUserOnlyReportFromFrontend() {
+        AdminLogService logService = new AdminLogService(adminActionLogMapper);
+        AdminReportService service = new AdminReportService(reportMapper, userMapper, itemMapper, wantedMapper, tradeOrderMapper, null, logService, "http://127.0.0.1:8080");
+        Report report = new Report();
+        report.setId(6L);
+        report.setReporterId(8L);
+        report.setTargetUserId(3L);
+        report.setReason("fraud");
+        report.setStatus("PENDING");
+        Page<Report> page = new Page<>(1, 10);
+        page.setRecords(List.of(report));
+        page.setTotal(1);
+        when(reportMapper.selectPage(any(Page.class), any())).thenReturn(page);
+        when(userMapper.selectBatchIds(List.of(8L, 3L))).thenReturn(List.of(user(8L, "111"), user(3L, "testuser")));
+
+        Page<AdminReportVO> result = service.list(null, null, 1, 10);
+
+        AdminReportVO vo = result.getRecords().get(0);
+        assertThat(vo.getReporterUsername()).isEqualTo("111");
+        assertThat(vo.getTargetUserUsername()).isEqualTo("testuser");
+        assertThat(vo.getItemTitle()).isNull();
+        assertThat(vo.getWantedTitle()).isNull();
+        assertThat(vo.getOrderNo()).isNull();
+    }
+
+    @Test
+    void dashboardOverviewIncludesStatusStatsForCharts() {
+        AdminDashboardService service = new AdminDashboardService(userMapper, itemMapper, wantedMapper, tradeOrderMapper, reportMapper);
+        when(userMapper.selectCount(any())).thenReturn(20L);
+        when(itemMapper.selectCount(any())).thenReturn(10L);
+        when(wantedMapper.selectCount(any())).thenReturn(4L);
+        when(tradeOrderMapper.selectCount(any())).thenReturn(6L);
+        when(reportMapper.selectCount(any())).thenReturn(3L);
+
+        Map<String, Object> result = service.overview();
+
+        assertThat(result).containsKeys("itemStatusStats", "reportStatusStats", "userStatusStats");
+        assertThat((List<?>) result.get("itemStatusStats")).hasSize(3);
+        assertThat((List<?>) result.get("reportStatusStats")).hasSize(3);
+        assertThat((List<?>) result.get("userStatusStats")).hasSize(3);
+    }
+
+    @Test
+    void listReviewsReturnsReviewerAndRevieweeUsernames() {
+        AdminLogService logService = new AdminLogService(adminActionLogMapper);
+        AdminReviewService service = new AdminReviewService(reviewMapper, userMapper, logService);
+        Review review = new Review();
+        review.setId(7L);
+        review.setReviewerId(2L);
+        review.setRevieweeId(3L);
+        review.setRating(5);
+        Page<Review> page = new Page<>(1, 10);
+        page.setRecords(List.of(review));
+        page.setTotal(1);
+        when(reviewMapper.selectPage(any(Page.class), any())).thenReturn(page);
+        when(userMapper.selectBatchIds(List.of(2L, 3L))).thenReturn(List.of(user(2L, "buyer"), user(3L, "seller")));
+
+        Page<com.yatidle.backend.vo.admin.AdminReviewVO> result = service.list(null, null, null, 1, 10);
+
+        com.yatidle.backend.vo.admin.AdminReviewVO vo = result.getRecords().get(0);
+        assertThat(vo.getReviewerUsername()).isEqualTo("buyer");
+        assertThat(vo.getRevieweeUsername()).isEqualTo("seller");
     }
 
     @Test

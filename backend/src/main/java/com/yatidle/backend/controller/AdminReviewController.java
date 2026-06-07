@@ -3,8 +3,8 @@ package com.yatidle.backend.controller;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.yatidle.backend.common.Result;
 import com.yatidle.backend.dto.admin.AdminStatusUpdateDTO;
-import com.yatidle.backend.entity.Review;
 import com.yatidle.backend.service.AdminReviewService;
+import com.yatidle.backend.vo.admin.AdminReviewVO;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,16 +19,16 @@ public class AdminReviewController {
     }
 
     @GetMapping
-    public Result<Page<Review>> list(@RequestParam(required = false) Long reviewerId,
-                                     @RequestParam(required = false) Long revieweeId,
-                                     @RequestParam(required = false) Integer rating,
-                                     @RequestParam(defaultValue = "1") int page,
-                                     @RequestParam(defaultValue = "10") int size) {
+    public Result<Page<AdminReviewVO>> list(@RequestParam(required = false) Long reviewerId,
+                                            @RequestParam(required = false) Long revieweeId,
+                                            @RequestParam(required = false) Integer rating,
+                                            @RequestParam(defaultValue = "1") int page,
+                                            @RequestParam(defaultValue = "10") int size) {
         return Result.success(adminReviewService.list(reviewerId, revieweeId, rating, page, size));
     }
 
     @GetMapping("/{id}")
-    public Result<Review> detail(@PathVariable Long id) {
+    public Result<AdminReviewVO> detail(@PathVariable Long id) {
         return Result.success(adminReviewService.detail(id));
     }
 

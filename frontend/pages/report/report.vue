@@ -56,7 +56,7 @@
 			<button
 				class="submit-btn"
 				:class="{ 'submit-disabled': !selectedReason }"
-				:disabled="!selectedReason"
+				:disabled="!selectedReason || submitting"
 				@click="onSubmit"
 			>
 				提交举报
@@ -70,7 +70,7 @@
 </template>
 
 <script>
-	import { createReport } from '../../api/report'
+	import { createReport, uploadReportImage } from '../../api/report'
 
 	export default {
 		data() {
@@ -86,7 +86,8 @@
 				],
 				selectedReason: '',
 				description: '',
-				images: []
+				images: [],
+				submitting: false
 			}
 		},
 		onLoad(options) {
@@ -122,17 +123,35 @@
 								uni.showToast({ title: '请先登录', icon: 'none' })
 								return
 							}
+							this.submitting = true
+							try {
+								uni.showLoading({ title: '上传截图中...' })
+								const imageUrls = []
+								for (const img of this.images) {
+									if (img.includes('/uploads/') || img.startsWith('http://') || img.startsWith('https://')) {
+										imageUrls.push(img)
+									} else {
+										imageUrls.push(await uploadReportImage(img))
+									}
+								}
+								uni.hideLoading()
 							await createReport({
 								reporterId: user.id,
 								targetUserId: this.targetUserId,
 								reason: this.selectedReason,
 								description: this.description,
-								imageUrls: this.images
+								imageUrls
 							})
 							uni.showToast({ title: '举报已提交', icon: 'success' })
 							setTimeout(() => {
 								uni.navigateBack()
 							}, 1500)
+							} catch (e) {
+								uni.hideLoading()
+								uni.showToast({ title: '举报提交失败', icon: 'none' })
+							} finally {
+								this.submitting = false
+							}
 						}
 					}
 				})

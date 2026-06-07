@@ -26,6 +26,7 @@
         <text>{{ reportTargetText(r) }}</text>
         <text>{{ reportStatusText(r.status) }}<text v-if="r.handlerUsername" class="subtext"> · {{ r.handlerUsername }}</text></text>
         <view class="ops">
+          <button v-if="canRestore(r)" size="mini" class="restore-action" @click="openRestore(r)">{{ restoreButtonText(r) }}</button>
           <button size="mini" @click="openDetail(r)">详情</button>
           <button v-if="r.status === 'PENDING'" size="mini" @click="openHandle(r, 'HANDLED')">处理</button>
           <button v-if="r.status === 'PENDING'" size="mini" @click="openHandle(r, 'REJECTED')">驳回</button>
@@ -63,7 +64,10 @@
             <view class="detail-item wide">
               <text class="detail-label">截图</text>
               <view v-if="reportImages.length" class="image-list">
-                <image v-for="(img, index) in reportImages" :key="img" :src="img" mode="aspectFit" class="preview-img" @click="previewImages(reportImages, index)"></image>
+                <view v-for="(img, index) in reportImages" :key="img + index" class="report-image-tile" @click="canPreviewImage(img) && previewImages(reportImages, index)">
+                  <image v-if="canPreviewImage(img)" :src="img" mode="aspectFit" class="preview-img" @error="markReportImageBroken(img)"></image>
+                  <text v-else class="image-unavailable">{{ isTemporaryImage(img) ? '临时图片不可预览' : '图片加载失败' }}</text>
+                </view>
               </view>
               <text v-else class="detail-value muted">暂无截图</text>
             </view>
@@ -94,13 +98,40 @@
         </view>
       </template>
     </danger-action-modal>
+
+    <danger-action-modal
+      :visible="restoreVisible"
+      :title="restoreTitle"
+      :object-text="restoreObjectText"
+      :impact="restoreImpact"
+      :submit="performRestore"
+      reason-placeholder="请输入恢复原因，原因会写入操作日志"
+      submit-text="确认恢复"
+      @close="closeRestore"
+      @success="onRestoreSuccess"
+    />
+
+    <view v-if="imageViewerVisible" class="image-viewer-mask" @click="closeImageViewer">
+      <view class="image-viewer" @click.stop>
+        <view class="image-viewer-header">
+          <text>{{ imageViewerIndex + 1 }} / {{ imageViewerImages.length }}</text>
+          <button @click="closeImageViewer">关闭</button>
+        </view>
+        <view class="image-viewer-body">
+          <button v-if="imageViewerImages.length > 1" class="viewer-nav viewer-prev" @click="prevImage">上一张</button>
+          <image v-if="currentViewerImage && !imageViewerError" :src="currentViewerImage" mode="aspectFit" class="viewer-img" @error="imageViewerError = true"></image>
+          <text v-else class="viewer-empty">图片无法加载</text>
+          <button v-if="imageViewerImages.length > 1" class="viewer-nav viewer-next" @click="nextImage">下一张</button>
+        </view>
+      </view>
+    </view>
   </admin-layout>
 </template>
 
 <script>
 import AdminLayout from '../../components/admin-layout.vue'
 import DangerActionModal from '../../components/danger-action-modal.vue'
-import { listReports, getReportDetail, handleReport } from '../../api/reports'
+import { listReports, getReportDetail, handleReport, restoreReportAction } from '../../api/reports'
 
 export default {
   components: { AdminLayout, DangerActionModal },
@@ -114,9 +145,16 @@ export default {
       detailVisible: false,
       detail: {},
       handleVisible: false,
+      restoreVisible: false,
       currentReport: {},
+      restoreReport: {},
       handleStatus: 'HANDLED',
-      actionType: ''
+      actionType: '',
+      imageViewerVisible: false,
+      imageViewerImages: [],
+      imageViewerIndex: 0,
+      imageViewerError: false,
+      brokenReportImages: {}
     }
   },
   onShow() {
@@ -129,11 +167,11 @@ export default {
     reportImages() {
       const raw = this.report.imageUrls
       if (!raw) return []
-      if (Array.isArray(raw)) return raw
+      if (Array.isArray(raw)) return raw.map(this.resolveAssetUrl)
       try {
-        return JSON.parse(raw) || []
+        return (JSON.parse(raw) || []).map(this.resolveAssetUrl)
       } catch (e) {
-        return String(raw).split(',').map(x => x.trim()).filter(Boolean)
+        return String(raw).split(',').map(x => x.trim()).filter(Boolean).map(this.resolveAssetUrl)
       }
     },
     handleTitle() {
@@ -148,6 +186,20 @@ export default {
       if (this.actionType === 'BAN_USER') return '处理举报时会联动封禁被举报用户，请确认处罚对象正确。'
       if (this.actionType === 'OFFLINE_ITEM') return '处理举报时会联动下架关联商品，请确认商品确实违规。'
       return '处理结果会写入操作日志，请填写可追溯说明。'
+    },
+    restoreTitle() {
+      return this.restoreReport.actionType === 'BAN_USER' ? '恢复账号与内容' : '恢复商品'
+    },
+    restoreObjectText() {
+      if (!this.restoreReport.id) return ''
+      return `#${this.restoreReport.id} ${this.reportTargetText(this.restoreReport)}`
+    },
+    restoreImpact() {
+      if (this.restoreReport.actionType === 'BAN_USER') return '将解封被举报用户，并恢复该用户可恢复的下架商品和关闭求购。'
+      return '将恢复举报关联商品为在售状态。'
+    },
+    currentViewerImage() {
+      return this.imageViewerImages[this.imageViewerIndex] || ''
     }
   },
   methods: {
@@ -208,10 +260,73 @@ export default {
     async onHandleSuccess() {
       await this.load()
     },
+    canRestore(report) {
+      return report && report.status === 'HANDLED' && ['BAN_USER', 'OFFLINE_ITEM'].includes(report.actionType)
+    },
+    restoreButtonText(report) {
+      return report.actionType === 'BAN_USER' ? '恢复账号与内容' : '恢复商品'
+    },
+    openRestore(report) {
+      this.restoreReport = report || {}
+      this.restoreVisible = true
+    },
+    closeRestore() {
+      this.restoreVisible = false
+      this.restoreReport = {}
+    },
+    async performRestore(result) {
+      await restoreReportAction(this.restoreReport.id, { result })
+    },
+    async onRestoreSuccess() {
+      await this.load()
+      if (this.detailVisible && this.report.id) {
+        this.detail = await getReportDetail(this.report.id)
+      }
+    },
+    resolveAssetUrl(url) {
+      if (!url) return ''
+      if (url.startsWith('http://') || url.startsWith('https://')) return url
+      if (url.startsWith('/')) return 'http://127.0.0.1:8080' + url
+      return 'http://127.0.0.1:8080/' + url
+    },
     previewImages(images, index) {
-      const urls = (images || []).filter(Boolean)
+      const source = images || []
+      const urls = source.filter(this.canPreviewImage)
       if (!urls.length) return
-      uni.previewImage({ urls, current: urls[index] || urls[0] })
+      this.imageViewerImages = urls
+      const current = source[index]
+      const safeIndex = Math.max(urls.indexOf(current), 0)
+      this.imageViewerIndex = Math.min(safeIndex, urls.length - 1)
+      this.imageViewerError = false
+      this.imageViewerVisible = true
+    },
+    closeImageViewer() {
+      this.imageViewerVisible = false
+      this.imageViewerImages = []
+      this.imageViewerIndex = 0
+      this.imageViewerError = false
+    },
+    prevImage() {
+      if (!this.imageViewerImages.length) return
+      this.imageViewerIndex = (this.imageViewerIndex + this.imageViewerImages.length - 1) % this.imageViewerImages.length
+      this.imageViewerError = false
+    },
+    nextImage() {
+      if (!this.imageViewerImages.length) return
+      this.imageViewerIndex = (this.imageViewerIndex + 1) % this.imageViewerImages.length
+      this.imageViewerError = false
+    },
+    isTemporaryImage(url) {
+      return /^https?:\/\/tmp\//i.test(url || '') || /^wxfile:\/\//i.test(url || '')
+    },
+    isReportImageBroken(url) {
+      return !!this.brokenReportImages[url]
+    },
+    canPreviewImage(url) {
+      return !!url && !this.isTemporaryImage(url) && !this.isReportImageBroken(url)
+    },
+    markReportImageBroken(url) {
+      this.brokenReportImages = { ...this.brokenReportImages, [url]: true }
     },
     reasonText(reason) {
       const map = { fake: '虚假商品', counterfeit: '假冒商品', harass: '骚扰辱骂', fraud: '欺诈行为', other: '其他违规' }
@@ -266,5 +381,177 @@ export default {
 
 .subtext {
   color: #718096;
+}
+
+.restore-action {
+  color: #0f7a45;
+  background: #e8f5ee;
+}
+
+.image-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, 96px);
+  gap: 10px;
+  width: 100%;
+}
+
+.preview-img {
+  width: 96px;
+  height: 96px;
+  display: block;
+  border: 1px solid #dfe5ec;
+  border-radius: 6px;
+  background: #f8fafc;
+  object-fit: contain;
+  cursor: zoom-in;
+}
+
+.preview-img > div,
+.preview-img img,
+.preview-img .uni-image-img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain !important;
+  background-size: contain !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+}
+
+::v-deep .preview-img > div,
+::v-deep .preview-img img,
+::v-deep .preview-img .uni-image-img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain !important;
+  background-size: contain !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+}
+
+.report-image-tile {
+  width: 96px;
+  height: 96px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.image-unavailable {
+  width: 96px;
+  height: 96px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  border: 1px dashed #cbd5e1;
+  border-radius: 6px;
+  color: #718096;
+  background: #f8fafc;
+  font-size: 12px;
+  text-align: center;
+}
+
+.image-viewer-mask {
+  position: fixed;
+  z-index: 1400;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(15, 23, 42, 0.76);
+}
+
+.image-viewer {
+  width: min(880px, calc(100vw - 48px));
+  max-height: calc(100vh - 48px);
+  display: flex;
+  flex-direction: column;
+  border-radius: 8px;
+  background: #111827;
+  overflow: hidden;
+}
+
+.image-viewer-header {
+  height: 48px;
+  padding: 0 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #f8fafc;
+}
+
+.image-viewer-header button {
+  width: auto;
+  min-width: 64px;
+  height: 32px;
+  color: #1f2937;
+  background: #fff;
+}
+
+.image-viewer-body {
+  position: relative;
+  min-height: 300px;
+  max-height: calc(100vh - 112px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  overflow: hidden;
+  background: #0f172a;
+}
+
+.viewer-img {
+  width: 100%;
+  height: min(72vh, 640px);
+  display: block;
+  object-fit: contain;
+}
+
+.viewer-img > div,
+.viewer-img img,
+.viewer-img .uni-image-img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain !important;
+  background-size: contain !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+}
+
+::v-deep .viewer-img > div,
+::v-deep .viewer-img img,
+::v-deep .viewer-img .uni-image-img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain !important;
+  background-size: contain !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+}
+
+.viewer-empty {
+  color: #cbd5e1;
+  font-size: 14px;
+}
+
+.viewer-nav {
+  position: absolute;
+  top: 50%;
+  z-index: 1;
+  width: auto;
+  min-width: 72px;
+  height: 36px;
+  transform: translateY(-50%);
+  color: #1f2937;
+  background: rgba(255, 255, 255, 0.92);
+}
+
+.viewer-prev {
+  left: 16px;
+}
+
+.viewer-next {
+  right: 16px;
 }
 </style>

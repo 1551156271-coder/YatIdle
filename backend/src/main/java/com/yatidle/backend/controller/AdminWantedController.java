@@ -3,7 +3,6 @@ package com.yatidle.backend.controller;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.yatidle.backend.common.Result;
 import com.yatidle.backend.dto.admin.AdminStatusUpdateDTO;
-import com.yatidle.backend.entity.Wanted;
 import com.yatidle.backend.service.AdminWantedService;
 import com.yatidle.backend.vo.wanted.WantedDetailVO;
 import jakarta.servlet.http.HttpServletRequest;
@@ -20,11 +19,11 @@ public class AdminWantedController {
     }
 
     @GetMapping
-    public Result<Page<Wanted>> list(@RequestParam(required = false) String keyword,
-                                     @RequestParam(required = false) Long categoryId,
-                                     @RequestParam(required = false) String status,
-                                     @RequestParam(defaultValue = "1") int page,
-                                     @RequestParam(defaultValue = "10") int size) {
+    public Result<Page<WantedDetailVO>> list(@RequestParam(required = false) String keyword,
+                                             @RequestParam(required = false) Long categoryId,
+                                             @RequestParam(required = false) String status,
+                                             @RequestParam(defaultValue = "1") int page,
+                                             @RequestParam(defaultValue = "10") int size) {
         return Result.success(adminWantedService.list(keyword, categoryId, status, page, size));
     }
 

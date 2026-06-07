@@ -233,7 +233,8 @@
 				this.sellForm.campus = this.campusList[e.detail.value]
 			},
 			onSellConditionChange(e) {
-				this.sellForm.condition = this.conditionList[e.detail.value]
+				const val = this.conditionList[e.detail.value]
+				this.sellForm.condition = val
 			},
 
 			async onSellSubmit() {

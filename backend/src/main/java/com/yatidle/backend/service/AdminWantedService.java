@@ -44,14 +44,22 @@ public class AdminWantedService {
         this.baseUrl = baseUrl;
     }
 
-    public Page<Wanted> list(String keyword, Long categoryId, String status, int page, int size) {
+    public Page<WantedDetailVO> list(String keyword, Long categoryId, String status, int page, int size) {
         LambdaQueryWrapper<Wanted> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(Wanted::getIsDeleted, 0);
         if (keyword != null && !keyword.isBlank()) wrapper.like(Wanted::getTitle, keyword);
         if (categoryId != null) wrapper.eq(Wanted::getCategoryId, categoryId);
         if (status != null && !status.isBlank()) wrapper.eq(Wanted::getStatus, status);
         wrapper.orderByDesc(Wanted::getCreateTime);
-        return wantedMapper.selectPage(new Page<>(page, size), wrapper);
+        Page<Wanted> source = wantedMapper.selectPage(new Page<>(page, size), wrapper);
+        Page<WantedDetailVO> result = new Page<>(source.getCurrent(), source.getSize(), source.getTotal());
+        result.setPages(source.getPages());
+        result.setRecords(source.getRecords().stream().map(wanted -> {
+            WantedDetailVO vo = WantedDetailVO.from(wanted, imageUrls(wanted.getId()));
+            vo.setUsername(getUsername(wanted.getUserId()));
+            return vo;
+        }).toList());
+        return result;
     }
 
     public WantedDetailVO detail(Long id) {

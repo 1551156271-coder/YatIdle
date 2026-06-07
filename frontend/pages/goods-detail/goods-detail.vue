@@ -210,9 +210,10 @@
 				}
 				try {
 					const session = await createSession(user.id, { itemId: Number(this.goodsId) })
-						const partnerId = session.buyerId === user.id ? session.sellerId : session.buyerId
-						uni.navigateTo({ url: '/pages/chat/chat?id=' + session.id + '&partnerId=' + (partnerId || 0) + '&name=' + encodeURIComponent(session.partnerName || '') + '&avatar=' + encodeURIComponent(session.partnerAvatar || '') + '&itemId=' + this.goodsId })				} catch (e) {
-					uni.navigateTo({ url: '/pages/chat/chat?id=' + this.goodsId })
+					const partnerId = session.buyerId === user.id ? session.sellerId : session.buyerId
+					uni.navigateTo({ url: '/pages/chat/chat?id=' + session.id + '&partnerId=' + (partnerId || 0) + '&name=' + encodeURIComponent(session.partnerName || '') + '&avatar=' + encodeURIComponent(session.partnerAvatar || '') + '&itemId=' + this.goodsId })
+				} catch (e) {
+					uni.showToast({ title: '创建会话失败', icon: 'none' })
 				}
 			},
 			handleBuy() {

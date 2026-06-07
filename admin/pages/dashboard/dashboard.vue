@@ -25,6 +25,60 @@
         <text v-if="!(data.orderTrend || []).length" class="muted">暂无趋势数据</text>
       </view>
     </view>
+    <view class="chart-grid">
+      <view class="panel chart-panel">
+        <view class="panel-title">近 7 天商品发布趋势</view>
+        <view class="bar-chart">
+          <view v-for="item in data.publishTrend || []" :key="item.date" class="bar-cell">
+            <view class="bar-track"><view class="bar-fill item-bar" :style="{ height: barHeight(item, data.publishTrend) }"></view></view>
+            <text class="bar-value">{{ item.count || 0 }}</text>
+            <text class="bar-label">{{ shortDate(item.date) }}</text>
+          </view>
+          <text v-if="!(data.publishTrend || []).length" class="muted">暂无数据</text>
+        </view>
+      </view>
+      <view class="panel chart-panel">
+        <view class="panel-title">近 7 天订单趋势</view>
+        <view class="bar-chart">
+          <view v-for="item in data.orderTrend || []" :key="item.date" class="bar-cell">
+            <view class="bar-track"><view class="bar-fill order-bar" :style="{ height: barHeight(item, data.orderTrend) }"></view></view>
+            <text class="bar-value">{{ item.count || 0 }}</text>
+            <text class="bar-label">{{ shortDate(item.date) }}</text>
+          </view>
+          <text v-if="!(data.orderTrend || []).length" class="muted">暂无数据</text>
+        </view>
+      </view>
+      <view class="panel chart-panel">
+        <view class="panel-title">商品状态占比</view>
+        <view class="ratio-list">
+          <view v-for="stat in data.itemStatusStats || []" :key="stat.key" class="ratio-row">
+            <text class="ratio-label">{{ stat.label }}</text>
+            <view class="ratio-track"><view class="ratio-fill" :class="statClass(stat.key)" :style="{ width: statPercent(stat, data.itemStatusStats) }"></view></view>
+            <text class="ratio-count">{{ stat.count || 0 }}</text>
+          </view>
+        </view>
+      </view>
+      <view class="panel chart-panel">
+        <view class="panel-title">举报状态占比</view>
+        <view class="ratio-list">
+          <view v-for="stat in data.reportStatusStats || []" :key="stat.key" class="ratio-row">
+            <text class="ratio-label">{{ stat.label }}</text>
+            <view class="ratio-track"><view class="ratio-fill" :class="statClass(stat.key)" :style="{ width: statPercent(stat, data.reportStatusStats) }"></view></view>
+            <text class="ratio-count">{{ stat.count || 0 }}</text>
+          </view>
+        </view>
+      </view>
+      <view class="panel chart-panel full">
+        <view class="panel-title">用户状态概览</view>
+        <view class="ratio-list">
+          <view v-for="stat in data.userStatusStats || []" :key="stat.key" class="ratio-row">
+            <text class="ratio-label">{{ stat.label }}</text>
+            <view class="ratio-track"><view class="ratio-fill" :class="statClass(stat.key)" :style="{ width: statPercent(stat, data.userStatusStats) }"></view></view>
+            <text class="ratio-count">{{ stat.count || 0 }}</text>
+          </view>
+        </view>
+      </view>
+    </view>
   </admin-layout>
 </template>
 
@@ -64,6 +118,27 @@ export default {
       } finally {
         this.loading = false
       }
+    },
+    trendMax(list) {
+      return Math.max(1, ...((list || []).map(item => Number(item.count || 0))))
+    },
+    barHeight(item, list) {
+      const percent = Math.max(6, Math.round((Number(item.count || 0) / this.trendMax(list)) * 100))
+      return percent + '%'
+    },
+    shortDate(date) {
+      return String(date || '').slice(5)
+    },
+    statPercent(stat, list) {
+      const total = (list || []).reduce((sum, item) => sum + Number(item.count || 0), 0)
+      if (!total) return '0%'
+      return Math.round((Number(stat.count || 0) / total) * 100) + '%'
+    },
+    statClass(key) {
+      if (['ON_SALE', 'HANDLED', 'active'].includes(key)) return 'tone-success'
+      if (['PENDING', 'SOLD', 'admin'].includes(key)) return 'tone-warning'
+      if (['REMOVED', 'REJECTED', 'inactive'].includes(key)) return 'tone-danger'
+      return 'tone-neutral'
     }
   }
 }
@@ -79,5 +154,26 @@ export default {
 .trend { display: flex; gap: 14px; flex-wrap: wrap; color: #4a5568; }
 .trend-item { padding: 8px 10px; border: 1px solid #edf1f5; border-radius: 6px; background: #f8fafc; }
 .error-panel { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; padding: 12px 14px; border: 1px solid #f0b8b2; border-radius: 8px; background: #fff7f6; color: #b42318; }
+.chart-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-top: 18px; }
+.chart-panel.full { grid-column: 1 / -1; }
+.bar-chart { height: 220px; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); align-items: end; gap: 10px; }
+.bar-cell { min-width: 0; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 6px; }
+.bar-track { width: 100%; height: 140px; display: flex; align-items: flex-end; justify-content: center; border-radius: 6px; background: #f1f5f9; overflow: hidden; }
+.bar-fill { width: 70%; min-height: 6px; border-radius: 6px 6px 0 0; transition: height .2s ease; }
+.item-bar { background: #2f7d51; }
+.order-bar { background: #3b6ea8; }
+.bar-value { font-size: 12px; color: #1f2937; font-weight: 700; }
+.bar-label { font-size: 11px; color: #718096; }
+.ratio-list { display: grid; gap: 12px; }
+.ratio-row { display: grid; grid-template-columns: 88px minmax(0, 1fr) 54px; align-items: center; gap: 10px; }
+.ratio-label { color: #4a5568; font-size: 13px; }
+.ratio-track { height: 12px; border-radius: 999px; background: #edf1f5; overflow: hidden; }
+.ratio-fill { height: 100%; min-width: 2px; border-radius: inherit; }
+.ratio-count { text-align: right; color: #1f2937; font-weight: 700; font-size: 13px; }
+.tone-success { background: #2f7d51; }
+.tone-warning { background: #e6a23c; }
+.tone-danger { background: #d84a3a; }
+.tone-neutral { background: #718096; }
 @media (max-width: 1100px) { .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 1100px) { .chart-grid { grid-template-columns: 1fr; } .chart-panel.full { grid-column: auto; } }
 </style>

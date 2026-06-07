@@ -51,6 +51,9 @@ public class AdminDashboardService {
         data.put("completedOrders", tradeOrderMapper.selectCount(new LambdaQueryWrapper<TradeOrder>().eq(TradeOrder::getIsDeleted, 0).eq(TradeOrder::getStatus, "COMPLETED")));
         data.put("publishTrend", lastSevenDaysItemTrend());
         data.put("orderTrend", lastSevenDaysOrderTrend());
+        data.put("itemStatusStats", itemStatusStats());
+        data.put("reportStatusStats", reportStatusStats());
+        data.put("userStatusStats", userStatusStats());
         return data;
     }
 
@@ -74,5 +77,33 @@ public class AdminDashboardService {
             trend.add(Map.of("date", day.toString(), "count", count));
         }
         return trend;
+    }
+
+    private List<Map<String, Object>> itemStatusStats() {
+        return List.of(
+                stat("ON_SALE", "在售", itemMapper.selectCount(new LambdaQueryWrapper<Item>().eq(Item::getIsDeleted, 0).eq(Item::getStatus, "ON_SALE"))),
+                stat("SOLD", "已售", itemMapper.selectCount(new LambdaQueryWrapper<Item>().eq(Item::getIsDeleted, 0).eq(Item::getStatus, "SOLD"))),
+                stat("REMOVED", "下架", itemMapper.selectCount(new LambdaQueryWrapper<Item>().eq(Item::getIsDeleted, 0).eq(Item::getStatus, "REMOVED")))
+        );
+    }
+
+    private List<Map<String, Object>> reportStatusStats() {
+        return List.of(
+                stat("PENDING", "待处理", reportMapper.selectCount(new LambdaQueryWrapper<Report>().eq(Report::getIsDeleted, 0).eq(Report::getStatus, "PENDING"))),
+                stat("HANDLED", "已处理", reportMapper.selectCount(new LambdaQueryWrapper<Report>().eq(Report::getIsDeleted, 0).eq(Report::getStatus, "HANDLED"))),
+                stat("REJECTED", "已驳回", reportMapper.selectCount(new LambdaQueryWrapper<Report>().eq(Report::getIsDeleted, 0).eq(Report::getStatus, "REJECTED")))
+        );
+    }
+
+    private List<Map<String, Object>> userStatusStats() {
+        return List.of(
+                stat("active", "正常", userMapper.selectCount(new LambdaQueryWrapper<User>().eq(User::getStatus, "active").eq(User::getRole, 0))),
+                stat("inactive", "封禁", userMapper.selectCount(new LambdaQueryWrapper<User>().eq(User::getStatus, "inactive").eq(User::getRole, 0))),
+                stat("admin", "管理员", userMapper.selectCount(new LambdaQueryWrapper<User>().eq(User::getRole, 1)))
+        );
+    }
+
+    private Map<String, Object> stat(String key, String label, Long count) {
+        return Map.of("key", key, "label", label, "count", count == null ? 0L : count);
     }
 }
