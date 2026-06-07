@@ -493,19 +493,28 @@ class AdminManagementServiceTest {
 
     @Test
     void dashboardOverviewIncludesStatusStatsForCharts() {
-        AdminDashboardService service = new AdminDashboardService(userMapper, itemMapper, wantedMapper, tradeOrderMapper, reportMapper);
+        AdminDashboardService service = new AdminDashboardService(userMapper, itemMapper, wantedMapper, tradeOrderMapper, reportMapper, categoryMapper);
+        Category category = new Category();
+        category.setId(1L);
+        category.setName("数码电子");
+        category.setSortOrder(1);
+        category.setStatus(1);
+        category.setIsDeleted(0);
         when(userMapper.selectCount(any())).thenReturn(20L);
         when(itemMapper.selectCount(any())).thenReturn(10L);
         when(wantedMapper.selectCount(any())).thenReturn(4L);
         when(tradeOrderMapper.selectCount(any())).thenReturn(6L);
         when(reportMapper.selectCount(any())).thenReturn(3L);
+        when(categoryMapper.selectList(any())).thenReturn(List.of(category));
 
         Map<String, Object> result = service.overview();
 
-        assertThat(result).containsKeys("itemStatusStats", "reportStatusStats", "userStatusStats");
+        assertThat(result).containsKeys("itemStatusStats", "reportStatusStats", "userStatusStats", "onSaleCategoryStats", "wantedStatusStats");
         assertThat((List<?>) result.get("itemStatusStats")).hasSize(3);
         assertThat((List<?>) result.get("reportStatusStats")).hasSize(3);
         assertThat((List<?>) result.get("userStatusStats")).hasSize(3);
+        assertThat((List<?>) result.get("onSaleCategoryStats")).hasSize(1);
+        assertThat((List<?>) result.get("wantedStatusStats")).hasSize(4);
     }
 
     @Test

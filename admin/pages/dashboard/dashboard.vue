@@ -11,20 +11,6 @@
         <view class="card-value">{{ data[card.key] || 0 }}</view>
       </view>
     </view>
-    <view class="panel">
-      <view class="panel-title">近 7 天发布趋势</view>
-      <view class="trend">
-        <view v-for="item in data.publishTrend || []" :key="item.date" class="trend-item">{{ item.date }}：{{ item.count }}</view>
-        <text v-if="!(data.publishTrend || []).length" class="muted">暂无趋势数据</text>
-      </view>
-    </view>
-    <view class="panel">
-      <view class="panel-title">近 7 天订单趋势</view>
-      <view class="trend">
-        <view v-for="item in data.orderTrend || []" :key="item.date" class="trend-item">{{ item.date }}：{{ item.count }}</view>
-        <text v-if="!(data.orderTrend || []).length" class="muted">暂无趋势数据</text>
-      </view>
-    </view>
     <view class="chart-grid">
       <view class="panel chart-panel">
         <view class="panel-title">近 7 天商品发布趋势</view>
@@ -59,11 +45,32 @@
         </view>
       </view>
       <view class="panel chart-panel">
+        <view class="panel-title">在售商品分类分布</view>
+        <view class="ratio-list">
+          <view v-for="stat in data.onSaleCategoryStats || []" :key="stat.key" class="ratio-row">
+            <text class="ratio-label">{{ stat.label }}</text>
+            <view class="ratio-track"><view class="ratio-fill" :class="statClass(stat.key)" :style="{ width: statPercent(stat, data.onSaleCategoryStats) }"></view></view>
+            <text class="ratio-count">{{ stat.count || 0 }}</text>
+          </view>
+          <text v-if="!(data.onSaleCategoryStats || []).length" class="muted">暂无在售商品</text>
+        </view>
+      </view>
+      <view class="panel chart-panel">
         <view class="panel-title">举报状态占比</view>
         <view class="ratio-list">
           <view v-for="stat in data.reportStatusStats || []" :key="stat.key" class="ratio-row">
             <text class="ratio-label">{{ stat.label }}</text>
             <view class="ratio-track"><view class="ratio-fill" :class="statClass(stat.key)" :style="{ width: statPercent(stat, data.reportStatusStats) }"></view></view>
+            <text class="ratio-count">{{ stat.count || 0 }}</text>
+          </view>
+        </view>
+      </view>
+      <view class="panel chart-panel">
+        <view class="panel-title">求购状态概览</view>
+        <view class="ratio-list">
+          <view v-for="stat in data.wantedStatusStats || []" :key="stat.key" class="ratio-row">
+            <text class="ratio-label">{{ stat.label }}</text>
+            <view class="ratio-track"><view class="ratio-fill" :class="statClass(stat.key)" :style="{ width: statPercent(stat, data.wantedStatusStats) }"></view></view>
             <text class="ratio-count">{{ stat.count || 0 }}</text>
           </view>
         </view>
@@ -136,8 +143,8 @@ export default {
     },
     statClass(key) {
       if (['ON_SALE', 'HANDLED', 'active'].includes(key)) return 'tone-success'
-      if (['PENDING', 'SOLD', 'admin'].includes(key)) return 'tone-warning'
-      if (['REMOVED', 'REJECTED', 'inactive'].includes(key)) return 'tone-danger'
+      if (['PENDING', 'SOLD', 'admin', 'pending', 'sold'].includes(key)) return 'tone-warning'
+      if (['REMOVED', 'REJECTED', 'inactive', 'closed'].includes(key)) return 'tone-danger'
       return 'tone-neutral'
     }
   }
@@ -151,8 +158,6 @@ export default {
 .card-value { margin-top: 10px; font-size: 28px; font-weight: 700; color: #1f3d2f; }
 .panel { margin-top: 18px; }
 .panel-title { font-weight: 700; margin-bottom: 12px; }
-.trend { display: flex; gap: 14px; flex-wrap: wrap; color: #4a5568; }
-.trend-item { padding: 8px 10px; border: 1px solid #edf1f5; border-radius: 6px; background: #f8fafc; }
 .error-panel { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; padding: 12px 14px; border: 1px solid #f0b8b2; border-radius: 8px; background: #fff7f6; color: #b42318; }
 .chart-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-top: 18px; }
 .chart-panel.full { grid-column: 1 / -1; }

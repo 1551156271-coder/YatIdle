@@ -18,13 +18,13 @@
       <view class="tr th">
         <text>举报</text><text>原因</text><text>举报人</text><text>被举报用户</text><text>关联对象</text><text>处理</text><text>操作</text>
       </view>
-      <view v-for="r in records" :key="r.id" class="tr">
+      <view v-for="r in records" :key="r.id" class="tr" :class="{ pending: r.status === 'PENDING' }">
         <text>#{{ r.id }}</text>
         <text>{{ reasonText(r.reason) }}</text>
         <text>{{ namedUser(r.reporterUsername, r.reporterId) }}</text>
         <text>{{ namedUser(r.targetUserUsername, r.targetUserId) }}</text>
         <text>{{ reportTargetText(r) }}</text>
-        <text>{{ reportStatusText(r.status) }}<text v-if="r.handlerUsername" class="subtext"> · {{ r.handlerUsername }}</text></text>
+        <text><text class="status-pill" :class="reportStatusClass(r.status)">{{ reportStatusText(r.status) }}</text><text v-if="r.handlerUsername" class="subtext"> · {{ r.handlerUsername }}</text></text>
         <view class="ops">
           <button v-if="canRestore(r)" size="mini" class="restore-action" @click="openRestore(r)">{{ restoreButtonText(r) }}</button>
           <button size="mini" @click="openDetail(r)">详情</button>
@@ -167,11 +167,11 @@ export default {
     reportImages() {
       const raw = this.report.imageUrls
       if (!raw) return []
-      if (Array.isArray(raw)) return raw.map(this.resolveAssetUrl)
+      if (Array.isArray(raw)) return raw.map(url => this.resolveAssetUrl(url))
       try {
-        return (JSON.parse(raw) || []).map(this.resolveAssetUrl)
+        return (JSON.parse(raw) || []).map(url => this.resolveAssetUrl(url))
       } catch (e) {
-        return String(raw).split(',').map(x => x.trim()).filter(Boolean).map(this.resolveAssetUrl)
+        return String(raw).split(',').map(x => x.trim()).filter(Boolean).map(url => this.resolveAssetUrl(url))
       }
     },
     handleTitle() {
@@ -291,7 +291,7 @@ export default {
     },
     previewImages(images, index) {
       const source = images || []
-      const urls = source.filter(this.canPreviewImage)
+      const urls = source.filter(url => this.canPreviewImage(url))
       if (!urls.length) return
       this.imageViewerImages = urls
       const current = source[index]
@@ -336,6 +336,13 @@ export default {
       const map = { PENDING: '待处理', HANDLED: '已处理', REJECTED: '已驳回' }
       return map[status] || status || '-'
     },
+    reportStatusClass(status) {
+      return {
+        'status-pending': status === 'PENDING',
+        'status-handled': status === 'HANDLED',
+        'status-rejected': status === 'REJECTED'
+      }
+    },
     reportTargetText(report) {
       if (report.itemTitle || report.itemId) return this.namedEntity(report.itemTitle, report.itemId, '商品')
       if (report.wantedTitle || report.wantedId) return this.namedEntity(report.wantedTitle, report.wantedId, '求购')
@@ -362,11 +369,26 @@ export default {
   display: grid;
   grid-template-columns: 90px 130px 180px 180px 260px 160px 240px;
   align-items: center;
+  position: relative;
   width: 1240px;
   min-height: 50px;
   padding: 0 14px;
   border-bottom: 1px solid #edf1f5;
   font-size: 14px;
+}
+
+.tr.pending {
+  background: #fffbeb;
+}
+
+.tr.pending::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: #e6a23c;
 }
 
 .th {
@@ -386,6 +408,32 @@ export default {
 .restore-action {
   color: #0f7a45;
   background: #e8f5ee;
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 56px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.status-pending {
+  color: #92400e;
+  background: #fef3c7;
+}
+
+.status-handled {
+  color: #166534;
+  background: #dcfce7;
+}
+
+.status-rejected {
+  color: #b42318;
+  background: #fee4e2;
 }
 
 .image-list {

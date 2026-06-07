@@ -54,6 +54,16 @@
           <button @click="closeDetail">关闭</button>
         </view>
         <view class="modal-body">
+          <view class="user-detail-head">
+            <view class="detail-avatar-wrap">
+              <image v-if="detailAvatar && !detailAvatarBroken" :src="detailAvatar" mode="aspectFill" class="detail-avatar-img" @error="detailAvatarBroken = true"></image>
+              <text v-else class="detail-avatar-empty">{{ userInitial(detail) }}</text>
+            </view>
+            <view class="detail-user-main">
+              <text class="detail-user-name">{{ detail.nickname || detail.username || '-' }}</text>
+              <text class="detail-user-meta">#{{ detail.id || '-' }} · {{ roleText(detail.role) }} · {{ statusText(detail.status) }}</text>
+            </view>
+          </view>
           <view class="detail-grid">
             <view class="detail-item"><text class="detail-label">余额</text><text class="detail-value">{{ detail.balance == null ? '-' : detail.balance }}</text></view>
             <view class="detail-item"><text class="detail-label">成交数</text><text class="detail-value">{{ detail.dealCount == null ? '-' : detail.dealCount }}</text></view>
@@ -106,13 +116,17 @@ export default {
       actionType: '',
       currentUser: {},
       currentAdminId: adminUser.id,
-      brokenUserAvatars: {}
+      brokenUserAvatars: {},
+      detailAvatarBroken: false
     }
   },
   onShow() {
     this.load()
   },
   computed: {
+    detailAvatar() {
+      return this.userAvatar(this.detail || {})
+    },
     actionTitle() {
       if (!this.currentUser.id) return '确认操作'
       if (this.actionType === 'role') return this.currentUser.role === 1 ? '取消管理员权限' : '设置管理员权限'
@@ -161,6 +175,7 @@ export default {
       this.load()
     },
     async openDetail(user) {
+      this.detailAvatarBroken = false
       this.detail = await getUserDetail(user.id)
       this.detailVisible = true
     },
@@ -217,6 +232,10 @@ export default {
     },
     markUserAvatarBroken(id) {
       this.brokenUserAvatars = { ...this.brokenUserAvatars, [id]: true }
+    },
+    userInitial(user) {
+      const text = (user && (user.nickname || user.username)) || '?'
+      return String(text).charAt(0).toUpperCase()
     },
     isSelf(user) {
       return user && this.currentAdminId != null && Number(user.id) === Number(this.currentAdminId)
@@ -289,6 +308,84 @@ export default {
 .cover-empty {
   color: #9aa5b1;
   font-size: 12px;
+}
+
+.user-detail-head {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-bottom: 18px;
+  padding: 16px;
+  border: 1px solid #edf1f5;
+  border-radius: 8px;
+  background: #f8fafc;
+}
+
+.detail-avatar-wrap {
+  width: 86px;
+  height: 86px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
+  border-radius: 50%;
+  border: 1px solid #dfe5ec;
+  background: #e8f5ee;
+}
+
+.detail-avatar-img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.detail-avatar-img > div,
+.detail-avatar-img img,
+.detail-avatar-img .uni-image-img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  background-size: cover !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+}
+
+::v-deep .detail-avatar-img > div,
+::v-deep .detail-avatar-img img,
+::v-deep .detail-avatar-img .uni-image-img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  background-size: cover !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+}
+
+.detail-avatar-empty {
+  color: #2f7d51;
+  font-size: 34px;
+  font-weight: 700;
+}
+
+.detail-user-main {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.detail-user-name {
+  color: #17202a;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.detail-user-meta {
+  color: #718096;
+  font-size: 13px;
 }
 
 .tr.banned {
