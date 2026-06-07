@@ -27,6 +27,11 @@ backend/.idea/
 # Claude Code 配置
 .claude/
 
+# 本地敏感配置（数据库密码、JWT secret、appid 等）
+backend/src/main/resources/application.properties
+frontend/manifest.json
+admin/manifest.json
+
 # 上传文件（根目录）
 uploads/
 

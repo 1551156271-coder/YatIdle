@@ -1,7 +1,7 @@
 {
   "name": "YatIdle Admin",
-  "appid": "__UNI__YATIDLE_ADMIN",
-  "description": "YatIdle H5 后台管理端",
+  "appid": "__UNI__YOUR_ADMIN_APP_ID",
+  "description": "YatIdle admin web app",
   "versionName": "1.0.0",
   "versionCode": "100",
   "transformPx": false,
@@ -10,6 +10,6 @@
       "base": "/admin/",
       "mode": "hash"
     },
-    "title": "YatIdle 后台管理"
+    "title": "YatIdle Admin"
   }
 }
