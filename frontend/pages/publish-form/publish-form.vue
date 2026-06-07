@@ -211,6 +211,7 @@
 			uploadSellImage() {
 				uni.chooseImage({
 					count: 9 - this.sellForm.images.length,
+					sizeType: ['compressed'],
 					success: (res) => {
 						this.sellForm.images = this.sellForm.images.concat(res.tempFilePaths)
 					}
@@ -291,6 +292,11 @@
 					}, 1200)
 					this.submitting = false
 				} catch (e) {
+					uni.hideLoading()
+					uni.showToast({
+						title: e.message || '图片上传失败',
+						icon: 'none'
+					})
 					this.submitting = false
 				}
 			},
@@ -312,6 +318,7 @@
 				const remain = 9 - this.buyForm.images.length
 				uni.chooseImage({
 					count: remain,
+					sizeType: ['compressed'],
 					success: (res) => {
 						this.buyForm.images = this.buyForm.images.concat(res.tempFilePaths)
 					}
@@ -385,6 +392,11 @@
 				}
 				this.submitting = false
 			} catch (e) {
+				uni.hideLoading()
+				uni.showToast({
+					title: e.message || '图片上传失败',
+					icon: 'none'
+				})
 				this.submitting = false
 			}
 		}
