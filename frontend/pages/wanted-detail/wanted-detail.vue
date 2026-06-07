@@ -204,7 +204,7 @@
 				try {
 					const session = await createSession(user.id, { wantedId: this.detail.id })
 					const pid = session.buyerId === user.id ? session.sellerId : session.buyerId
-						uni.navigateTo({ url: '/pages/chat/chat?id=' + session.id + '&partnerId=' + (pid || 0) + '&name=' + encodeURIComponent(this.detail.username) + '&avatar=' + encodeURIComponent(session.partnerAvatar || '') })
+						uni.navigateTo({ url: '/pages/chat/chat?id=' + session.id + '&partnerId=' + (pid || 0) + '&name=' + encodeURIComponent(this.detail.username || '') + '&avatar=' + encodeURIComponent(session.partnerAvatar || '') + '&wantedId=' + this.detail.id })
 				} catch (e) {
 					uni.showToast({ title: '创建会话失败', icon: 'none' })
 				}

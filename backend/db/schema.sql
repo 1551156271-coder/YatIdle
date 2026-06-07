@@ -60,7 +60,7 @@ CREATE TABLE IF NOT EXISTS wanted (
   budget_min DECIMAL(10,2) NOT NULL DEFAULT 0.00 COMMENT '最低预算',
   budget_max DECIMAL(10,2) NOT NULL DEFAULT 0.00 COMMENT '最高预算',
   campus ENUM('南校园','东校园','北校园','珠海校区','深圳校区') DEFAULT NULL COMMENT '所在校区',
-  condition_level ENUM('全新','99新','95新','9成新','八成新','八成新以下') DEFAULT NULL COMMENT '期望成色',
+  condition_level VARCHAR(50) DEFAULT NULL COMMENT '期望成色',
   description TEXT COMMENT '求购描述',
   category_id BIGINT COMMENT '分类ID',
   status VARCHAR(20) NOT NULL DEFAULT 'pending' COMMENT '状态：pending/active/sold/closed',

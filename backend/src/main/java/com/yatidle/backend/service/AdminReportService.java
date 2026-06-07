@@ -185,19 +185,23 @@ public class AdminReportService {
 
     private AdminReportVO enrich(AdminReportVO vo, Map<Long, User> users, Map<Long, Item> items,
                                  Map<Long, Wanted> wanted, Map<Long, TradeOrder> orders) {
-        User reporter = users.get(vo.getReporterId());
+        User reporter = find(users, vo.getReporterId());
         if (reporter != null) vo.setReporterUsername(displayUser(reporter));
-        User target = users.get(vo.getTargetUserId());
+        User target = find(users, vo.getTargetUserId());
         if (target != null) vo.setTargetUserUsername(displayUser(target));
-        User handler = users.get(vo.getHandlerId());
+        User handler = find(users, vo.getHandlerId());
         if (handler != null) vo.setHandlerUsername(displayUser(handler));
-        Item item = items.get(vo.getItemId());
+        Item item = find(items, vo.getItemId());
         if (item != null) vo.setItemTitle(item.getTitle());
-        Wanted wantedItem = wanted.get(vo.getWantedId());
+        Wanted wantedItem = find(wanted, vo.getWantedId());
         if (wantedItem != null) vo.setWantedTitle(wantedItem.getTitle());
-        TradeOrder order = orders.get(vo.getOrderId());
+        TradeOrder order = find(orders, vo.getOrderId());
         if (order != null) vo.setOrderNo(order.getOrderNo());
         return vo;
+    }
+
+    private <T> T find(Map<Long, T> values, Long id) {
+        return id == null ? null : values.get(id);
     }
 
     private Map<Long, User> mapUsers(Set<Long> ids) {

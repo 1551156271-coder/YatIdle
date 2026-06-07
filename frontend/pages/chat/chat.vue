@@ -342,7 +342,7 @@ export default {
 			this.pickerLoading = true
 			this.pickerItems = []
 			try {
-				const result = await getUserItems(this.partnerId || this.userId, { status: 'ON_SALE' })
+				const result = await getUserItems(this.userId, { status: 'ON_SALE' })
 				const list = (result && result.records) || result || []
 				this.pickerItems = list
 			} catch (e) {

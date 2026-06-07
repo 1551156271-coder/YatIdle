@@ -356,6 +356,32 @@ class AdminManagementServiceTest {
     }
 
     @Test
+    void listReportsReturnsUserOnlyReportFromFrontend() {
+        AdminLogService logService = new AdminLogService(adminActionLogMapper);
+        AdminReportService service = new AdminReportService(reportMapper, userMapper, itemMapper, wantedMapper, tradeOrderMapper, null, logService, "http://127.0.0.1:8080");
+        Report report = new Report();
+        report.setId(6L);
+        report.setReporterId(8L);
+        report.setTargetUserId(3L);
+        report.setReason("fraud");
+        report.setStatus("PENDING");
+        Page<Report> page = new Page<>(1, 10);
+        page.setRecords(List.of(report));
+        page.setTotal(1);
+        when(reportMapper.selectPage(any(Page.class), any())).thenReturn(page);
+        when(userMapper.selectBatchIds(List.of(8L, 3L))).thenReturn(List.of(user(8L, "111"), user(3L, "testuser")));
+
+        Page<AdminReportVO> result = service.list(null, null, 1, 10);
+
+        AdminReportVO vo = result.getRecords().get(0);
+        assertThat(vo.getReporterUsername()).isEqualTo("111");
+        assertThat(vo.getTargetUserUsername()).isEqualTo("testuser");
+        assertThat(vo.getItemTitle()).isNull();
+        assertThat(vo.getWantedTitle()).isNull();
+        assertThat(vo.getOrderNo()).isNull();
+    }
+
+    @Test
     void listOrdersReturnsReadableAdminOrderVO() {
         AdminLogService logService = new AdminLogService(adminActionLogMapper);
         AdminOrderService service = new AdminOrderService(tradeOrderMapper, tradeOrderLogMapper, itemMapper, userMapper, logService);
