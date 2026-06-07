@@ -18,5 +18,8 @@ backend/.idea/
 # 上传文件（根目录）
 uploads/
 
+# uni-app build output
+admin/unpackage/
+
 # macOS
 .DS_Store
