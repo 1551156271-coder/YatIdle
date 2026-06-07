@@ -115,7 +115,8 @@ public class ItemService {
             wrapper.eq(Item::getCampus, dto.getCampus());
         }
         if (dto.getConditionLevel() != null && !dto.getConditionLevel().isBlank()) {
-            wrapper.eq(Item::getConditionLevel, dto.getConditionLevel());
+            int minScore = getConditionScore(dto.getConditionLevel());
+            wrapper.apply("CASE condition_level WHEN '全新' THEN 100 WHEN '99新' THEN 99 WHEN '95新' THEN 95 WHEN '90新' THEN 90 WHEN '85新' THEN 85 WHEN '80新' THEN 80 ELSE 0 END >= {0}", minScore);
         }
         if (dto.getMinPrice() != null) {
             wrapper.ge(Item::getPrice, dto.getMinPrice());
@@ -290,6 +291,19 @@ public class ItemService {
         if (userId == null || !item.getUserId().equals(userId)) {
             throw new BusinessException("无权操作该商品");
         }
+    }
+
+    private int getConditionScore(String label) {
+        if (label == null) return 0;
+        return switch (label) {
+            case "全新" -> 100;
+            case "99新及以上" -> 99;
+            case "95新及以上" -> 95;
+            case "90新及以上" -> 90;
+            case "85新及以上" -> 85;
+            case "80新及以上" -> 80;
+            default -> 0;
+        };
     }
 
     private boolean isDeleted(Integer isDeleted) {

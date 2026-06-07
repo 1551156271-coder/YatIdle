@@ -61,7 +61,7 @@
 		<view v-else class="form-card">
 			<view class="form-item">
 				<text class="form-label">求购物品</text>
-				<input class="form-input" v-model="buyForm.title" placeholder="你想买什么？" />
+				<input class="form-input" v-model="buyForm.title" placeholder="你想买什么？" :maxlength="50" />
 			</view>
 			<view class="form-item">
 				<text class="form-label">预算范围</text>
@@ -211,6 +211,7 @@
 			uploadSellImage() {
 				uni.chooseImage({
 					count: 9 - this.sellForm.images.length,
+					sizeType: ['compressed'],
 					success: (res) => {
 						this.sellForm.images = this.sellForm.images.concat(res.tempFilePaths)
 					}
@@ -251,7 +252,7 @@
 				}
 				const user = uni.getStorageSync('user')
 				if (!user || !user.id) {
-					uni.showToast({ title: '请先登录', icon: 'none' })
+					uni.navigateTo({ url: '/pages/login/login' })
 					return
 				}
 				this.submitting = true
@@ -278,6 +279,7 @@
 						imageUrls
 					}
 					const data = await publishItem(payload)
+					uni.setStorageSync('needRefreshHomeGoods',true)
 					uni.showToast({ title: '发布成功！', icon: 'success' })
 					setTimeout(() => {
 						uni.switchTab({
@@ -291,6 +293,11 @@
 					}, 1200)
 					this.submitting = false
 				} catch (e) {
+					uni.hideLoading()
+					uni.showToast({
+						title: e.message || '图片上传失败',
+						icon: 'none'
+					})
 					this.submitting = false
 				}
 			},
@@ -312,6 +319,7 @@
 				const remain = 9 - this.buyForm.images.length
 				uni.chooseImage({
 					count: remain,
+					sizeType: ['compressed'],
 					success: (res) => {
 						this.buyForm.images = this.buyForm.images.concat(res.tempFilePaths)
 					}
@@ -329,13 +337,17 @@
 				uni.showToast({ title: '请输入求购物品', icon: 'none' })
 				return
 			}
+			if(this.buyForm.title.length > 50) {
+				uni.showToast({ title: '求购标题不能超过50字', icon: 'none'})
+				return
+			}
 			if (this.budgetError) {
 				uni.showToast({ title: '请检查预算范围', icon: 'none' })
 				return
 			}
 			const user = uni.getStorageSync('user')
 			if (!user || !user.id) {
-				uni.showToast({ title: '请先登录', icon: 'none' })
+				uni.navigateTo({ url: '/pages/login/login' })
 				return
 			}
 			this.submitting = true
@@ -358,7 +370,7 @@
 					budgetMax: Number(this.buyForm.budgetMax) || 0,
 					categoryId: this.buyForm.categoryId || undefined,
 					campus: this.buyForm.campus || undefined,
-					conditionLevel: this.buyForm.condition || undefined,
+					conditionLevel: this.buyForm.condition && this.buyForm.condition !== '不限' ? this.buyForm.condition : undefined,
 					description: this.buyForm.desc || undefined,
 					imageUrls
 				}
@@ -366,24 +378,26 @@
 					await updateWanted(this.editId, payload)
 					uni.showToast({ title: '修改成功！', icon: 'success' })
 					setTimeout(() => {
-						uni.navigateBack()
+						uni.switchTab({
+							url: '/pages/wanted/wanted'
+						})
 					}, 1200)
 				} else {
 					const data = await publishWanted(payload)
 					uni.showToast({ title: '发布成功！', icon: 'success' })
 					setTimeout(() => {
 						uni.switchTab({
-							url: '/pages/index/index',
-							success: () => {
-								setTimeout(() => {
-									uni.navigateTo({ url: '/pages/wanted-detail/wanted-detail?id=' + data.id })
-								}, 150)
-							}
+							url: '/pages/wanted/wanted'
 						})
 					}, 1200)
 				}
 				this.submitting = false
 			} catch (e) {
+				uni.hideLoading()
+				uni.showToast({
+					title: e.message || '图片上传失败',
+					icon: 'none'
+				})
 				this.submitting = false
 			}
 		}

@@ -132,8 +132,10 @@
 							name: s.partnerName || s.wantedTitle || s.itemTitle || otherName,
 							lastMsg: s.lastMessage || '暂无消息',
 							time: this.formatTime(s.lastMessageTime),
-							unread: s.unreadCount || 0
-						}
+							unread: s.unreadCount || 0,
+							itemId: s.itemId || null,
+						wantedId: s.wantedId || null,
+					}
 					})
 				} catch (e) {
 					this.chatList = []
@@ -152,9 +154,10 @@
 				return (d.getMonth() + 1) + '/' + d.getDate() + ' ' + hm
 			},
 			openChat(item) {
-				uni.navigateTo({
-					url: '/pages/chat/chat?id=' + item.id + '&partnerId=' + (item.partnerId || 0) + '&name=' + encodeURIComponent(item.name) + '&avatar=' + encodeURIComponent(item.avatar || '')
-				})
+				let url = '/pages/chat/chat?id=' + item.id + '&partnerId=' + (item.partnerId || 0) + '&name=' + encodeURIComponent(item.name) + '&avatar=' + encodeURIComponent(item.avatar || '')
+				if (item.itemId) url += '&itemId=' + item.itemId
+				if (item.wantedId) url += '&wantedId=' + item.wantedId
+				uni.navigateTo({ url })
 			},
 			goNotifications() {
 				uni.navigateTo({
@@ -187,7 +190,7 @@
 		font-size: 44rpx; margin-right: 20rpx; flex-shrink: 0; overflow: hidden;
 	}
 	.chat-avatar-img { width: 100%; height: 100%; border-radius: 50%; }
-	.chat-avatar-emoji { font-size: 44rpx; }
+	.chat-avatar-emoji { font-size: 44rpx; color: #375f3e; font-weight: bold; line-height: 1; }
 
 	.chat-content { flex: 1; overflow: hidden; }
 	.chat-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8rpx; }

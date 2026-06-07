@@ -25,6 +25,7 @@ public class WantedDetailVO {
     private String username;
     private String nickname;
     private String avatar;
+    private Integer creditScore;
 
     public static WantedDetailVO from(Wanted wanted, List<String> images) {
         if (wanted == null) return null;

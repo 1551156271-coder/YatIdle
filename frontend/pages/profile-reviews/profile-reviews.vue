@@ -263,7 +263,7 @@
 	flex-shrink: 0; overflow: hidden;
 }
 .rv-avatar-img { width: 100%; height: 100%; border-radius: 50%; }
-.rv-avatar-emoji { font-size: 24rpx; }
+.rv-avatar-emoji { font-size: 24rpx;  color: #375f3e; font-weight: bold; line-height: 1; }
 
 	.rv-name {
 		font-size: 26rpx;

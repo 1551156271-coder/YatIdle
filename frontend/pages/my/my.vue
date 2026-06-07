@@ -46,7 +46,7 @@
 				<!-- 头像 -->
 				<view class="avatar-wrap" @click="userInfo.isLogin ? goEditProfile() : goToLogin()">
 					<image v-if="userInfo.avatar" class="avatar-img" :src="userInfo.avatar" mode="aspectFill"></image>
-					<text v-else class="avatar-emoji">🎓</text>
+					<text v-else class="avatar-emoji">{{ (userInfo.nickname || userInfo.username || '?').charAt(0) }}</text>
 				</view>
 
 				<!-- 昵称 + 编辑按钮 -->
@@ -57,7 +57,8 @@
 
 				<!-- 标签 -->
 				<view class="user-tags" v-if="userInfo.isLogin">
-					<text class="u-tag">{{ userInfo.campus }}</text>
+					<text v-if="userInfo.campus" class="u-tag">{{ userInfo.campus }}</text>
+					<text v-else class="u-tag u-tag-empty" @click="goEditProfile">设置校区</text>
 				</view>
 				<view class="user-tags" v-else>
 					<text class="u-tag u-tag-dim">登录后解锁更多</text>
@@ -141,7 +142,8 @@
 				showSidebar: false,
 				userInfo: user ? {
 					isLogin: true,
-					nickname: user.username || '',
+					nickname: user.nickname || user.username || '',
+					username: user.username || '',
 					avatar: user.avatar || '',
 					campus: user.campus || ''
 				} : {
@@ -184,7 +186,7 @@
 			const user = uni.getStorageSync('user')
 			if (user) {
 				this.userInfo.isLogin = true
-				this.userInfo.nickname = user.username || ''
+				this.userInfo.nickname = user.nickname || user.username || ''
 				this.userInfo.avatar = user.avatar || ''
 				this.userInfo.campus = user.campus || ''
 				this.loadStats()
@@ -349,7 +351,7 @@
 		overflow: hidden;
 	}
 	.avatar-img { width: 100%; height: 100%; border-radius: 50%; }
-	.avatar-emoji { font-size: 60rpx; }
+	.avatar-emoji { font-size: 60rpx; color: #375f3e; font-weight: bold; line-height: 1; }
 
 	/* 昵称 */
 	.name-row {
@@ -367,6 +369,7 @@
 	}
 	.u-tag-verified { color: #1565C0; background: #e3f2fd; }
 	.u-tag-dim { color: #999; background: #f0f0f0; }
+	.u-tag-empty { color: #999; background: #f0f0f0; }
 
 	/* ===== 未登录占位 ===== */
 	.login-hint-card {

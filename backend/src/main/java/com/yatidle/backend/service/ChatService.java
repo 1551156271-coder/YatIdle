@@ -119,6 +119,7 @@ public class ChatService {
                         .eq(ChatSession::getSellerId, currentUserId)
                     )
                         .eq(ChatSession::getIsDeleted, 0)
+                        .isNotNull(ChatSession::getLastMessage)
                         .orderByDesc(ChatSession::getLastMessageTime)
         );
 
@@ -197,7 +198,12 @@ public class ChatService {
             session.setLastMessage("[图片]");
         }
         else {
-            session.setLastMessage(message.getContent());
+            String msgContent = message.getContent();
+            if (msgContent != null && msgContent.startsWith("{\"type\":\"product\"")) {
+                session.setLastMessage("[商品]");
+            } else {
+                session.setLastMessage(msgContent);
+            }
         }
 
         session.setLastSenderId(message.getSenderId());

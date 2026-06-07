@@ -153,9 +153,34 @@ public class UserController {
             throw new BusinessException("用户不存在");
         }
         Map<String, Object> data = new HashMap<>();
+
+        List<TradeOrder> incomeOrders = tradeOrderMapper.selectList(
+            new LambdaQueryWrapper<TradeOrder>()
+                .eq(TradeOrder::getSellerId, userId)
+                .eq(TradeOrder::getStatus, "COMPLETED")
+                .eq(TradeOrder::getIsDeleted, 0)
+        );
+
+        BigDecimal totalIncome = incomeOrders.stream()
+                .map(TradeOrder::getPrice)
+                        .filter(p -> p != null)
+                                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        List<TradeOrder> expenseOrders = tradeOrderMapper.selectList(
+            new LambdaQueryWrapper<TradeOrder>()
+                .eq(TradeOrder::getBuyerId, userId)
+                .eq(TradeOrder::getStatus, "COMPLETED")
+                .eq(TradeOrder::getIsDeleted, 0)
+        );
+
+        BigDecimal totalExpense = expenseOrders.stream()
+                .map(TradeOrder::getPrice)
+                        .filter(p -> p != null)
+                                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
         data.put("balance", user.getBalance());
-        data.put("totalIncome", BigDecimal.ZERO);
-        data.put("totalExpense", BigDecimal.ZERO);
+        data.put("totalIncome", totalIncome);
+        data.put("totalExpense", totalExpense);
         return Result.success(data);
     }
 }

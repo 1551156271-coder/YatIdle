@@ -9,7 +9,7 @@ import java.util.Map;
 import java.util.Set;
 
 public final class ImageUploadValidator {
-    public static final long MAX_IMAGE_SIZE_BYTES = 5L * 1024 * 1024;
+    public static final long MAX_IMAGE_SIZE_BYTES = 10L * 1024 * 1024;
 
     private static final Map<String, String> EXTENSIONS_BY_CONTENT_TYPE = Map.of(
             "image/jpeg", ".jpg",
@@ -27,7 +27,7 @@ public final class ImageUploadValidator {
             throw new BusinessException("图片文件不能为空");
         }
         if (file.getSize() > MAX_IMAGE_SIZE_BYTES) {
-            throw new BusinessException("图片大小不能超过 5MB");
+            throw new BusinessException("图片大小不能超过 10MB");
         }
 
         String contentType = file.getContentType();

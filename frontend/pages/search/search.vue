@@ -28,31 +28,33 @@
 			scroll-x
 			:show-scrollbar="false"
 		>
-			<!-- 成色 -->
-			<picker :range="conditionOptions" @change="onConditionFilter">
-				<view class="filter-tag" :class="{ 'filter-active': selectedCondition }">
-					{{ selectedCondition || '成色' }}
-					<text class="ft-arrow">▾</text>
+			<view class="filter-wrap">
+				<!-- 成色 -->
+				<picker :range="conditionOptions" @change="onConditionFilter">
+					<view class="filter-tag" :class="{ 'filter-active': selectedCondition }">
+						{{ selectedCondition || '成色' }}
+						<text class="ft-arrow">▾</text>
+					</view>
+				</picker>
+				<!-- 校区 -->
+				<picker :range="campusOptions" @change="onCampusFilter">
+					<view class="filter-tag" :class="{ 'filter-active': selectedFilterCampus }">
+						{{ selectedFilterCampus || '校区' }}
+						<text class="ft-arrow">▾</text>
+					</view>
+				</picker>
+				<!-- 分类 -->
+				<picker :range="categoryLabels" @change="onCategoryFilter">
+					<view class="filter-tag" :class="{ 'filter-active': selectedFilterCategory }">
+						{{ selectedFilterCategory || '分类' }}
+						<text class="ft-arrow">▾</text>
+					</view>
+				</picker>
+				<!-- 价格排序 -->
+				<view class="filter-tag" :class="{ 'filter-active': priceSort }" @click="togglePriceSort">
+					<text>{{ priceSortText }}</text>
+					<text class="ft-arrow">{{ priceSortIcon }}</text>
 				</view>
-			</picker>
-			<!-- 校区 -->
-			<picker :range="campusOptions" @change="onCampusFilter">
-				<view class="filter-tag" :class="{ 'filter-active': selectedFilterCampus }">
-					{{ selectedFilterCampus || '校区' }}
-					<text class="ft-arrow">▾</text>
-				</view>
-			</picker>
-			<!-- 分类 -->
-			<picker :range="categoryLabels" @change="onCategoryFilter">
-				<view class="filter-tag" :class="{ 'filter-active': selectedFilterCategory }">
-					{{ selectedFilterCategory || '分类' }}
-					<text class="ft-arrow">▾</text>
-				</view>
-			</picker>
-			<!-- 价格排序 -->
-			<view class="filter-tag" :class="{ 'filter-active': priceSort }" @click="togglePriceSort">
-				<text>{{ priceSortText }}</text>
-				<text class="ft-arrow">{{ priceSortIcon }}</text>
 			</view>
 		</scroll-view>
 
@@ -114,7 +116,7 @@
 				hasMore: true,
 
 				// 筛选选项
-				conditionOptions: ['不限', '全新', '99新', '95新', '90新', '85新', '80新以下'],
+				conditionOptions: ['不限', '全新', '99新及以上', '95新及以上', '90新及以上', '85新及以上', '80新及以上'],
 				campusOptions: ['不限', '东校园', '南校园', '北校园', '珠海校区', '深圳校区'],
 				categoryOptions: [],
 
@@ -313,15 +315,15 @@
 		background: #ffffff;
 		border-radius: 44rpx;
 		padding: 0 24rpx;
-		height: 60rpx;
+		height: 72rpx;
 		box-sizing: border-box;
 	}
 
-	.sb-icon { font-size: 28rpx; margin-right: 12rpx; flex-shrink: 0; }
+	.sb-icon { font-size: 32rpx; margin-right: 12rpx; flex-shrink: 0; }
 	.sb-input {
 		flex: 1;
-		height: 60rpx;
-		font-size: 28rpx;
+		height: 72rpx;
+		font-size: 30rpx;
 		color: #333;
 		background: transparent;
 	}
@@ -336,14 +338,21 @@
 	.filter-row {
 		background: #ffffff;
 		padding: 16rpx 20rpx;
-		white-space: nowrap;
 		box-sizing: border-box;
 		border-bottom: 1rpx solid #f0f0f0;
+	}
+
+	.filter-wrap {
+		display: flex;
+		flex-direction: row;
+		flex-wrap: nowrap;
+		white-space: nowrap;
 	}
 
 	.filter-tag {
 		display: inline-flex;
 		align-items: center;
+		flex-shrink: 0;
 		font-size: 24rpx;
 		color: #666;
 		padding: 10rpx 22rpx;

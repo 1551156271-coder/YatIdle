@@ -164,7 +164,7 @@
 		overflow: hidden;
 	}
 	.avatar-img { width: 100%; height: 100%; border-radius: 50%; }
-	.avatar-emoji { font-size: 36rpx; }
+	.avatar-emoji { font-size: 36rpx; color: #375f3e; font-weight: bold; line-height: 1; }
 	.row-arrow { font-size: 32rpx; color: #ccc; }
 
 	.edit-input {

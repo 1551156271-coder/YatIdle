@@ -14,8 +14,8 @@
 				</view>
 				<text class="user-name">{{ user.nickname }}</text>
 				<text class="user-bio" v-if="user.bio">{{ user.bio }}</text>
-				<view class="user-tags">
-					<text class="u-tag">{{ user.campus }}</text>
+				<view class="user-tags" v-if="user.campus || user.verified">
+					<text v-if="user.campus" class="u-tag">{{ user.campus }}</text>
 					<text v-if="user.verified" class="u-tag u-tag-verified">已认证</text>
 				</view>
 			</view>
@@ -104,7 +104,7 @@
 				userId: '',
 				user: {
 					nickname: '中大在校生',
-					defaultAvatar: '🎓',
+					defaultAvatar: '?',
 					avatar: '',
 					bio: '爱生活爱二手，诚信交易',
 					campus: '东校园',
@@ -151,7 +151,7 @@
 					if (userData) {
 						const u = userData.data || userData
 						this.user.nickname = u.nickname || u.username || '用户'
-						this.user.defaultAvatar = u.nickname ? u.nickname.charAt(0) : '🎓'
+						this.user.defaultAvatar = (u.nickname || u.username || '?').charAt(0)
 						this.user.avatar = resolveImageUrl(u.avatar || '')
 						this.user.bio = u.bio || ''
 						this.user.campus = u.campus || ''
@@ -278,7 +278,7 @@
 	.avatar-wrap {
 		width: 140rpx; height: 140rpx;
 		border-radius: 50%;
-		background: #ffffff;
+		background: #e8f5ee;
 		margin-top: -70rpx;
 		display: flex; align-items: center; justify-content: center;
 		border: 6rpx solid #ffffff;
@@ -286,7 +286,7 @@
 		overflow: hidden;
 	}
 	.avatar-img { width: 100%; height: 100%; border-radius: 50%; }
-	.avatar-emoji { font-size: 60rpx; }
+	.avatar-emoji { font-size: 60rpx; color: #375f3e; font-weight: bold; line-height: 1; }
 	.user-name { font-size: 36rpx; color: #333; font-weight: bold; margin-top: 20rpx; }
 	.user-bio {
 		font-size: 26rpx; color: #999; margin-top: 10rpx; text-align: center;
@@ -359,7 +359,7 @@
 	flex-shrink: 0; overflow: hidden;
 }
 .rv-avatar-img { width: 100%; height: 100%; border-radius: 50%; }
-.rv-avatar-emoji { font-size: 24rpx; }
+.rv-avatar-emoji { font-size: 24rpx;  color: #375f3e; font-weight: bold; line-height: 1; }
 	.rv-name { font-size: 26rpx; color: #333; }
 	.rv-stars { display: flex; gap: 2rpx; }
 	.star { font-size: 26rpx; color: #eee; }
