@@ -30,10 +30,10 @@
 			<view class="seller-row">
 				<view class="seller-avatar">
 					<image v-if="seller.avatar" class="seller-avatar-img" :src="seller.avatar" mode="aspectFill"></image>
-					<text v-else class="seller-avatar-emoji">🎓</text>
+					<text v-else class="seller-avatar-emoji">{{ (seller.nickname || seller.username || '?').charAt(0) }}</text>
 				</view>
 				<view class="seller-info">
-					<text class="seller-name">{{ seller.username || '卖家' }}</text>
+					<text class="seller-name">{{ seller.nickname || seller.username || '卖家' }}</text>
 				</view>
 			</view>
 		</view>
@@ -103,6 +103,7 @@
 <script>
 	import { getItemDetail } from '@/api/item.js'
 	import { createOrder } from '@/api/order.js'
+	import { getUserInfo } from '@/api/user.js'
 
 	export default {
 		data() {
@@ -157,6 +158,17 @@
 						conditionLevel: data.conditionLevel,
 						campus: data.campus,
 						userId: data.userId
+					}
+					// 加载卖家信息
+					if (data.userId) {
+						try {
+							const sellerData = await getUserInfo(data.userId)
+							this.seller = {
+								avatar: sellerData.avatar || '',
+								nickname: sellerData.nickname || '',
+								username: sellerData.username || ''
+							}
+						} catch (e) {}
 					}
 				} catch (e) {
 					uni.showToast({ title: '加载商品失败', icon: 'none' })
@@ -339,7 +351,7 @@
 	flex-shrink: 0; overflow: hidden;
 }
 .seller-avatar-img { width: 100%; height: 100%; border-radius: 50%; }
-.seller-avatar-emoji { font-size: 36rpx; color: #375f3e; font-weight: bold; }
+.seller-avatar-emoji { font-size: 36rpx; color: #375f3e; font-weight: bold; line-height: 1; }
 
 	.seller-info {
 		display: flex;

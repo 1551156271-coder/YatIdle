@@ -44,12 +44,12 @@
 		</view>
 
 		<view class="detail-section">
-			<view class="section-title">商品详情</view>
+			<view class="section-title">商品描述</view>
 			<text class="description">{{ item.description || '暂无描述' }}</text>
 		</view>
 
-		<!-- 底部操作栏：买家模式 -->
-		<view v-if="!isSeller" class="bottom-action">
+		<!-- 底部操作栏：买家模式（仅在售商品显示） -->
+		<view v-if="!isSeller && itemStatus === 'ON_SALE'" class="bottom-action">
 			<view class="icon-group" @click="toggleCollect">
 				<text class="collect-icon iconfont" :class="isCollected ? 'icon-xz' : 'icon-shoucang'"></text>
 			</view>
@@ -194,7 +194,7 @@
 				try {
 					const session = await createSession(user.id, { itemId: Number(this.goodsId) })
 						const partnerId = session.buyerId === user.id ? session.sellerId : session.buyerId
-						uni.navigateTo({ url: '/pages/chat/chat?id=' + session.id + '&partnerId=' + (partnerId || 0) + '&name=' + encodeURIComponent(session.partnerName || '') + '&avatar=' + encodeURIComponent(session.partnerAvatar || '') })				} catch (e) {
+						uni.navigateTo({ url: '/pages/chat/chat?id=' + session.id + '&partnerId=' + (partnerId || 0) + '&name=' + encodeURIComponent(session.partnerName || '') + '&avatar=' + encodeURIComponent(session.partnerAvatar || '') + '&itemId=' + this.goodsId })				} catch (e) {
 					uni.navigateTo({ url: '/pages/chat/chat?id=' + this.goodsId })
 				}
 			},
@@ -314,7 +314,7 @@
 	font-size: 44rpx; flex-shrink: 0; overflow: hidden;
 }
 .avatar-img { width: 100%; height: 100%; border-radius: 50%; }
-.avatar-emoji { font-size: 44rpx; color: #375f3e; font-weight: bold; }
+.avatar-emoji { font-size: 44rpx; color: #375f3e; font-weight: bold; line-height: 1; }
 	.seller-text { display: flex; flex-direction: column; justify-content: center; }
 	.name-row { display: flex; align-items: center; gap: 12rpx; }
 	.seller-name { font-size: 30rpx; font-weight: bold; color: #333; line-height: 1.4; }

@@ -102,10 +102,6 @@
 			<button class="od-btn od-btn-review" @click="goReview">去评价</button>
 		</view>
 
-		<!-- 底部操作：已完成 + 已购订单已评价 -->
-		<view class="od-bottom" v-if="order.status === 'COMPLETED' && orderType === 'purchased' && order.hasReviewed">
-			<button class="od-btn od-btn-done">已评价</button>
-		</view>
 
 		<!-- 底部操作：已完成 + 已售订单 -->
 		<view class="od-bottom" v-if="order.status === 'COMPLETED' && orderType === 'sold'">
@@ -202,7 +198,13 @@
 					cancelReason: stored.cancelReason || '',
 					hasReviewed: stored.hasReviewed || false
 				}
-				uni.removeStorageSync('currentOrder')
+				// 保留 currentOrder 给评价页使用，评价页用完后自行清除
+			}
+		},
+		onShow() {
+			const co = uni.getStorageSync('currentOrder')
+			if (co && co.hasReviewed) {
+				this.order.hasReviewed = true
 			}
 		},
 		methods: {
@@ -260,6 +262,7 @@
 				})
 			},
 			goReview() {
+				uni.setStorageSync('currentOrder', this.order)
 				uni.navigateTo({
 					url: '/pages/my-review/my-review?orderId=' + this.order.id + '&sellerId=' + (this.order.sellerId || '') + '&seller=' + encodeURIComponent(this.order.sellerName || '') + '&sellerAvatar=' + encodeURIComponent(this.order.sellerAvatar || '')
 				})
@@ -357,7 +360,7 @@
 		font-size: 36rpx; margin-bottom: 12rpx; overflow: hidden;
 	}
 	.party-avatar-img { width: 100%; height: 100%; border-radius: 50%; }
-	.party-avatar-emoji { font-size: 36rpx; color: #375f3e; font-weight: bold; }
+	.party-avatar-emoji { font-size: 36rpx; color: #375f3e; font-weight: bold; line-height: 1; }
 	.party-label { font-size: 24rpx; color: #999; margin-bottom: 8rpx; }
 	.party-name { font-size: 28rpx; color: #333; font-weight: 500; }
 	.party-arrow { font-size: 32rpx; color: #ccc; margin: 0 20rpx; }

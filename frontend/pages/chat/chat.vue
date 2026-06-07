@@ -1,6 +1,19 @@
 <template>
 	<view class="chat-page">
 
+
+		<!-- 关联商品/求购条 -->
+		<view v-if="linkedItem.id" class="linked-item-bar" @click="openLinkedItem">
+			<image v-if="linkedItem.image" class="linked-item-img" :src="linkedItem.image" mode="aspectFill"></image>
+			<view v-else class="linked-item-placeholder">{{ linkedItem.type === 'wanted' ? '📋' : '📦' }}</view>
+			<view class="linked-item-info">
+				<text class="linked-item-title">{{ linkedItem.title }}</text>
+				<text v-if="linkedItem.type === 'wanted'" class="linked-item-price">预算 ¥{{ linkedItem.price }}</text>
+				<text v-else class="linked-item-price">¥{{ linkedItem.price }}</text>
+			</view>
+			<view class="linked-item-label">{{ linkedItem.type === 'wanted' ? '求购详情' : '商品详情' }} ›</view>
+		</view>
+
 		<!-- 消息区域 -->
 		<scroll-view
 			class="msg-scroll"
@@ -122,7 +135,8 @@
 <script>
 import { getMessages, sendMessage, markRead, uploadChatImage } from '@/api/chat.js'
 import { resolveImageUrl } from '@/api/index.js'
-import { getUserItems } from '@/api/item.js'
+import { getItemDetail, getUserItems } from '@/api/item.js'
+import { getWantedDetail } from '@/api/wanted.js'
 
 function parseMessage(m, currentUserId) {
 	const isImage = m.messageType === 'IMAGE'
@@ -176,6 +190,8 @@ export default {
 			userId: null,
 			partnerId: 0,
 			pollTimer: null,
+			// 关联商品
+			linkedItem: { id: null, type: 'item', title: '', price: 0, image: '' },
 			// 商品选择器
 			pickerVisible: false,
 			pickerLoading: false,
@@ -190,7 +206,7 @@ export default {
 		}
 		if (user) {
 			this.myAvatar = user.avatar || ''
-			this.myDefaultAvatar = (user.username || '?').charAt(0)
+			this.myDefaultAvatar = (user.nickname || user.username || '?').charAt(0)
 		}
 		if (options.name) {
 			this.contactInfo.name = decodeURIComponent(options.name)
@@ -207,6 +223,11 @@ export default {
 			this.sessionId = options.id
 			this.loadMessages()
 			this.startPolling()
+		}
+		if (options.itemId) {
+			this.loadLinkedItem(options.itemId, "item")
+		} else if (options.wantedId) {
+			this.loadLinkedItem(options.wantedId, "wanted")
 		}
 		this.$nextTick(() => this.scrollToBottom())
 		setTimeout(() => { this.scrollAnimated = true }, 500)
@@ -407,6 +428,39 @@ export default {
 			return (d.getMonth()+1) + '/' + d.getDate() + ' ' + hm
 		},
 
+		async loadLinkedItem(refId, type) {
+			try {
+				if (type === "wanted") {
+					const data = await getWantedDetail(Number(refId))
+					this.linkedItem = {
+						id: data.id,
+						type: "wanted",
+						title: data.title,
+						price: data.budgetMin + ' — ' + data.budgetMax,
+						image: (data.images && data.images[0]) || ''
+					}
+				} else {
+					const data = await getItemDetail(Number(refId))
+					this.linkedItem = {
+						id: data.id,
+						type: "item",
+						title: data.title,
+						price: data.price,
+						image: (data.imageUrls && data.imageUrls[0]) || ''
+					}
+				}
+			} catch (e) {}
+		},
+		openLinkedItem() {
+			if (this.linkedItem.id) {
+				if (this.linkedItem.type === 'wanted') {
+					uni.navigateTo({ url: '/pages/wanted-detail/wanted-detail?id=' + this.linkedItem.id })
+				} else {
+					uni.navigateTo({ url: '/pages/goods-detail/goods-detail?id=' + this.linkedItem.id })
+				}
+			}
+		},
+
 		scrollToBottom() {
 			this.scrollToId = ''
 			this.$nextTick(() => { this.scrollToId = 'msg-bottom' })
@@ -426,6 +480,26 @@ export default {
 	overflow: hidden;
 }
 
+/* ===== 关联商品条 ===== */
+.linked-item-bar {
+	display: flex; align-items: center;
+	background: #ffffff; padding: 20rpx 24rpx; margin: 0;
+	border-bottom: 1rpx solid #eee; gap: 20rpx; flex-shrink: 0;
+}
+.linked-item-img { width: 100rpx; height: 100rpx; border-radius: 10rpx; background: #f0f0f0; flex-shrink: 0; }
+.linked-item-placeholder {
+	width: 100rpx; height: 100rpx; border-radius: 10rpx; background: #e8f5ee;
+	display: flex; align-items: center; justify-content: center; font-size: 48rpx; flex-shrink: 0;
+}
+.linked-item-info { flex: 1; overflow: hidden; display: flex; flex-direction: column; gap: 8rpx; }
+.linked-item-title {
+	font-size: 28rpx; color: #333; display: block;
+	overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.linked-item-price { font-size: 32rpx; color: #e74c3c; font-weight: bold; }
+.linked-item-arrow { font-size: 40rpx; color: #ccc; flex-shrink: 0; }
+.linked-item-label { font-size: 24rpx; color: #999; flex-shrink: 0; white-space: nowrap; }
+
 
 /* ===== 消息区 ===== */
 .msg-scroll { flex: 1; padding: 20rpx 20rpx 0; overflow-y: auto; box-sizing: border-box; }
@@ -444,9 +518,9 @@ export default {
 	display: flex; align-items: center; justify-content: center; font-size: 36rpx; flex-shrink: 0; overflow: hidden;
 }
 .msg-avatar-img { width: 100%; height: 100%; border-radius: 50%; }
-.msg-avatar-emoji { font-size: 36rpx; color: #375f3e; font-weight: bold; }
+.msg-avatar-emoji { font-size: 36rpx; color: #375f3e; font-weight: bold; line-height: 1; }
 .msg-row:not(.msg-self) .msg-avatar { margin-right: 16rpx; }
-.msg-self .msg-avatar { margin-left: 16rpx; background: #e3f2fd; }
+.msg-self .msg-avatar { margin-left: 16rpx; background: #e8f5ee; }
 
 .msg-bubble-wrap { max-width: 72%; box-sizing: border-box; }
 

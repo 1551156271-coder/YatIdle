@@ -286,7 +286,7 @@
 		overflow: hidden;
 	}
 	.avatar-img { width: 100%; height: 100%; border-radius: 50%; }
-	.avatar-emoji { font-size: 60rpx; color: #375f3e; font-weight: bold; }
+	.avatar-emoji { font-size: 60rpx; color: #375f3e; font-weight: bold; line-height: 1; }
 	.user-name { font-size: 36rpx; color: #333; font-weight: bold; margin-top: 20rpx; }
 	.user-bio {
 		font-size: 26rpx; color: #999; margin-top: 10rpx; text-align: center;
@@ -359,7 +359,7 @@
 	flex-shrink: 0; overflow: hidden;
 }
 .rv-avatar-img { width: 100%; height: 100%; border-radius: 50%; }
-.rv-avatar-emoji { font-size: 24rpx;  color: #375f3e; font-weight: bold; }
+.rv-avatar-emoji { font-size: 24rpx;  color: #375f3e; font-weight: bold; line-height: 1; }
 	.rv-name { font-size: 26rpx; color: #333; }
 	.rv-stars { display: flex; gap: 2rpx; }
 	.star { font-size: 26rpx; color: #eee; }

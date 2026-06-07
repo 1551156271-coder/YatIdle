@@ -4,10 +4,10 @@
 		<view class="seller-card">
 			<view class="seller-avatar">
 				<image v-if="sellerAvatar" class="seller-avatar-img" :src="sellerAvatar" mode="aspectFill"></image>
-				<text v-else class="seller-avatar-text">{{ sellerName.charAt(0) }}</text>
+				<view v-else class="seller-avatar-default">{{ (sellerName || '?').charAt(0) }}</view>
 			</view>
 			<view class="seller-info">
-				<text class="seller-name">{{ sellerName }}</text>
+				<text class="seller-name">{{ sellerName || '卖家' }}</text>
 				<text class="seller-hint">交易已完成，给TA一个评价吧</text>
 			</view>
 		</view>
@@ -56,7 +56,7 @@
 				orderId: '',
 				reviewId: '',
 				rating: 0,
-				reviewText: ''
+				reviewText: '',
 			}
 		},
 		computed: {
@@ -65,10 +65,17 @@
 				return map[this.rating] || ''
 			}
 		},
-		onLoad(options) {
-			this.sellerName = options.seller || '卖家'
-			this.sellerAvatar = options.sellerAvatar || ''
-			this.sellerId = options.sellerId || ''
+	onLoad(options) {
+			const stored = uni.getStorageSync('currentOrder')
+			if (stored) {
+				this.sellerName = stored.sellerName || options.seller || '卖家'
+				this.sellerAvatar = stored.sellerAvatar || options.sellerAvatar || ''
+				this.sellerId = stored.sellerId || options.sellerId || ''
+			} else {
+				this.sellerName = options.seller || '卖家'
+				this.sellerAvatar = options.sellerAvatar || ''
+				this.sellerId = options.sellerId || ''
+			}
 			this.orderId = options.orderId || ''
 			this.reviewId = options.reviewId || ''
 		},
@@ -98,7 +105,10 @@
 					} else {
 						await submitReview(user.id, data)
 					}
-					uni.showToast({ title: '评价成功！', icon: 'success' })
+			const co = uni.getStorageSync('currentOrder') || {}
+				co.hasReviewed = true
+				uni.setStorageSync('currentOrder', co)
+						uni.showToast({ title: '评价成功！', icon: 'success' })
 					setTimeout(() => { uni.navigateBack() }, 1200)
 				} catch (e) {
 					// error handled by api layer
@@ -129,13 +139,14 @@
 	.seller-avatar {
 		width: 88rpx; height: 88rpx;
 		border-radius: 50%;
-		background: linear-gradient(135deg, #3A6341, #4E7D56);
+		background: #e8f5ee;
 		display: flex; align-items: center; justify-content: center;
 		flex-shrink: 0; overflow: hidden;
 	}
-t	.seller-avatar-img { width: 100%; height: 100%; border-radius: 50%; }
-	.seller-avatar-text {
-		font-size: 40rpx; color: #375f3e; font-weight: bold;
+	.seller-avatar-img { width: 100%; height: 100%; border-radius: 50%; }
+	.seller-avatar-default {
+		font-size: 44rpx; color: #375f3e; font-weight: bold;
+		line-height: 88rpx; width: 88rpx; text-align: center;
 	}
 	.seller-info { flex: 1; }
 	.seller-name { font-size: 30rpx; color: #333; font-weight: bold; display: block; }

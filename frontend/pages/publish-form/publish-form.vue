@@ -92,7 +92,7 @@
 			</view>
 			<view class="form-item">
 				<text class="form-label">期望成色</text>
-				<picker :range="conditionList" @change="onBuyConditionChange">
+				<picker :range="wantedConditionList" @change="onBuyConditionChange">
 					<view class="picker-text">{{ buyForm.condition || '不限' }}</view>
 				</picker>
 			</view>
@@ -132,7 +132,8 @@
 				categories: [],
 				categoryLabels: [],
 				campusList: ['东校园', '南校园', '北校园', '珠海校区', '深圳校区'],
-				conditionList: ['不限', '全新', '99新', '95新', '9成新', '八成新', '八成新以下'],
+				conditionList: ['全新', '99新', '95新', '90新', '85新', '80新', '80新以下'],
+				wantedConditionList: ['不限', '全新', '99新及以上', '95新及以上', '90新及以上', '85新及以上', '80新及以上'],
 
 				sellForm: {
 					title: '',
@@ -231,8 +232,7 @@
 				this.sellForm.campus = this.campusList[e.detail.value]
 			},
 			onSellConditionChange(e) {
-				const val = this.conditionList[e.detail.value]
-				this.sellForm.condition = val === '不限' ? '' : val
+				this.sellForm.condition = this.conditionList[e.detail.value]
 			},
 
 			async onSellSubmit() {
@@ -304,7 +304,8 @@
 				this.buyForm.campus = this.campusList[e.detail.value]
 			},
 			onBuyConditionChange(e) {
-				this.buyForm.condition = this.conditionList[e.detail.value]
+				const val = this.wantedConditionList[e.detail.value]
+				this.buyForm.condition = val === '不限' ? '' : val
 			},
 
 			uploadBuyImage() {

@@ -206,7 +206,7 @@
 	display: flex; align-items: center; justify-content: center; font-size: 24rpx; flex-shrink: 0; overflow: hidden;
 }
 .rv-avatar-img { width: 100%; height: 100%; border-radius: 50%; }
-.rv-avatar-emoji { font-size: 24rpx;  color: #375f3e; font-weight: bold; }
+.rv-avatar-emoji { font-size: 24rpx;  color: #375f3e; font-weight: bold; line-height: 1; }
 	.rv-name { font-size: 26rpx; color: #333; }
 	.rv-stars { display: flex; gap: 2rpx; }
 	.star { font-size: 26rpx; color: #eee; }

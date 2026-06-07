@@ -46,7 +46,7 @@
 				<!-- 头像 -->
 				<view class="avatar-wrap" @click="userInfo.isLogin ? goEditProfile() : goToLogin()">
 					<image v-if="userInfo.avatar" class="avatar-img" :src="userInfo.avatar" mode="aspectFill"></image>
-					<text v-else class="avatar-emoji">{{ (userInfo.nickname || '?').charAt(0) }}</text>
+					<text v-else class="avatar-emoji">{{ (userInfo.nickname || userInfo.username || '?').charAt(0) }}</text>
 				</view>
 
 				<!-- 昵称 + 编辑按钮 -->
@@ -142,7 +142,8 @@
 				showSidebar: false,
 				userInfo: user ? {
 					isLogin: true,
-					nickname: user.username || '',
+					nickname: user.nickname || user.username || '',
+					username: user.username || '',
 					avatar: user.avatar || '',
 					campus: user.campus || ''
 				} : {
@@ -185,7 +186,7 @@
 			const user = uni.getStorageSync('user')
 			if (user) {
 				this.userInfo.isLogin = true
-				this.userInfo.nickname = user.username || ''
+				this.userInfo.nickname = user.nickname || user.username || ''
 				this.userInfo.avatar = user.avatar || ''
 				this.userInfo.campus = user.campus || ''
 				this.loadStats()
@@ -350,7 +351,7 @@
 		overflow: hidden;
 	}
 	.avatar-img { width: 100%; height: 100%; border-radius: 50%; }
-	.avatar-emoji { font-size: 60rpx; color: #375f3e; font-weight: bold; }
+	.avatar-emoji { font-size: 60rpx; color: #375f3e; font-weight: bold; line-height: 1; }
 
 	/* 昵称 */
 	.name-row {

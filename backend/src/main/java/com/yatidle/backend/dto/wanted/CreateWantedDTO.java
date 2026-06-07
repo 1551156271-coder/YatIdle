@@ -17,7 +17,7 @@ public class CreateWantedDTO {
     private BigDecimal budgetMax;
     @Pattern(regexp = "^(南校园|东校园|北校园|珠海校区|深圳校区)$", message = "校区参数不正确")
     private String campus;
-    @Pattern(regexp = "^(全新|99新|95新|9成新|八成新|八成新以下)$", message = "期望成色参数不正确")
+    @Pattern(regexp = "^(全新|99新及以上|95新及以上|90新及以上|85新及以上|80新及以上)$", message = "期望成色参数不正确")
     private String conditionLevel;
     private String description;
     private Long categoryId;

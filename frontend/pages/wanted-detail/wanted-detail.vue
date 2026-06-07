@@ -393,7 +393,7 @@
 		flex-shrink: 0; overflow: hidden;
 	}
 	.wd-pub-avatar-img { width: 100%; height: 100%; border-radius: 50%; }
-	.wd-pub-avatar-emoji { font-size: 36rpx; color: #5A7D9E; font-weight: bold; }
+	.wd-pub-avatar-emoji { font-size: 36rpx; color: #5A7D9E; font-weight: bold; line-height: 1; }
 
 	.wd-pub-info {
 		display: flex;

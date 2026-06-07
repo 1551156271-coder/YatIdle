@@ -37,10 +37,12 @@
 			</view>
 		</view>
 
+		<view v-if="wantedList.length > 0" class="end-tip">— 没有更多了 —</view>
 		<view v-if="wantedList.length === 0" class="empty-state">
 			<text class="empty-icon">📋</text>
 			<text class="empty-text">暂无求购信息</text>
 		</view>
+		<view class="bottom-safe"></view>
 	</view>
 	<tab-bar />
 </template>
@@ -262,4 +264,10 @@
 
 	.empty-icon { font-size: 100rpx; margin-bottom: 20rpx; }
 	.empty-text { font-size: 28rpx; color: #999; }
+
+	.end-tip {
+		text-align: center; padding: 30rpx;
+		font-size: 24rpx; color: #ccc;
+	}
+	.bottom-safe { height: 140rpx; }
 </style>

@@ -116,7 +116,7 @@
 				hasMore: true,
 
 				// 筛选选项
-				conditionOptions: ['不限', '全新', '99新', '95新', '90新', '85新', '80新以下'],
+				conditionOptions: ['不限', '全新', '99新及以上', '95新及以上', '90新及以上', '85新及以上', '80新及以上'],
 				campusOptions: ['不限', '东校园', '南校园', '北校园', '珠海校区', '深圳校区'],
 				categoryOptions: [],
 
@@ -315,15 +315,15 @@
 		background: #ffffff;
 		border-radius: 44rpx;
 		padding: 0 24rpx;
-		height: 60rpx;
+		height: 72rpx;
 		box-sizing: border-box;
 	}
 
-	.sb-icon { font-size: 28rpx; margin-right: 12rpx; flex-shrink: 0; }
+	.sb-icon { font-size: 32rpx; margin-right: 12rpx; flex-shrink: 0; }
 	.sb-input {
 		flex: 1;
-		height: 60rpx;
-		font-size: 28rpx;
+		height: 72rpx;
+		font-size: 30rpx;
 		color: #333;
 		background: transparent;
 	}
