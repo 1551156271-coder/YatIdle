@@ -250,7 +250,7 @@
 				}
 				const user = uni.getStorageSync('user')
 				if (!user || !user.id) {
-					uni.showToast({ title: '请先登录', icon: 'none' })
+					uni.navigateTo({ url: '/pages/login/login' })
 					return
 				}
 				this.submitting = true
@@ -339,7 +339,7 @@
 			}
 			const user = uni.getStorageSync('user')
 			if (!user || !user.id) {
-				uni.showToast({ title: '请先登录', icon: 'none' })
+				uni.navigateTo({ url: '/pages/login/login' })
 				return
 			}
 			this.submitting = true

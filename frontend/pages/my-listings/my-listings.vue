@@ -118,7 +118,7 @@
 				return map[status] || status
 			},
 			mapWantedStatus(status) {
-				const map = { active: '求购中', found: '已找到', cancelled: '已撤销' }
+				const map = { active: '求购中', closed: '已结束' }
 				return map[status] || status
 			},
 			formatTime(time) {

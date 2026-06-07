@@ -33,6 +33,7 @@
 					v-model="loginForm.username"
 					placeholder="请输入用户名"
 				/>
+				<text class="form-hint">请使用用户名登录，而非昵称</text>
 			</view>
 
 			<view class="form-item">
@@ -58,6 +59,7 @@
 					placeholder="请输入用户名"
 					maxlength="20"
 				/>
+				<text class="form-hint">提示：用户名设置后不可修改，请谨慎设置。可在"我的"页面修改昵称</text>
 			</view>
 
 			<view class="form-item">
@@ -258,6 +260,9 @@ export default {
 	padding: 0 20rpx;
 	font-size: 28rpx;
 	box-sizing: border-box;
+}
+.form-hint {
+	font-size: 22rpx; color: #bbb; margin-top: 10rpx; display: block; line-height: 1.5;
 }
 
 .submit-btn {

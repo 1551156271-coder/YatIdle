@@ -67,6 +67,11 @@
 			uni.hideTabBar()
 			this.loadWantedList()
 		},
+		onPullDownRefresh() {
+			this.loadWantedList().then(() => {
+				uni.stopPullDownRefresh()
+			})
+		},
 		methods: {
 			async loadCategories() {
 				try {

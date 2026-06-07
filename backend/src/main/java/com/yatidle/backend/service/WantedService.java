@@ -66,6 +66,7 @@ public class WantedService {
         detailVO.setUsername(getUsername(wanted.getUserId()));
         detailVO.setNickname(getUsername(wanted.getUserId()));
         detailVO.setAvatar(getAvatar(wanted.getUserId()));
+        detailVO.setCreditScore(getCreditScore(wanted.getUserId()));
         return detailVO;
     }
 
@@ -80,6 +81,8 @@ public class WantedService {
         }
         if (status != null && !status.isEmpty()) {
             wrapper.eq(Wanted::getStatus, status);
+        } else {
+            wrapper.eq(Wanted::getStatus, "active");
         }
         wrapper.orderByDesc(Wanted::getCreateTime);
         List<Wanted> list = wantedMapper.selectList(wrapper);
@@ -105,6 +108,7 @@ public class WantedService {
         vo.setUsername(getUsername(wanted.getUserId()));
         vo.setNickname(getUsername(wanted.getUserId()));
         vo.setAvatar(getAvatar(wanted.getUserId()));
+        vo.setCreditScore(getCreditScore(wanted.getUserId()));
         return vo;
     }
 
@@ -175,6 +179,12 @@ public class WantedService {
         if (userId == null) return null;
         User user = userMapper.selectById(userId);
         return user != null ? (user.getNickname() != null ? user.getNickname() : user.getUsername()) : null;
+    }
+
+    private Integer getCreditScore(Long userId) {
+        if (userId == null) return null;
+        User user = userMapper.selectById(userId);
+        return user != null ? user.getCreditScore() : null;
     }
 
     private String getAvatar(Long userId) {

@@ -41,6 +41,9 @@
 					</view>
 				</view>
 			</view>
+			<view class="seller-credit" v-if="sellerInfo.creditScore != null" :class="creditLevelClass">
+				<text class="credit-text">{{ creditLevelText }}</text>
+			</view>
 		</view>
 
 		<view class="detail-section">
@@ -108,6 +111,20 @@
 			},
 			statusClass() {
 				return this.itemStatus === 'ON_SALE' ? 'status-on' : 'status-off'
+			},
+			creditLevelText() {
+				const s = this.sellerInfo.creditScore
+				if (s == null) return ''
+				if (s >= 90) return '信用极好'
+				if (s >= 70) return '信用良好'
+				return '信用一般'
+			},
+			creditLevelClass() {
+				const s = this.sellerInfo.creditScore
+				if (s == null) return ''
+				if (s >= 90) return 'credit-high'
+				if (s >= 70) return 'credit-mid'
+				return 'credit-low'
 			}
 		},
 		onLoad(options) {
@@ -170,7 +187,7 @@
 			async toggleCollect() {
 				const user = uni.getStorageSync('user')
 				if (!user || !user.id) {
-					uni.showToast({ title: '请先登录', icon: 'none' })
+					uni.navigateTo({ url: '/pages/login/login' })
 					return
 				}
 				try {
@@ -188,7 +205,7 @@
 			async handleConsult() {
 				const user = uni.getStorageSync('user')
 				if (!user || !user.id) {
-					uni.showToast({ title: '请先登录', icon: 'none' })
+					uni.navigateTo({ url: '/pages/login/login' })
 					return
 				}
 				try {
@@ -199,7 +216,12 @@
 				}
 			},
 			handleBuy() {
-				uni.redirectTo({ url: '/pages/buy/buy?id=' + this.goodsId })
+				const user = uni.getStorageSync('user')
+				if (!user || !user.id) {
+					uni.navigateTo({ url: '/pages/login/login' })
+					return
+				}
+				uni.navigateTo({ url: '/pages/buy/buy?id=' + this.goodsId })
 			},
 			editGoods() {
 				uni.navigateTo({ url: '/pages/goods-edit/goods-edit?id=' + this.goodsId })
@@ -318,6 +340,11 @@
 	.seller-text { display: flex; flex-direction: column; justify-content: center; }
 	.name-row { display: flex; align-items: center; gap: 12rpx; }
 	.seller-name { font-size: 30rpx; font-weight: bold; color: #333; line-height: 1.4; }
+	.seller-credit { flex-shrink: 0; }
+	.credit-text { font-size: 22rpx; font-weight: bold; padding: 6rpx 18rpx; border-radius: 20rpx; }
+	.credit-high .credit-text { color: #4cd964; background: #e8f8e8; }
+	.credit-mid .credit-text { color: #f0ad4e; background: #fef5e7; }
+	.credit-low .credit-text { color: #e74c3c; background: #fde8e8; }
 	.verified-badge {
 		font-size: 20rpx;
 		color: #1565C0;

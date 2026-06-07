@@ -56,8 +56,8 @@
 					<text class="wd-pub-time">{{ detail.time }} 发布</text>
 				</view>
 			</view>
-			<view class="wd-pub-credit">
-				<text class="wd-credit-text">信用良好</text>
+			<view class="wd-pub-credit" :class="creditLevelClass">
+				<text class="wd-credit-text">{{ creditLevelText }}</text>
 			</view>
 		</view>
 
@@ -69,7 +69,7 @@
 
 		<!-- 本人进行中 - 状态标签 -->
 		<view v-if="isOwner" class="wd-status-tag" :class="detail.status === 'active' ? 'status-seeking' : 'status-done'">
-			<text>{{ detail.status }}</text>
+			<text>{{ detail.status === 'active' ? '求购中' : detail.status === 'closed' ? '已结束' : detail.status }}</text>
 		</view>
 
 		<!-- 底部操作栏：本人进行中 - 编辑/撤销 -->
@@ -102,6 +102,22 @@
 				isCollected: false,
 				isOwner: false
 			}
+		},
+		computed: {
+			creditLevelText() {
+				const s = this.detail.creditScore
+				if (s == null) return ""
+				if (s >= 90) return "信用极好"
+				if (s >= 70) return "信用良好"
+				return "信用一般"
+			},
+			creditLevelClass() {
+				const s = this.detail.creditScore
+				if (s == null) return ""
+				if (s >= 90) return "credit-high"
+				if (s >= 70) return "credit-mid"
+				return "credit-low"
+			},
 		},
 		async onLoad(options) {
 			const id = parseInt(options.id)
@@ -143,6 +159,7 @@
 						avatar: data.avatar || '',
 						time: this.formatTime(data.createTime),
 						userId: data.userId,
+						creditScore: data.creditScore || 0,
 						isOwner: data.userId === user.id
 					}
 					if (user && user.id) {
@@ -176,7 +193,7 @@
 			async toggleCollect() {
 				const user = uni.getStorageSync('user')
 				if (!user || !user.id) {
-					uni.showToast({ title: '请先登录', icon: 'none' })
+					uni.navigateTo({ url: '/pages/login/login' })
 					return
 				}
 				try {
@@ -199,7 +216,7 @@
 			async contactSeller() {
 				const user = uni.getStorageSync('user')
 				if (!user || !user.id) {
-					uni.showToast({ title: '请先登录', icon: 'none' })
+					uni.navigateTo({ url: '/pages/login/login' })
 					return
 				}
 				try {
@@ -238,7 +255,8 @@
 						}
 					}
 				})
-			},	}
+			}
+		}
 	}
 </script>
 
@@ -413,18 +431,14 @@
 	}
 
 	.wd-pub-credit {
-		background: #EDF2F6;
-		padding: 8rpx 20rpx;
-		border-radius: 20rpx;
 		display: flex;
 		align-items: center;
 	}
 
-	.wd-credit-text {
-		font-size: 22rpx;
-		color: #5A7D9E;
-		line-height: 1;
-	}
+	.wd-credit-text { font-size: 22rpx; font-weight: bold; line-height: 1; padding: 8rpx 20rpx; border-radius: 20rpx; }
+	.credit-high .wd-credit-text { color: #4cd964; background: #e8f8e8; }
+	.credit-mid .wd-credit-text { color: #f0ad4e; background: #fef5e7; }
+	.credit-low .wd-credit-text { color: #e74c3c; background: #fde8e8; }
 
 	/* ===== 本人状态标签 ===== */
 	.wd-status-tag {

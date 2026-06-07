@@ -310,7 +310,7 @@ export default {
 			const t = this.inputText.trim()
 			if (!t) return
 			if (!this.userId || !this.sessionId) {
-				uni.showToast({ title: '请先登录', icon: 'none' })
+				uni.navigateTo({ url: '/pages/login/login' })
 				return
 			}
 			this.inputText = ''
@@ -337,7 +337,7 @@ export default {
 		},
 		async sendImage(filePath) {
 			if (!this.userId || !this.sessionId) {
-				uni.showToast({ title: '请先登录', icon: 'none' })
+				uni.navigateTo({ url: '/pages/login/login' })
 				return
 			}
 			try {
@@ -356,7 +356,7 @@ export default {
 		async openProductPicker() {
 			this.toolbarOpen = false
 			if (!this.userId) {
-				uni.showToast({ title: '请先登录', icon: 'none' })
+				uni.navigateTo({ url: '/pages/login/login' })
 				return
 			}
 			this.pickerVisible = true
