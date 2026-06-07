@@ -109,6 +109,7 @@ public class AdminReportService {
         String before = report.getStatus();
         report.setStatus(status);
         report.setHandleResult(result);
+        report.setActionType(actionType);
         report.setHandlerId(adminId);
         report.setHandleTime(LocalDateTime.now());
         reportMapper.updateById(report);
@@ -125,6 +126,45 @@ public class AdminReportService {
             }
         }
         adminLogService.log(adminId, "HANDLE_REPORT", "REPORT", reportId, before, status, result);
+    }
+
+    @Transactional
+    public void restoreAction(Long adminId, Long reportId, String result) {
+        requireResult(result);
+        Report report = findReport(reportId);
+        if (!"HANDLED".equals(report.getStatus())) throw new BusinessException("Only handled reports can be restored");
+        String actionType = report.getActionType();
+        if (actionType == null || actionType.isBlank()) throw new BusinessException("No report action can be restored");
+        if ("BAN_USER".equals(actionType)) {
+            restoreBannedUser(adminId, report, result);
+        } else if ("OFFLINE_ITEM".equals(actionType)) {
+            restoreOfflineItem(adminId, report, result);
+        } else {
+            throw new BusinessException("Unsupported report restore action");
+        }
+        report.setActionType(null);
+        report.setHandleResult(result);
+        report.setHandlerId(adminId);
+        report.setHandleTime(LocalDateTime.now());
+        reportMapper.updateById(report);
+        adminLogService.log(adminId, "RESTORE_REPORT_ACTION", "REPORT", reportId, actionType, "RESTORED", result);
+    }
+
+    private void restoreBannedUser(Long adminId, Report report, String result) {
+        if (report.getTargetUserId() == null || adminUserService == null) throw new BusinessException("Report has no restorable user");
+        adminUserService.updateStatus(adminId, report.getTargetUserId(), "active", result);
+        adminUserService.restoreVisibleContentByUser(adminId, report.getTargetUserId(), result);
+    }
+
+    private void restoreOfflineItem(Long adminId, Report report, String result) {
+        if (report.getItemId() == null || itemMapper == null) throw new BusinessException("Report has no restorable item");
+        Item item = itemMapper.selectById(report.getItemId());
+        if (item == null || (item.getIsDeleted() != null && item.getIsDeleted() == 1)) throw new BusinessException("Item does not exist");
+        if (!"REMOVED".equals(item.getStatus())) return;
+        String before = item.getStatus();
+        item.setStatus("ON_SALE");
+        itemMapper.updateById(item);
+        adminLogService.log(adminId, "UPDATE_ITEM_STATUS", "ITEM", item.getId(), before, "ON_SALE", result);
     }
 
     private Report findReport(Long id) {

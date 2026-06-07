@@ -24,6 +24,7 @@ public class AdminReportVO {
     private String imageUrls;
     private String status;
     private String handleResult;
+    private String actionType;
     private Long handlerId;
     private String handlerUsername;
     private LocalDateTime handleTime;
@@ -44,6 +45,7 @@ public class AdminReportVO {
         vo.setImageUrls(report.getImageUrls());
         vo.setStatus(report.getStatus());
         vo.setHandleResult(report.getHandleResult());
+        vo.setActionType(report.getActionType());
         vo.setHandlerId(report.getHandlerId());
         vo.setHandleTime(report.getHandleTime());
         vo.setCreateTime(report.getCreateTime());

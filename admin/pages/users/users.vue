@@ -22,12 +22,12 @@
       <view class="tr th">
         <text>ID</text><text>用户名</text><text>昵称</text><text>角色</text><text>状态</text><text>信用分</text><text>操作</text>
       </view>
-      <view v-for="u in records" :key="u.id" class="tr">
+      <view v-for="u in records" :key="u.id" class="tr" :class="{ banned: u.status === 'inactive' }">
         <text>{{ u.id }}</text>
         <text>{{ u.username || '-' }}</text>
         <text>{{ u.nickname || '-' }}</text>
         <text>{{ roleText(u.role) }}</text>
-        <text>{{ statusText(u.status) }}</text>
+        <text><text class="status-pill" :class="userStatusClass(u.status)">{{ statusText(u.status) }}</text></text>
         <text>{{ u.creditScore == null ? '-' : u.creditScore }}</text>
         <view class="ops">
           <button size="mini" @click="openDetail(u)">详情</button>
@@ -51,6 +51,10 @@
         </view>
         <view class="modal-body">
           <view class="detail-grid">
+            <view class="detail-item"><text class="detail-label">余额</text><text class="detail-value">{{ detail.balance == null ? '-' : detail.balance }}</text></view>
+            <view class="detail-item"><text class="detail-label">成交数</text><text class="detail-value">{{ detail.dealCount == null ? '-' : detail.dealCount }}</text></view>
+            <view class="detail-item"><text class="detail-label">在售数</text><text class="detail-value">{{ detail.goodsCount == null ? '-' : detail.goodsCount }}</text></view>
+            <view class="detail-item"><text class="detail-label">评价数</text><text class="detail-value">{{ detail.reviewCount == null ? '-' : detail.reviewCount }}</text></view>
             <view class="detail-item"><text class="detail-label">ID</text><text class="detail-value">{{ detail.id }}</text></view>
             <view class="detail-item"><text class="detail-label">用户名</text><text class="detail-value">{{ detail.username || '-' }}</text></view>
             <view class="detail-item"><text class="detail-label">昵称</text><text class="detail-value">{{ detail.nickname || '-' }}</text></view>
@@ -194,6 +198,9 @@ export default {
     statusText(status) {
       return status === 'inactive' ? '封禁' : '正常'
     },
+    userStatusClass(status) {
+      return status === 'inactive' ? 'status-inactive' : 'status-active'
+    },
     isSelf(user) {
       return user && this.currentAdminId != null && Number(user.id) === Number(this.currentAdminId)
     }
@@ -216,5 +223,41 @@ export default {
   background: #f8fafc;
   font-weight: 700;
   color: #4a5568;
+}
+
+.tr.banned {
+  background: #fff7f6;
+  border-left: 4px solid #e67c73;
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 52px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.status-active {
+  color: #0f7a45;
+  background: #e8f5ee;
+}
+
+.status-inactive {
+  color: #b42318;
+  background: #fff0ed;
+}
+
+.tr:not(.banned) .ops button:nth-child(2) {
+  color: #b42318;
+  background: #fff0ed;
+}
+
+.tr.banned .ops button:nth-child(2) {
+  color: #0f7a45;
+  background: #e8f5ee;
 }
 </style>

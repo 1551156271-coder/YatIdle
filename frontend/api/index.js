@@ -1,5 +1,6 @@
 const BASE_URL = 'http://127.0.0.1:8080'
 const TIMEOUT = 10000
+export const API_BASE_URL = BASE_URL
 
 export function resolveImageUrl(url) {
   if (!url) return ''

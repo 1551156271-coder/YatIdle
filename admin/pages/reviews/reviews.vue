@@ -16,7 +16,7 @@
     <view v-else class="table">
       <view class="tr th"><text>ID</text><text>订单</text><text>评价人</text><text>被评价人</text><text>评分</text><text>内容</text><text>操作</text></view>
       <view v-for="r in records" :key="r.id" class="tr">
-        <text>{{ r.id }}</text><text>{{ r.orderId }}</text><text>{{ r.reviewerId }}</text><text>{{ r.revieweeId }}</text><text>{{ r.rating }}</text><text>{{ r.content || '-' }}</text>
+        <text>{{ r.id }}</text><text>{{ r.orderId }}</text><text>{{ namedUser(r.reviewerUsername, r.reviewerId) }}</text><text>{{ namedUser(r.revieweeUsername, r.revieweeId) }}</text><text>{{ r.rating }}</text><text>{{ r.content || '-' }}</text>
         <view class="ops"><button size="mini" @click="openDetail(r)">详情</button><button size="mini" class="danger" @click="openDelete(r)">删除</button></view>
       </view>
     </view>
@@ -138,6 +138,11 @@ export default {
     },
     async onDeleteSuccess() {
       await this.load()
+    },
+    namedUser(name, id) {
+      if (name && id) return `${name} (#${id})`
+      if (name) return name
+      return id ? `#${id}` : '-'
     }
   }
 }
