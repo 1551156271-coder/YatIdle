@@ -23,3 +23,7 @@ admin/unpackage/
 
 # macOS
 .DS_Store
+
+# uni-app build output
+admin/unpackage/
+frontend/unpackage/
