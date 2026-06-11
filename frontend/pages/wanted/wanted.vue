@@ -38,7 +38,13 @@
 		</view>
 
 		<view v-if="wantedList.length > 0" class="end-tip">— 没有更多了 —</view>
-		<view v-if="wantedList.length === 0" class="empty-state">
+		<view v-if="loading" class="loading-tip">加载中...</view>
+		<view v-if="networkError && !loading" class="network-error">
+			<text class="network-title">暂时连不上服务器</text>
+			<text class="network-desc">{{ networkError }}</text>
+			<button class="retry-btn" @click="loadWantedList">重新加载</button>
+		</view>
+		<view v-if="!networkError && wantedList.length === 0 && !loading" class="empty-state">
 			<text class="empty-icon">📋</text>
 			<text class="empty-text">暂无求购信息</text>
 		</view>
@@ -51,13 +57,16 @@
 	import TabBar from '@/components/tab-bar.vue'
 	import { getWantedList } from '@/api/wanted.js'
 	import { getCategories } from '@/api/item.js'
+	import { resolveImageUrl } from '@/api/index.js'
 
 	export default {
 		components: { TabBar },
 		data() {
 			return {
 				wantedList: [],
-				categories: []
+				categories: [],
+				loading: false,
+				networkError: ''
 			}
 		},
 		onLoad() {
@@ -81,6 +90,8 @@
 				}
 			},
 			async loadWantedList() {
+				this.loading = true
+				this.networkError = ''
 				try {
 					const list = await getWantedList()
 					this.wantedList = list.map(item => ({
@@ -94,11 +105,15 @@
 						desc: '',
 						nickname: item.nickname || '',
 						username: item.username || '',
-						avatar: item.avatar || '',
+						avatar: resolveImageUrl(item.avatar || ''),
 						time: this.formatTime(item.createTime)
 					}))
 				} catch (e) {
 					console.error('加载求购列表失败', e)
+					this.wantedList = []
+					this.networkError = (e && e.friendlyMessage) || '网络连接失败，请确认后端服务已启动'
+				} finally {
+					this.loading = false
 				}
 			},
 			getCategoryLabel(categoryId) {
@@ -136,7 +151,7 @@
 
 	.wanted-hero {
 		background: linear-gradient(135deg, #3A6341, #4E7D56);
-		padding: 40rpx 30rpx 50rpx;
+		padding: calc(env(safe-area-inset-top) + 40rpx) 30rpx 50rpx;
 		display: flex;
 		flex-direction: column;
 		align-items: center;
@@ -274,5 +289,9 @@
 		text-align: center; padding: 30rpx;
 		font-size: 24rpx; color: #ccc;
 	}
-	.bottom-safe { height: 140rpx; }
+	.loading-tip {
+		text-align: center; padding: 30rpx;
+		font-size: 24rpx; color: #ccc;
+	}
+	.bottom-safe { height: calc(140rpx + env(safe-area-inset-bottom)); }
 </style>

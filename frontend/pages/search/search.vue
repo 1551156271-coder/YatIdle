@@ -85,7 +85,15 @@
 		</view>
 
 		<!-- 空状态：已搜索无结果 -->
-		<view v-if="searched && results.length === 0 && !loading" class="empty-state">
+		<view v-if="loading" class="loading-tip">加载中...</view>
+
+		<view v-if="searched && networkError && !loading" class="network-error">
+			<text class="network-title">暂时连不上服务器</text>
+			<text class="network-desc">{{ networkError }}</text>
+			<button class="retry-btn" @click="retrySearch">重新搜索</button>
+		</view>
+
+		<view v-if="searched && !networkError && results.length === 0 && !loading" class="empty-state">
 			<text class="empty-icon">🔍</text>
 			<text class="empty-text">未找到相关商品</text>
 			<text class="empty-hint">试试其他关键词或调整筛选条件</text>
@@ -101,6 +109,7 @@
 
 <script>
 	import { searchItems, getCategories } from '@/api/item.js'
+	import { resolveImageUrl } from '@/api/index.js'
 	export default {
 		data() {
 			return {
@@ -109,6 +118,7 @@
 				loading: false,
 				results: [],
 				totalCount: 0,
+				networkError: '',
 				statusBarHeight: 44,
 				headerRightPad: 20,
 				page: 1,
@@ -179,6 +189,7 @@
 			async doSearch() {
 				this.searched = true
 				this.loading = true
+				this.networkError = ''
 				try {
 					const params = {
 						keyword: this.keyword.trim(),
@@ -196,7 +207,7 @@
 
 					const mapped = records.map(r => ({
 						id: r.id,
-						image: r.imageUrl || '',
+						image: resolveImageUrl(r.imageUrl || ''),
 						title: r.title,
 						price: r.price,
 						campus: r.campus
@@ -210,14 +221,22 @@
 					this.hasMore = this.page < (data.pages || 1)
 				} catch (e) {
 					if (this.page === 1) this.results = []
+					this.hasMore = false
+					this.networkError = (e && e.friendlyMessage) || '网络连接失败，请确认后端服务已启动'
 				} finally {
 					this.loading = false
 				}
 				},
+			retrySearch() {
+				this.page = 1
+				this.hasMore = true
+				this.doSearch()
+			},
 			clearSearch() {
 				this.keyword = ''
 				this.results = []
 				this.searched = false
+				this.networkError = ''
 				this.selectedCondition = ''
 				this.selectedFilterCampus = ''
 				this.selectedFilterCategory = ''
@@ -460,4 +479,10 @@
 	.empty-icon { font-size: 80rpx; margin-bottom: 20rpx; }
 	.empty-text { font-size: 28rpx; color: #999; }
 	.empty-hint { font-size: 24rpx; color: #ccc; margin-top: 12rpx; }
+	.loading-tip {
+		text-align: center;
+		padding: 30rpx;
+		font-size: 24rpx;
+		color: #ccc;
+	}
 </style>

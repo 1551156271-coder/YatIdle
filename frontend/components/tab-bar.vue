@@ -25,8 +25,7 @@
 </template>
 
 <script>
-	const BASE_URL = 'http://127.0.0.1:8080'
-
+	import { API_BASE_URL } from '@/api/index.js'
 	import { getMySellOrders, getMyBuyOrders } from '@/api/order.js'
 
 	export default {
@@ -72,7 +71,7 @@
 					let chatUnread = 0
 					try {
 						const res = await uni.request({
-							url: BASE_URL + '/api/chat/sessions?userId=' + user.id + '&pageSize=50',
+							url: API_BASE_URL + '/api/chat/sessions?userId=' + user.id + '&pageSize=50',
 							method: 'GET',
 							timeout: 5000
 						})
@@ -122,10 +121,10 @@
 		display: flex;
 		align-items: center;
 		justify-content: space-around;
-		height: 100rpx;
+		min-height: 100rpx;
 		background: #ffffff;
 		border-top: 1rpx solid #f0f0f0;
-		padding-bottom: env(safe-area-inset-bottom);
+		padding-bottom: calc(env(safe-area-inset-bottom) + 8rpx);
 		z-index: 999;
 	}
 

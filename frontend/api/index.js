@@ -1,12 +1,11 @@
-const BASE_URL = 'http://127.0.0.1:8080'
+import { createNetworkError, getRuntimeApiBaseUrl, resolveImageUrlWithBase } from './runtime.js'
+
+const BASE_URL = getRuntimeApiBaseUrl()
 const TIMEOUT = 10000
 export const API_BASE_URL = BASE_URL
 
 export function resolveImageUrl(url) {
-  if (!url) return ''
-  if (url.startsWith('http://') || url.startsWith('https://')) return url
-  if (url.startsWith('/')) return BASE_URL + url
-  return BASE_URL + '/' + url
+  return resolveImageUrlWithBase(url, BASE_URL)
 }
 
 // ========== Mock 开关：true=用假数据，false=调真实接口 ==========
@@ -429,8 +428,10 @@ function request(method, url, data) {
 				}
 			},
 			fail(err) {
+				const requestUrl = BASE_URL + url
+				const wrapped = createNetworkError(err, requestUrl)
 				uni.showToast({ title: '网络请求失败', icon: 'none' })
-				reject(err)
+				reject(wrapped)
 			}
 		})
 	})
