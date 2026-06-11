@@ -47,7 +47,13 @@
 		<view v-if="loading" class="loading-tip">加载中...</view>
 		<view v-if="!hasMore && goodsList.length > 0" class="loading-tip">— 没有更多了 —</view>
 
-		<view v-if="goodsList.length === 0 && !loading" class="empty-state">
+		<view v-if="networkError && !loading" class="network-error">
+			<text class="network-title">暂时连不上服务器</text>
+			<text class="network-desc">{{ networkError }}</text>
+			<button class="retry-btn" @click="retryLoadGoods">重新加载</button>
+		</view>
+
+		<view v-if="!networkError && goodsList.length === 0 && !loading" class="empty-state">
 			<text class="empty-icon iconfont icon-weizhaodao"></text>
 			<text class="empty-text">该分类暂无商品</text>
 		</view>
@@ -61,6 +67,7 @@
 <script>
 	import TabBar from '@/components/tab-bar.vue'
 	import { getCategories, searchItems } from '@/api/item.js'
+	import { resolveImageUrl } from '@/api/index.js'
 	export default {
 		components: { TabBar },
 		data() {
@@ -71,7 +78,8 @@
 				page: 1,
 				pageSize: 10,
 				categories: [],
-				goodsList: []
+				goodsList: [],
+				networkError: ''
 			}
 		},
 		onLoad() {
@@ -131,6 +139,7 @@
 			},
 			async loadGoods() {
 				this.loading = true
+				if (this.page === 1) this.networkError = ''
 				try {
 					const params = {
 						page: this.page,
@@ -143,7 +152,7 @@
 					const records = (data && data.records) ? data.records : []
 					const mapped = records.map(r => ({
 						id: r.id,
-						image: r.imageUrl || '',
+						image: resolveImageUrl(r.imageUrl || ''),
 						title: r.title,
 						price: r.price,
 						campus: r.campus
@@ -156,10 +165,17 @@
 					this.hasMore = this.page < (data.pages || 1)
 				} catch (e) {
 					if (this.page === 1) this.goodsList = []
+					this.hasMore = false
+					this.networkError = (e && e.friendlyMessage) || '网络连接失败，请确认后端服务已启动'
 				} finally {
 					this.loading = false
 					uni.stopPullDownRefresh()
 				}
+			},
+			retryLoadGoods() {
+				this.page = 1
+				this.hasMore = true
+				this.loadGoods()
 			},
 			goToDetail(goods) {
 				uni.navigateTo({
@@ -182,7 +198,7 @@
 	/* ===== 搜索栏 ===== */
 	.search-bar {
 		background: linear-gradient(135deg, #3A6341, #4E7D56);
-		padding: 20rpx 24rpx 24rpx;
+		padding: calc(env(safe-area-inset-top) + 20rpx) 24rpx 24rpx;
 		display: flex;
 		align-items: center;
 		gap: 16rpx;
@@ -225,11 +241,15 @@
 		background: #ffffff;
 		padding: 20rpx 20rpx;
 		white-space: nowrap;
+		width: 100%;
 		box-sizing: border-box;
 	}
 
 	.category-tag {
-		display: inline-block;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		flex-shrink: 0;
 		font-size: 26rpx;
 		color: #666;
 		padding: 12rpx 28rpx;
@@ -342,6 +362,6 @@
 	}
 
 	.bottom-safe {
-		height: 20rpx;
+		height: calc(140rpx + env(safe-area-inset-bottom));
 	}
 </style>

@@ -1,4 +1,4 @@
-import { post, get, put, del, resolveImageUrl } from './index'
+import { post, get, put, del, resolveImageUrl, API_BASE_URL } from './index'
 
 export function register(username, password) {
 	return post('/api/user/register', { username, password })
@@ -23,7 +23,7 @@ export function deleteUser(id) {
 export function uploadAvatar(filePath) {
 	return new Promise((resolve, reject) => {
 		uni.uploadFile({
-			url: 'http://127.0.0.1:8080/api/user/avatar/upload',
+			url: API_BASE_URL + '/api/user/avatar/upload',
 			filePath,
 			name: 'file',
 			success(res) {

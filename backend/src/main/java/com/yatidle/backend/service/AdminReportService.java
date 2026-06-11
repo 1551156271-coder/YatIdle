@@ -1,7 +1,7 @@
 package com.yatidle.backend.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -147,12 +147,12 @@ public class AdminReportService {
         report.setHandleResult(result);
         report.setHandlerId(adminId);
         report.setHandleTime(LocalDateTime.now());
-        reportMapper.update(null, new LambdaUpdateWrapper<Report>()
-                .eq(Report::getId, reportId)
-                .set(Report::getActionType, null)
-                .set(Report::getHandleResult, result)
-                .set(Report::getHandlerId, adminId)
-                .set(Report::getHandleTime, report.getHandleTime()));
+        reportMapper.update(null, new UpdateWrapper<Report>()
+                .eq("id", reportId)
+                .set("action_type", null)
+                .set("handle_result", result)
+                .set("handler_id", adminId)
+                .set("handle_time", report.getHandleTime()));
         adminLogService.log(adminId, "RESTORE_REPORT_ACTION", "REPORT", reportId, actionType, "RESTORED", result);
     }
 

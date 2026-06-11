@@ -1,4 +1,4 @@
-import { get, post, put } from './index'
+import { get, post, put, API_BASE_URL, resolveImageUrl } from './index'
 
 export function createSession(userId, data) {
   return post('/api/chat/sessions?userId=' + userId, data)
@@ -23,14 +23,14 @@ export function markRead(sessionId, userId) {
 export function uploadChatImage(filePath) {
   return new Promise((resolve, reject) => {
     uni.uploadFile({
-      url: 'http://127.0.0.1:8080/api/chat/images/upload',
+      url: API_BASE_URL + '/api/chat/images/upload',
       filePath: filePath,
       name: 'file',
       success(res) {
         try {
           const body = JSON.parse(res.data)
           if (body.code === 200) {
-            resolve(body.data.url)
+            resolve(resolveImageUrl(body.data.url))
           } else {
             uni.showToast({ title: body.message || '上传失败', icon: 'none' })
             reject(body)

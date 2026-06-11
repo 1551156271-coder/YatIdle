@@ -1,11 +1,13 @@
 package com.yatidle.backend.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.yatidle.backend.entity.Category;
 import com.yatidle.backend.entity.Item;
 import com.yatidle.backend.entity.Report;
 import com.yatidle.backend.entity.TradeOrder;
 import com.yatidle.backend.entity.User;
 import com.yatidle.backend.entity.Wanted;
+import com.yatidle.backend.mapper.CategoryMapper;
 import com.yatidle.backend.mapper.ItemMapper;
 import com.yatidle.backend.mapper.ReportMapper;
 import com.yatidle.backend.mapper.TradeOrderMapper;
@@ -28,14 +30,17 @@ public class AdminDashboardService {
     private final WantedMapper wantedMapper;
     private final TradeOrderMapper tradeOrderMapper;
     private final ReportMapper reportMapper;
+    private final CategoryMapper categoryMapper;
 
     public AdminDashboardService(UserMapper userMapper, ItemMapper itemMapper, WantedMapper wantedMapper,
-                                 TradeOrderMapper tradeOrderMapper, ReportMapper reportMapper) {
+                                 TradeOrderMapper tradeOrderMapper, ReportMapper reportMapper,
+                                 CategoryMapper categoryMapper) {
         this.userMapper = userMapper;
         this.itemMapper = itemMapper;
         this.wantedMapper = wantedMapper;
         this.tradeOrderMapper = tradeOrderMapper;
         this.reportMapper = reportMapper;
+        this.categoryMapper = categoryMapper;
     }
 
     public Map<String, Object> overview() {
@@ -54,6 +59,8 @@ public class AdminDashboardService {
         data.put("itemStatusStats", itemStatusStats());
         data.put("reportStatusStats", reportStatusStats());
         data.put("userStatusStats", userStatusStats());
+        data.put("onSaleCategoryStats", onSaleCategoryStats());
+        data.put("wantedStatusStats", wantedStatusStats());
         return data;
     }
 
@@ -100,6 +107,34 @@ public class AdminDashboardService {
                 stat("active", "正常", userMapper.selectCount(new LambdaQueryWrapper<User>().eq(User::getStatus, "active").eq(User::getRole, 0))),
                 stat("inactive", "封禁", userMapper.selectCount(new LambdaQueryWrapper<User>().eq(User::getStatus, "inactive").eq(User::getRole, 0))),
                 stat("admin", "管理员", userMapper.selectCount(new LambdaQueryWrapper<User>().eq(User::getRole, 1)))
+        );
+    }
+
+    private List<Map<String, Object>> onSaleCategoryStats() {
+        List<Category> categories = categoryMapper.selectList(new LambdaQueryWrapper<Category>()
+                .eq(Category::getIsDeleted, 0)
+                .eq(Category::getStatus, 1)
+                .orderByAsc(Category::getSortOrder)
+                .orderByAsc(Category::getId));
+        List<Map<String, Object>> stats = new ArrayList<>();
+        for (Category category : categories) {
+            Long count = itemMapper.selectCount(new LambdaQueryWrapper<Item>()
+                    .eq(Item::getIsDeleted, 0)
+                    .eq(Item::getStatus, "ON_SALE")
+                    .eq(Item::getCategoryId, category.getId()));
+            if (count != null && count > 0) {
+                stats.add(stat(String.valueOf(category.getId()), category.getName(), count));
+            }
+        }
+        return stats;
+    }
+
+    private List<Map<String, Object>> wantedStatusStats() {
+        return List.of(
+                stat("active", "有效", wantedMapper.selectCount(new LambdaQueryWrapper<Wanted>().eq(Wanted::getIsDeleted, 0).eq(Wanted::getStatus, "active"))),
+                stat("pending", "待定", wantedMapper.selectCount(new LambdaQueryWrapper<Wanted>().eq(Wanted::getIsDeleted, 0).eq(Wanted::getStatus, "pending"))),
+                stat("closed", "已关闭", wantedMapper.selectCount(new LambdaQueryWrapper<Wanted>().eq(Wanted::getIsDeleted, 0).eq(Wanted::getStatus, "closed"))),
+                stat("sold", "已成交", wantedMapper.selectCount(new LambdaQueryWrapper<Wanted>().eq(Wanted::getIsDeleted, 0).eq(Wanted::getStatus, "sold")))
         );
     }
 
