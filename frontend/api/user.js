@@ -1,4 +1,4 @@
-import { post, get, put, del, resolveImageUrl, API_BASE_URL } from './index'
+import { post, get, put, del, resolveUploadStorageUrl, API_BASE_URL } from './index'
 
 export function register(username, password) {
 	return post('/api/user/register', { username, password })
@@ -30,7 +30,7 @@ export function uploadAvatar(filePath) {
 				try {
 					const body = JSON.parse(res.data)
 					if (body.code === 200) {
-						resolve(resolveImageUrl(body.data.url))
+						resolve(resolveUploadStorageUrl(body.data.url))
 					} else {
 						reject(body)
 					}

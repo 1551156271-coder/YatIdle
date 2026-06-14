@@ -117,6 +117,7 @@
 
 <script>
 	import { cancelOrder, completeOrder } from '@/api/order.js'
+	import { resolveImageUrl } from '@/api/index.js'
 
 	export default {
 		data() {
@@ -182,9 +183,9 @@
 					sellerId: stored.sellerId || null,
 				buyerName: stored.buyerName || '',
 				sellerName: stored.sellerName || '',
-				sellerAvatar: stored.sellerAvatar || '',
-				buyerAvatar: stored.buyerAvatar || '',
-					image: stored.image || '',
+				sellerAvatar: resolveImageUrl(stored.sellerAvatar || ''),
+				buyerAvatar: resolveImageUrl(stored.buyerAvatar || ''),
+					image: resolveImageUrl(stored.image || ''),
 					title: stored.title || '商品 #' + (stored.itemId || ''),
 					price: stored.price || '',
 					status: stored.status || '',

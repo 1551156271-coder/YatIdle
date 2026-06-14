@@ -63,6 +63,7 @@
 <script>
 	import { getUserReviews } from '@/api/review.js'
 	import { getUserInfo } from '@/api/user.js'
+	import { resolveImageUrl } from '@/api/index.js'
 
 	export default {
 		data() {
@@ -116,7 +117,7 @@
 						const reviewList = Array.isArray(reviewData) ? reviewData : (reviewData.reviews || [])
 						this.reviews = reviewList.map(rv => ({
 							id: rv.id,
-							avatar: rv.reviewerAvatar || '',
+							avatar: resolveImageUrl(rv.reviewerAvatar || ''),
 							defaultAvatar: rv.reviewerName ? rv.reviewerName.charAt(0) : '?',
 							name: rv.reviewerName || '匿名用户',
 							rating: rv.rating || 5,

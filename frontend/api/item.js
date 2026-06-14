@@ -1,4 +1,4 @@
-import { get, post, put, MOCK, resolveImageUrl, API_BASE_URL } from './index'
+import { get, post, put, MOCK, resolveUploadStorageUrl, API_BASE_URL } from './index'
 
 export function getCategories() {
   return get('/api/categories')
@@ -34,7 +34,7 @@ export function onlineItem(id, userId) {
 
 export function uploadImage(filePath) {
   if (MOCK) {
-    return Promise.resolve(resolveImageUrl('/uploads/items/mock_' + Date.now() + '.jpg'))
+    return Promise.resolve('/uploads/items/mock_' + Date.now() + '.jpg')
   }
   return new Promise((resolve, reject) => {
     uni.uploadFile({
@@ -45,7 +45,7 @@ export function uploadImage(filePath) {
         try {
           const body = JSON.parse(res.data)
           if (body.code === 200) {
-            resolve(resolveImageUrl(body.data.url))
+            resolve(resolveUploadStorageUrl(body.data.url))
           } else {
             reject(body)
           }

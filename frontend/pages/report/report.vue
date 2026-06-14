@@ -43,7 +43,7 @@
 						:key="idx"
 						class="upload-preview"
 					>
-						<image :src="img" mode="aspectFill" class="up-img"></image>
+						<image :src="resolveImageUrl(img)" mode="aspectFill" class="up-img"></image>
 						<text class="up-del" @click="removeImage(idx)">✕</text>
 					</view>
 					<view v-if="images.length < 4" class="upload-btn" @click="addImage">
@@ -71,6 +71,7 @@
 
 <script>
 	import { createReport, uploadReportImage } from '../../api/report'
+	import { resolveImageUrl, resolveUploadStorageUrl } from '../../api/index'
 
 	export default {
 		data() {
@@ -100,6 +101,7 @@
 			}
 		},
 		methods: {
+			resolveImageUrl,
 			addImage() {
 				uni.chooseImage({
 					count: 4 - this.images.length,
@@ -128,7 +130,9 @@
 								uni.showLoading({ title: '上传截图中...' })
 								const imageUrls = []
 								for (const img of this.images) {
-									if (img.includes('/uploads/') || img.startsWith('http://') || img.startsWith('https://')) {
+									if (img.includes('/uploads/')) {
+										imageUrls.push(resolveUploadStorageUrl(img))
+									} else if (img.startsWith('http://') || img.startsWith('https://')) {
 										imageUrls.push(img)
 									} else {
 										imageUrls.push(await uploadReportImage(img))

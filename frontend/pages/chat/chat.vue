@@ -159,7 +159,10 @@ function parseMessage(m, currentUserId) {
 				fromMe: m.senderId === currentUserId,
 				type: 'product',
 				content: m.content,
-				product: obj,
+				product: {
+					...obj,
+					image: resolveImageUrl(obj.image || '')
+				},
 				time: new Date(m.createTime).getTime(),
 				showTime: false
 			}
@@ -205,14 +208,14 @@ export default {
 			this.userId = user.id
 		}
 		if (user) {
-			this.myAvatar = user.avatar || ''
+			this.myAvatar = resolveImageUrl(user.avatar || '')
 			this.myDefaultAvatar = (user.nickname || user.username || '?').charAt(0)
 		}
 		if (options.name) {
 			this.contactInfo.name = decodeURIComponent(options.name)
 		}
 			if (options.avatar) {
-				this.contactInfo.avatar = decodeURIComponent(options.avatar)
+				this.contactInfo.avatar = resolveImageUrl(decodeURIComponent(options.avatar))
 			}
 			if (options.partnerId) {
 				this.partnerId = parseInt(options.partnerId) || 0
@@ -365,7 +368,10 @@ export default {
 			try {
 				const result = await getUserItems(this.userId, { status: 'ON_SALE' })
 				const list = (result && result.records) || result || []
-				this.pickerItems = list
+				this.pickerItems = list.map(item => ({
+					...item,
+					imageUrl: resolveImageUrl(item.imageUrl || '')
+				}))
 			} catch (e) {
 				this.pickerItems = []
 			} finally {
@@ -382,7 +388,7 @@ export default {
 				id: item.id,
 				title: item.title,
 				price: item.price,
-				image: item.imageUrl || ''
+				image: resolveImageUrl(item.imageUrl || '')
 			})
 			try {
 				await sendMessage(this.userId, {
@@ -437,7 +443,7 @@ export default {
 						type: "wanted",
 						title: data.title,
 						price: data.budgetMin + ' — ' + data.budgetMax,
-						image: (data.images && data.images[0]) || ''
+						image: resolveImageUrl((data.images && data.images[0]) || '')
 					}
 				} else {
 					const data = await getItemDetail(Number(refId))
@@ -446,7 +452,7 @@ export default {
 						type: "item",
 						title: data.title,
 						price: data.price,
-						image: (data.imageUrls && data.imageUrls[0]) || ''
+						image: resolveImageUrl((data.imageUrls && data.imageUrls[0]) || '')
 					}
 				}
 			} catch (e) {}

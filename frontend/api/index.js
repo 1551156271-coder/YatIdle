@@ -1,4 +1,4 @@
-import { createNetworkError, getRuntimeApiBaseUrl, resolveImageUrlWithBase } from './runtime.js'
+import { createNetworkError, getRuntimeApiBaseUrl, resolveImageUrlWithBase, resolveUploadStorageUrlWithBase } from './runtime.js'
 
 const BASE_URL = getRuntimeApiBaseUrl()
 const TIMEOUT = 10000
@@ -6,6 +6,10 @@ export const API_BASE_URL = BASE_URL
 
 export function resolveImageUrl(url) {
   return resolveImageUrlWithBase(url, BASE_URL)
+}
+
+export function resolveUploadStorageUrl(url) {
+  return resolveUploadStorageUrlWithBase(url, BASE_URL)
 }
 
 // ========== Mock 开关：true=用假数据，false=调真实接口 ==========

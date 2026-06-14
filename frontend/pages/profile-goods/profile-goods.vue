@@ -35,6 +35,7 @@
 
 <script>
 	import { getUserItems } from '@/api/item.js'
+	import { resolveImageUrl } from '@/api/index.js'
 
 	export default {
 		data() {
@@ -64,7 +65,7 @@
 					const list = result.records || result || []
 					this.goodsList = list.map(item => ({
 						id: item.id,
-						image: item.imageUrl || '',
+						image: resolveImageUrl(item.imageUrl || ''),
 						title: item.title,
 						price: item.price,
 						campus: item.campus || ''

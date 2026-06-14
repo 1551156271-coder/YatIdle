@@ -1,4 +1,4 @@
-import { get, post, put, API_BASE_URL, resolveImageUrl } from './index'
+import { get, post, put, API_BASE_URL, resolveUploadStorageUrl } from './index'
 
 export function createSession(userId, data) {
   return post('/api/chat/sessions?userId=' + userId, data)
@@ -30,7 +30,7 @@ export function uploadChatImage(filePath) {
         try {
           const body = JSON.parse(res.data)
           if (body.code === 200) {
-            resolve(resolveImageUrl(body.data.url))
+            resolve(resolveUploadStorageUrl(body.data.url))
           } else {
             uni.showToast({ title: body.message || '上传失败', icon: 'none' })
             reject(body)

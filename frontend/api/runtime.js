@@ -1,5 +1,10 @@
 const DEFAULT_API_BASE_URL = 'http://127.0.0.1:8080'
 const LOCAL_HOSTS = new Set(['127.0.0.1', 'localhost'])
+const PRIVATE_IP_PATTERNS = [
+  /^10\./,
+  /^192\.168\./,
+  /^172\.(1[6-9]|2\d|3[0-1])\./
+]
 
 export function getRuntimeApiBaseUrl(locationLike) {
   const location = locationLike || getBrowserLocation()
@@ -14,10 +19,11 @@ export function resolveImageUrlWithBase(url, baseUrl) {
   if (!url) return ''
   const text = String(url)
   const apiBase = baseUrl || DEFAULT_API_BASE_URL
+  if (isLocalPreviewUrl(text)) return text
 
   try {
     const parsed = new URL(text)
-    if (LOCAL_HOSTS.has(parsed.hostname)) {
+    if (isBackendUploadUrl(parsed)) {
       const runtimeBase = new URL(apiBase)
       parsed.protocol = runtimeBase.protocol
       parsed.hostname = runtimeBase.hostname
@@ -29,6 +35,41 @@ export function resolveImageUrlWithBase(url, baseUrl) {
     if (text.startsWith('/')) return apiBase + text
     return apiBase + '/' + text
   }
+}
+
+export function resolveUploadStorageUrlWithBase(url, baseUrl) {
+  if (!url) return ''
+  const text = String(url)
+  const apiBase = baseUrl || DEFAULT_API_BASE_URL
+
+  try {
+    const parsed = new URL(text)
+    const runtimeBase = new URL(apiBase)
+    if (
+      isBackendUploadUrl(parsed) ||
+      (parsed.protocol === runtimeBase.protocol &&
+        parsed.hostname === runtimeBase.hostname &&
+        parsed.port === runtimeBase.port)
+    ) {
+      return parsed.pathname + parsed.search + parsed.hash
+    }
+    return text
+  } catch (e) {
+    return text
+  }
+}
+
+function isBackendUploadUrl(parsed) {
+  return parsed.pathname.startsWith('/uploads/') && (
+    LOCAL_HOSTS.has(parsed.hostname) ||
+    PRIVATE_IP_PATTERNS.some(pattern => pattern.test(parsed.hostname))
+  )
+}
+
+function isLocalPreviewUrl(text) {
+  return /^(blob:|data:|file:|wxfile:|cdvfile:)/.test(text) ||
+    text.startsWith('_') ||
+    text.startsWith('tmp/')
 }
 
 export function createNetworkError(err, requestUrl) {

@@ -81,6 +81,7 @@
 	import { addFavorite, removeFavorite, getMyFavorites } from '@/api/favorite.js'
 	import { createSession } from '@/api/chat.js'
 	import { getUserInfo } from '@/api/user.js'
+	import { resolveImageUrl } from '@/api/index.js'
 
 	export default {
 		data() {
@@ -142,7 +143,10 @@
 			async loadItem() {
 				try {
 					const data = await getItemDetail(this.goodsId)
-					this.item = data
+					this.item = {
+						...data,
+						imageUrls: (data.imageUrls || []).map(resolveImageUrl)
+					}
 					this.itemStatus = data.status || 'ON_SALE'
 					const user = uni.getStorageSync('user')
 					if (user && user.id === data.userId) {
@@ -167,7 +171,11 @@
 			},
 			async loadSellerInfo(userId) {
 				try {
-					this.sellerInfo = await getUserInfo(userId)
+					const seller = await getUserInfo(userId)
+					this.sellerInfo = {
+						...seller,
+						avatar: resolveImageUrl(seller.avatar || '')
+					}
 				} catch (e) {}
 			},
 			goToProfile() {
@@ -211,7 +219,7 @@
 				try {
 					const session = await createSession(user.id, { itemId: Number(this.goodsId) })
 					const partnerId = session.buyerId === user.id ? session.sellerId : session.buyerId
-					uni.navigateTo({ url: '/pages/chat/chat?id=' + session.id + '&partnerId=' + (partnerId || 0) + '&name=' + encodeURIComponent(session.partnerName || '') + '&avatar=' + encodeURIComponent(session.partnerAvatar || '') + '&itemId=' + this.goodsId })
+					uni.navigateTo({ url: '/pages/chat/chat?id=' + session.id + '&partnerId=' + (partnerId || 0) + '&name=' + encodeURIComponent(session.partnerName || '') + '&avatar=' + encodeURIComponent(resolveImageUrl(session.partnerAvatar || '')) + '&itemId=' + this.goodsId })
 				} catch (e) {
 					uni.showToast({ title: '创建会话失败', icon: 'none' })
 				}

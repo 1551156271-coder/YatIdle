@@ -46,6 +46,7 @@
 
 <script>
 	import { submitReview, updateReview } from '@/api/review.js'
+	import { resolveImageUrl } from '@/api/index.js'
 
 	export default {
 		data() {
@@ -69,11 +70,11 @@
 			const stored = uni.getStorageSync('currentOrder')
 			if (stored) {
 				this.sellerName = stored.sellerName || options.seller || '卖家'
-				this.sellerAvatar = stored.sellerAvatar || options.sellerAvatar || ''
+				this.sellerAvatar = resolveImageUrl(stored.sellerAvatar || options.sellerAvatar || '')
 				this.sellerId = stored.sellerId || options.sellerId || ''
 			} else {
 				this.sellerName = options.seller || '卖家'
-				this.sellerAvatar = options.sellerAvatar || ''
+				this.sellerAvatar = resolveImageUrl(options.sellerAvatar || '')
 				this.sellerId = options.sellerId || ''
 			}
 			this.orderId = options.orderId || ''

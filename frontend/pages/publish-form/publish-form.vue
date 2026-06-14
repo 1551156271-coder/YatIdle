@@ -12,7 +12,7 @@
 				<text class="form-label">商品图片</text>
 				<view class="image-grid">
 					<view class="image-item" v-for="(img, idx) in sellForm.images" :key="idx" @click="previewSellImage(idx)">
-						<image class="image-thumb" :src="img" mode="aspectFill" />
+						<image class="image-thumb" :src="resolveImageUrl(img)" mode="aspectFill" />
 						<view class="image-remove" @click.stop="removeSellImage(idx)">✕</view>
 					</view>
 					<view class="upload-box" @click="uploadSellImage" v-if="sellForm.images.length < 9">
@@ -100,7 +100,7 @@
 				<text class="form-label">参考图片<text class="form-label-hint">（选填）</text></text>
 				<view class="image-grid">
 					<view class="image-item" v-for="(img, idx) in buyForm.images" :key="idx" @click="previewBuyImage(idx)">
-						<image class="image-thumb" :src="img" mode="aspectFill" />
+						<image class="image-thumb" :src="resolveImageUrl(img)" mode="aspectFill" />
 						<view class="image-remove" @click.stop="removeBuyImage(idx)">✕</view>
 					</view>
 					<view class="upload-box" @click="uploadBuyImage" v-if="buyForm.images.length < 9">
@@ -121,6 +121,7 @@
 <script>
 	import { publishItem, getCategories, uploadImage } from '@/api/item.js'
 	import { publishWanted, updateWanted } from '@/api/wanted.js'
+	import { resolveImageUrl, resolveUploadStorageUrl } from '@/api/index.js'
 
 	export default {
 		data() {
@@ -194,6 +195,7 @@
 			this.loadCategories()
 		},
 		methods: {
+			resolveImageUrl,
 			async loadCategories() {
 				try {
 					this.categories = await getCategories()
@@ -218,7 +220,7 @@
 				})
 			},
 			previewSellImage(idx) {
-				uni.previewImage({ current: idx, urls: this.sellForm.images })
+				uni.previewImage({ current: idx, urls: this.sellForm.images.map(resolveImageUrl) })
 			},
 			removeSellImage(idx) {
 				this.sellForm.images.splice(idx, 1)
@@ -261,7 +263,7 @@
 					const imageUrls = []
 					for (const img of this.sellForm.images) {
 						if (img.includes('/uploads/')) {
-							imageUrls.push(img)
+							imageUrls.push(resolveUploadStorageUrl(img))
 						} else {
 							const url = await uploadImage(img)
 							imageUrls.push(url)
@@ -326,7 +328,7 @@
 				})
 			},
 			previewBuyImage(idx) {
-				uni.previewImage({ current: idx, urls: this.buyForm.images })
+				uni.previewImage({ current: idx, urls: this.buyForm.images.map(resolveImageUrl) })
 			},
 			removeBuyImage(idx) {
 				this.buyForm.images.splice(idx, 1)
@@ -356,7 +358,7 @@
 				const imageUrls = []
 				for (const img of this.buyForm.images) {
 					if (img.includes('/uploads/')) {
-						imageUrls.push(img)
+						imageUrls.push(resolveUploadStorageUrl(img))
 					} else {
 						const url = await uploadImage(img)
 						imageUrls.push(url)

@@ -50,6 +50,7 @@
 <script>
 	import { getWallet } from '@/api/wallet.js'
 	import { getMySellOrders, getMyBuyOrders } from '@/api/order.js'
+	import { resolveImageUrl } from '@/api/index.js'
 
 	export default {
 		data() {
@@ -96,7 +97,7 @@
 						txType: o.txType,
 						type: o.txType === 'sold' ? 'INCOME' : 'EXPENSE',
 						title: o.itemTitle || ('商品 #' + o.itemId),
-						image: o.itemImageUrl || '',
+						image: resolveImageUrl(o.itemImageUrl || ''),
 						price: o.price,
 						amount: o.price,
 						status: o.status,

@@ -104,6 +104,7 @@
 	import { getItemDetail } from '@/api/item.js'
 	import { createOrder } from '@/api/order.js'
 	import { getUserInfo } from '@/api/user.js'
+	import { resolveImageUrl } from '@/api/index.js'
 
 	export default {
 		data() {
@@ -152,7 +153,7 @@
 					const data = await getItemDetail(id)
 					this.goods = {
 						id: data.id,
-						image: (data.imageUrls && data.imageUrls[0]) || '',
+						image: resolveImageUrl((data.imageUrls && data.imageUrls[0]) || ''),
 						title: data.title,
 						price: data.price,
 						conditionLevel: data.conditionLevel,
@@ -164,7 +165,7 @@
 						try {
 							const sellerData = await getUserInfo(data.userId)
 							this.seller = {
-								avatar: sellerData.avatar || '',
+								avatar: resolveImageUrl(sellerData.avatar || ''),
 								nickname: sellerData.nickname || '',
 								username: sellerData.username || ''
 							}
@@ -193,11 +194,11 @@
 						itemId: data.itemId,
 						buyerId: data.buyerId,
 						sellerId: data.sellerId,
-						image: data.itemImageUrl || this.goods.image,
+						image: resolveImageUrl(data.itemImageUrl || this.goods.image),
 						buyerName: data.buyerName || '',
 						sellerName: data.sellerName || '',
-						sellerAvatar: data.sellerAvatar || '',
-						buyerAvatar: data.buyerAvatar || '',
+						sellerAvatar: resolveImageUrl(data.sellerAvatar || ''),
+						buyerAvatar: resolveImageUrl(data.buyerAvatar || ''),
 						title: data.itemTitle || this.goods.title,
 						price: data.price || this.goods.price,
 						status: data.status || 'PENDING',

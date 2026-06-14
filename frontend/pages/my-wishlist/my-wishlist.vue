@@ -29,6 +29,7 @@
 
 <script>
 	import { getMyFavorites } from '@/api/favorite.js'
+	import { resolveImageUrl } from '@/api/index.js'
 
 	export default {
 		data() {
@@ -56,7 +57,7 @@
 							uid: (f.type || 'item') + '_' + (f.wantedId || f.itemId),
 							type: f.type || 'item',
 							id: f.wantedId || f.itemId,
-							image: f.coverImage || '',
+							image: resolveImageUrl(f.coverImage || ''),
 							title: f.wantedTitle || f.itemTitle || '商品',
 							price: f.price,
 							budgetMin: f.budgetMin,

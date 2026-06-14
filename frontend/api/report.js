@@ -1,4 +1,4 @@
-import { API_BASE_URL, post, resolveImageUrl } from './index'
+import { API_BASE_URL, post, resolveUploadStorageUrl } from './index'
 
 export function createReport(data) {
 	return post('/api/reports', data)
@@ -17,7 +17,7 @@ export function uploadReportImage(filePath) {
 				try {
 					const body = typeof res.data === 'string' ? JSON.parse(res.data) : res.data
 					if (res.statusCode === 200 && body.code === 200) {
-						resolve(resolveImageUrl(body.data.url))
+						resolve(resolveUploadStorageUrl(body.data.url))
 					} else {
 						reject(body)
 					}

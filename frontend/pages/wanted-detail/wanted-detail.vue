@@ -93,6 +93,7 @@
 	import { getCategories } from '@/api/item.js'
 	import { createSession } from '@/api/chat.js'
 	import { addWantedFavorite, removeWantedFavorite, getMyFavorites } from '@/api/favorite.js'
+	import { resolveImageUrl } from '@/api/index.js'
 
 	export default {
 		data() {
@@ -153,10 +154,10 @@
 						categoryLabel: this.getCategoryLabel(data.categoryId),
 						status: data.status,
 						desc: data.description || '',
-						images: data.images || [],
+						images: (data.images || []).map(resolveImageUrl),
 						nickname: data.nickname || '',
 						username: data.username || '',
-						avatar: data.avatar || '',
+						avatar: resolveImageUrl(data.avatar || ''),
 						time: this.formatTime(data.createTime),
 						userId: data.userId,
 						creditScore: data.creditScore || 0,
@@ -222,7 +223,7 @@
 				try {
 					const session = await createSession(user.id, { wantedId: this.detail.id })
 					const pid = session.buyerId === user.id ? session.sellerId : session.buyerId
-						uni.navigateTo({ url: '/pages/chat/chat?id=' + session.id + '&partnerId=' + (pid || 0) + '&name=' + encodeURIComponent(this.detail.username || '') + '&avatar=' + encodeURIComponent(session.partnerAvatar || '') + '&wantedId=' + this.detail.id })
+						uni.navigateTo({ url: '/pages/chat/chat?id=' + session.id + '&partnerId=' + (pid || 0) + '&name=' + encodeURIComponent(this.detail.username || '') + '&avatar=' + encodeURIComponent(resolveImageUrl(session.partnerAvatar || '')) + '&wantedId=' + this.detail.id })
 				} catch (e) {
 					uni.showToast({ title: '创建会话失败', icon: 'none' })
 				}

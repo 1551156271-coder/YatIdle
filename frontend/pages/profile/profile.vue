@@ -165,7 +165,7 @@
 						const reviews = r.reviews || r || []
 						this.user.reviews = (reviews || []).slice(0, 3).map(rv => ({
 							id: rv.id,
-							avatar: rv.reviewerAvatar || '',
+							avatar: resolveImageUrl(rv.reviewerAvatar || ''),
 							defaultAvatar: rv.reviewerName ? rv.reviewerName.charAt(0) : '?',
 							name: rv.reviewerName || '匿名用户',
 							rating: rv.rating || 5,
@@ -178,7 +178,7 @@
 						const list = itemsData.records || itemsData || []
 						this.user.goods = list.map(g => ({
 							id: g.id,
-							image: g.imageUrl || g.coverImage || '',
+							image: resolveImageUrl(g.imageUrl || g.coverImage || ''),
 							title: g.title || '',
 							price: g.price || '0.00'
 						}))

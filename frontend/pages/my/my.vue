@@ -134,6 +134,7 @@
 	import { getUserItems } from '@/api/item.js'
 	import { getMyWanted } from '@/api/wanted.js'
 	import { getUserInfo } from '@/api/user.js'
+	import { resolveImageUrl } from '@/api/index.js'
 	export default {
 		components: { TabBar },
 		data() {
@@ -144,7 +145,7 @@
 					isLogin: true,
 					nickname: user.nickname || user.username || '',
 					username: user.username || '',
-					avatar: user.avatar || '',
+					avatar: resolveImageUrl(user.avatar || ''),
 					campus: user.campus || ''
 				} : {
 					isLogin: false,
@@ -187,7 +188,7 @@
 			if (user) {
 				this.userInfo.isLogin = true
 				this.userInfo.nickname = user.nickname || user.username || ''
-				this.userInfo.avatar = user.avatar || ''
+				this.userInfo.avatar = resolveImageUrl(user.avatar || '')
 				this.userInfo.campus = user.campus || ''
 				this.loadStats()
 			}

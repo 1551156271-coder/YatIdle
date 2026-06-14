@@ -16,7 +16,7 @@
 				<text class="form-label">商品图片</text>
 				<view class="image-grid">
 					<view class="image-item" v-for="(img, idx) in form.images" :key="idx" @click="previewImage(idx)">
-						<image class="image-thumb" :src="img" mode="aspectFill" />
+						<image class="image-thumb" :src="resolveImageUrl(img)" mode="aspectFill" />
 						<view class="image-remove" @click.stop="removeImage(idx)">✕</view>
 					</view>
 					<view class="upload-box" @click="uploadImage" v-if="form.images.length < 9">
@@ -79,6 +79,7 @@
 
 <script>
 	import { getItemDetail, updateItem, getCategories, uploadImage } from '@/api/item.js'
+	import { resolveImageUrl, resolveUploadStorageUrl } from '@/api/index.js'
 
 	export default {
 		data() {
@@ -116,6 +117,7 @@
 			}
 		},
 		methods: {
+			resolveImageUrl,
 			async loadCategories() {
 				try {
 					this.categories = await getCategories()
@@ -160,7 +162,7 @@
 				})
 			},
 			previewImage(idx) {
-				uni.previewImage({ current: idx, urls: this.form.images })
+				uni.previewImage({ current: idx, urls: this.form.images.map(resolveImageUrl) })
 			},
 			removeImage(idx) {
 				this.form.images.splice(idx, 1)
@@ -196,7 +198,7 @@
 					const imageUrls = []
 					for (const img of this.form.images) {
 						if (img.includes('/uploads/')) {
-							imageUrls.push(img)
+							imageUrls.push(resolveUploadStorageUrl(img))
 						} else {
 							const url = await uploadImage(img)
 							imageUrls.push(url)

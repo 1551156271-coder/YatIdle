@@ -47,6 +47,7 @@
 	import TabBar from '@/components/tab-bar.vue'
 	import { getMySessions } from '@/api/chat.js'
 	import { getMySellOrders, getMyBuyOrders } from '@/api/order.js'
+	import { resolveImageUrl } from '@/api/index.js'
 	export default {
 		components: { TabBar },
 		data() {
@@ -127,7 +128,7 @@
 						return {
 							id: s.id,
 							partnerId: partnerId || 0,
-							avatar: s.partnerAvatar || '',
+							avatar: resolveImageUrl(s.partnerAvatar || ''),
 							defaultAvatar: (s.partnerName || otherName).charAt(0),
 							name: s.partnerName || s.wantedTitle || s.itemTitle || otherName,
 							lastMsg: s.lastMessage || '暂无消息',

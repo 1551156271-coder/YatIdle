@@ -58,6 +58,7 @@
 
 <script>
 	import { updateProfile, uploadAvatar } from '@/api/user.js'
+	import { resolveImageUrl, resolveUploadStorageUrl } from '@/api/index.js'
 	export default {
 		data() {
 			const user = uni.getStorageSync('user') || {}
@@ -65,10 +66,11 @@
 				campusVisible: false,
 				campusList: ['东校园', '南校园', '北校园', '珠海校区', '深圳校区'],
 				form: {
-					avatar: user.avatar || '',
+					avatar: resolveImageUrl(user.avatar || ''),
 					nickname: user.nickname || '',
 					campus: user.campus || ''
-				}
+				},
+				avatarStorage: resolveUploadStorageUrl(user.avatar || '')
 			}
 		},
 		methods: {
@@ -81,7 +83,8 @@
 						try {
 							uni.showLoading({ title: '上传中...' })
 							const url = await uploadAvatar(res.tempFilePaths[0])
-							this.form.avatar = url
+							this.avatarStorage = resolveUploadStorageUrl(url)
+							this.form.avatar = resolveImageUrl(url)
 							uni.hideLoading()
 						} catch (e) {
 							uni.hideLoading()
@@ -110,16 +113,17 @@
 				}
 				try {
 					uni.showLoading({ title: '保存中...' })
+					const avatarForSave = resolveUploadStorageUrl(this.avatarStorage || this.form.avatar || '')
 					await updateProfile({
 						userId: user.id,
 						nickname: nickname,
-						avatar: this.form.avatar || undefined,
+						avatar: avatarForSave || undefined,
 						campus: this.form.campus || undefined
 					})
 					uni.hideLoading()
 					// 更新本地存储
 					user.nickname = nickname
-					user.avatar = this.form.avatar
+					user.avatar = avatarForSave
 					user.campus = this.form.campus
 					uni.setStorageSync('user', user)
 					uni.showToast({ title: '保存成功', icon: 'none' })

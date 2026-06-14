@@ -31,6 +31,7 @@
 
 <script>
 	import { getMySellOrders, getMyBuyOrders } from '@/api/order.js'
+	import { resolveImageUrl } from '@/api/index.js'
 
 	export default {
 		data() {
@@ -113,10 +114,11 @@
 						itemId: item.order.itemId,
 						buyerId: item.order.buyerId,
 						sellerId: item.order.sellerId,
-						image: item.order.itemImageUrl || '',
+						image: resolveImageUrl(item.order.itemImageUrl || ''),
 						buyerName: item.order.buyerName || '',
 						sellerName: item.order.sellerName || '',
-						sellerAvatar: item.order.sellerAvatar || '',
+						sellerAvatar: resolveImageUrl(item.order.sellerAvatar || ''),
+						buyerAvatar: resolveImageUrl(item.order.buyerAvatar || ''),
 						hasReviewed: item.order.hasReviewed || false,
 						title: item.order.itemTitle || ('商品 #' + item.order.itemId),
 						price: item.order.price,
